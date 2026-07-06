@@ -16,15 +16,22 @@ export class RateLimiterService implements OnModuleDestroy {
       this.logger.error('Redis connection error', err.message);
     });
 
-    this.redis.connect().then(() => {
-      this.connected = true;
-      this.logger.log('Redis rate limiter connected');
-    }).catch((err: Error) => {
-      this.logger.error('Redis initial connection failed', err.message);
-    });
+    this.redis
+      .connect()
+      .then(() => {
+        this.connected = true;
+        this.logger.log('Redis rate limiter connected');
+      })
+      .catch((err: Error) => {
+        this.logger.error('Redis initial connection failed', err.message);
+      });
   }
 
-  async isAllowed(key: string, limit: number, windowMs: number): Promise<boolean> {
+  async isAllowed(
+    key: string,
+    limit: number,
+    windowMs: number,
+  ): Promise<boolean> {
     if (!this.connected) {
       this.logger.warn('Redis not connected, allowing request');
       return true;

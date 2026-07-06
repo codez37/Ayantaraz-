@@ -18,7 +18,8 @@ export const useCsrf = () => {
   }, []);
 
   useEffect(() => {
-    fetchToken();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchToken();
   }, [fetchToken]);
 
   return { csrfToken, loading };

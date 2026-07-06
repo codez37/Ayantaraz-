@@ -33,10 +33,11 @@ export class SecurityGuard implements CanActivate {
     const clientKey = this.extractClientKey(request);
 
     // 1. Rate Limiting (cheapest first)
-    const tier = this.reflector.getAllAndOverride<string>(RATE_LIMIT_TIER_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]) || 'default';
+    const tier =
+      this.reflector.getAllAndOverride<string>(RATE_LIMIT_TIER_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]) || 'default';
 
     const rateConfig = RATE_LIMITS[tier] || RATE_LIMITS.default;
     const allowed = await this.rateLimiterService.isAllowed(
@@ -45,7 +46,9 @@ export class SecurityGuard implements CanActivate {
       rateConfig.windowMs,
     );
     if (!allowed) {
-      throw new ForbiddenException('Too many requests. Please try again later.');
+      throw new ForbiddenException(
+        'Too many requests. Please try again later.',
+      );
     }
 
     // 2. Captcha Verification
@@ -68,10 +71,11 @@ export class SecurityGuard implements CanActivate {
   }
 
   private extractClientKey(req: Request): string {
-    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
-      || req.ip
-      || req.socket.remoteAddress
-      || 'unknown';
+    const ip =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      req.ip ||
+      req.socket.remoteAddress ||
+      'unknown';
     const ua = req.headers['user-agent'] || '';
     return `${ip}:${ua.slice(0, 50)}`;
   }

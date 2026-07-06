@@ -14,7 +14,7 @@ const slides = [
   {
     title: 'مشاوره مالیاتی تخصصی',
     subtitle: 'بهترین راهکارهای مالیاتی برای کاهش هزینه‌ها',
-    cta: 'مشاور هوشمند',
+    cta: 'دستیار هوشمند',
     href: '/tax-consultant',
     gradient: 'from-[#1A1A1A] to-[#111111]',
   },

@@ -13,7 +13,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get<{ data: User[] } | User[]>('/users')
+    api.get<{ data: User[] } | User[]>('/admin/users')
       .then(d => setUsers(Array.isArray(d) ? d : (d as { data: User[] }).data || []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -21,7 +21,7 @@ export default function AdminUsersPage() {
 
   const toggleBlock = async (id: number, current: boolean) => {
     try {
-      await api.patch(`/users/${id}/${current ? 'unblock' : 'block'}`);
+      await api.patch(`/admin/users/${id}/block`);
       setUsers(prev => prev.map(u => u.id === id ? { ...u, isActive: !current } : u));
     } catch {}
   };

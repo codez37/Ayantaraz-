@@ -26,18 +26,22 @@ const ARABIC_PERSIAN_DIGITS: Record<string, string> = {
 
 @Injectable()
 export class PhoneNormalizationPipe implements PipeTransform {
-  transform(value: unknown): string {
-    if (typeof value !== 'string') {
-      throw new BadRequestException('Phone number must be a string');
-    }
+  transform(value: any): any {
+    const isObject = value !== null && typeof value === 'object';
+    let phone = isObject ? value.phone : value;
 
-    let phone = value;
+    if (typeof phone !== 'string') {
+      return value;
+    }
 
     // Strip zero-width chars
     phone = phone.replace(ZERO_WIDTH_CHARS, '');
 
     // Convert Persian/Arabic digits to ASCII
-    phone = phone.replace(/[۰-۹٠-٩]/g, (ch) => ARABIC_PERSIAN_DIGITS[ch] || ch);
+    phone = phone.replace(
+      /[۰-۹٠-٩]/g,
+      (ch: string) => ARABIC_PERSIAN_DIGITS[ch] || ch,
+    );
 
     // Strip non-digit characters except leading +
     const hasPlus = phone.startsWith('+');
@@ -69,6 +73,10 @@ export class PhoneNormalizationPipe implements PipeTransform {
       throw new BadRequestException('Invalid phone number format');
     }
 
+    if (isObject) {
+      value.phone = phone;
+      return value;
+    }
     return phone;
   }
 }

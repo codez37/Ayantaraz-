@@ -55,8 +55,6 @@ import { CsrfMiddleware } from './modules/security/csrf.middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(CorrelationIdMiddleware)
-      .forRoutes('*');
+    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
   }
 }

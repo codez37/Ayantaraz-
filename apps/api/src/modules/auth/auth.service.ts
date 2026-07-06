@@ -481,7 +481,7 @@ export class AuthService {
       const body = JSON.stringify({
         code,
         mobile: phone,
-        template: 1,
+        templateId: 1,
       });
       const response = await new Promise<{ status: number; data: string }>(
         (resolve, reject) => {

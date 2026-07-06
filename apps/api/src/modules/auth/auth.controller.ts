@@ -28,7 +28,10 @@ export class AuthController {
   @Public()
   @Post('otp')
   @HttpCode(200)
-  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }), PhoneNormalizationPipe)
+  @UsePipes(
+    new ValidationPipe({ whitelist: true, transform: true }),
+    PhoneNormalizationPipe,
+  )
   async requestOtp(@Body() dto: RequestOtpDto): Promise<{ message: string }> {
     return this.authService.requestOtp(dto.phone);
   }
@@ -36,7 +39,10 @@ export class AuthController {
   @Public()
   @Post('verify')
   @HttpCode(200)
-  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }), PhoneNormalizationPipe)
+  @UsePipes(
+    new ValidationPipe({ whitelist: true, transform: true }),
+    PhoneNormalizationPipe,
+  )
   async verifyOtp(
     @Body() dto: VerifyOtpDto,
     @Req() req: Request,

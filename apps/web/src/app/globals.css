@@ -126,6 +126,19 @@ body {
   transform: translateY(-2px);
 }
 
+.btn-primary {
+  background: var(--gold);
+  color: var(--dark);
+  font-weight: 700;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s;
+}
+.btn-primary:hover {
+  background: var(--gold-light);
+  transform: translateY(-2px);
+}
+
 /* Card styles */
 .card-dark {
   background: var(--bg-card);
@@ -168,4 +181,16 @@ body {
 .input-dark:focus {
   border-color: var(--gold);
   box-shadow: 0 0 0 2px rgba(212,168,67,0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--gold-dark);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }

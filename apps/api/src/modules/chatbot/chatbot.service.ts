@@ -6,9 +6,23 @@ const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
 const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 const DIACRITICS = /[\u064B-\u0652\u0670]/g;
 const PERSIAN_NORMALIZE: Record<string, string> = {
-  'ك': 'ک', 'ي': 'ی', 'ة': 'ه', 'ۀ': 'ه', 'ھ': 'ه',
-  'َ': '', 'ُ': '', 'ِ': '', 'ً': '', 'ٌ': '', 'ٍ': '',
-  'ّ': '', 'ْ': '', 'ٓ': '', 'ٔ': '', 'ٕ': '', 'ٰ': '',
+  ك: 'ک',
+  ي: 'ی',
+  ة: 'ه',
+  ۀ: 'ه',
+  ھ: 'ه',
+  'َ': '',
+  'ُ': '',
+  'ِ': '',
+  'ً': '',
+  'ٌ': '',
+  'ٍ': '',
+  'ّ': '',
+  'ْ': '',
+  'ٓ': '',
+  'ٔ': '',
+  'ٕ': '',
+  'ٰ': '',
 };
 
 function removeDiacritics(s: string): string {
@@ -16,7 +30,7 @@ function removeDiacritics(s: string): string {
 }
 
 function normalizePersian(s: string): string {
-  return s.replace(/[^\w\s\d]/g, c => PERSIAN_NORMALIZE[c] ?? c);
+  return s.replace(/[^\w\s\d]/g, (c) => PERSIAN_NORMALIZE[c] ?? c);
 }
 
 function extractPersianNumbers(s: string): string {
@@ -25,7 +39,7 @@ function extractPersianNumbers(s: string): string {
     digitMap[PERSIAN_DIGITS[i]] = String(i);
     digitMap[ARABIC_DIGITS[i]] = String(i);
   }
-  return s.replace(/[۰-۹٠-٩]/g, c => digitMap[c] ?? c);
+  return s.replace(/[۰-۹٠-٩]/g, (c) => digitMap[c] ?? c);
 }
 
 const HIGH_RISK_KEYWORDS = [
@@ -354,14 +368,14 @@ export class ChatbotService {
     const suggestions = this.buildTopicSuggestions(question);
 
     if (topic && suggestions) {
-      return `متوجه شدم سوال شما درباره "${topic}" است، اما پاسخ دقیقی در دانشنامه خود ندارم.${suggestions}\n\n🔄 همچنین می‌توانید سوال را به صورت دیگری مطرح کنید یا از مشاور هوشمند مالیاتی استفاده نمایید.`;
+      return `متوجه شدم سوال شما درباره "${topic}" است، اما پاسخ دقیقی در دانشنامه خود ندارم.${suggestions}\n\n🔄 همچنین می‌توانید سوال را به صورت دیگری مطرح کنید یا از بخش پرسش و پاسخ مالیاتی استفاده نمایید.`;
     }
 
     if (riskLevel === 'high') {
-      return 'برای این موضوع، مشاوره انسانی توصیه می‌شود. لطفاً از طریق فرم مشاوره درخواست خود را ثبت کنید.\n\n💡 می‌توانید به صفحه "مشاور هوشمند" نیز مراجعه کنید.';
+      return 'برای این موضوع، مشاوره انسانی توصیه می‌شود. لطفاً از طریق فرم مشاوره درخواست خود را ثبت کنید.\n\n💡 می‌توانید به صفحه "سوالات مالیاتی" نیز مراجعه کنید.';
     }
 
-    return 'متأسفم، پاسخ دقیقی برای سوال شما پیدا نکردم.\n\n💡 نکات مفید:\n• سوال خود را دقیق‌تر و با جزییات بیشتر بپرسید\n• از کلمات کلیدی مرتبط با موضوع استفاده کنید\n• می‌توانید از مشاور هوشمند مالیاتی کمک بگیرید\n• یا از طریق فرم مشاوره با کارشناسان ما تماس بگیرید';
+    return 'متأسفم، پاسخ دقیقی برای سوال شما پیدا نکردم.\n\n💡 نکات مفید:\n• سوال خود را دقیق‌تر و با جزییات بیشتر بپرسید\n• از کلمات کلیدی مرتبط با موضوع استفاده کنید\n• می‌توانید از سامانه پرسش و پاسخ مالیاتی کمک بگیرید\n• یا از طریق فرم مشاوره با کارشناسان ما تماس بگیرید';
   }
 
   async query(question: string, userId?: number) {

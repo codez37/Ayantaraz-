@@ -89,15 +89,21 @@ describe('CONTRACT 17: Service Dependency Graph', () => {
 
   it('api depends on postgres', () => {
     const apiSection = compose.substring(compose.indexOf('api:'));
-    const nginxIdx = compose.indexOf('nginx:');
-    const apiDef = apiSection.substring(0, nginxIdx - compose.indexOf('api:'));
+    const nextSectionIdx = compose.indexOf('DATABASE LAYER');
+    const apiDef = apiSection.substring(
+      0,
+      nextSectionIdx - compose.indexOf('api:'),
+    );
     expect(apiDef).toMatch(/depends_on:.*postgres/s);
   });
 
   it('api depends on redis', () => {
     const apiSection = compose.substring(compose.indexOf('api:'));
-    const nginxIdx = compose.indexOf('nginx:');
-    const apiDef = apiSection.substring(0, nginxIdx - compose.indexOf('api:'));
+    const nextSectionIdx = compose.indexOf('DATABASE LAYER');
+    const apiDef = apiSection.substring(
+      0,
+      nextSectionIdx - compose.indexOf('api:'),
+    );
     expect(apiDef).toMatch(/depends_on:.*redis/s);
   });
 });

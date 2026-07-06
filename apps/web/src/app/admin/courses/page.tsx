@@ -7,19 +7,55 @@ import type { Course } from '@/types';
 export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ title: '', slug: '', price: 0, description: '' });
 
-  useEffect(() => {
+  const loadCourses = () => {
+    setLoading(true);
     api.get<Course[]>('/courses')
       .then(d => setCourses(Array.isArray(d) ? d : []))
       .catch(() => {})
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadCourses();
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" /></div>;
+  const handleSubmit = async () => {
+    try {
+      await api.post('/courses', form);
+      setShowForm(false);
+      setForm({ title: '', slug: '', price: 0, description: '' });
+      loadCourses();
+    } catch {
+      alert('خطا در ثبت دوره');
+    }
+  };
+
+  if (loading && !showForm) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-black text-white">مدیریت دوره‌ها</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-black text-white">مدیریت دوره‌ها</h1>
+        <button onClick={() => setShowForm(!showForm)} className="btn-gold !py-2 !px-4 text-sm">
+          {showForm ? 'انصراف' : '➕ دوره جدید'}
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="bg-[#0A0A0A] border border-[#D4A843]/10 rounded-xl p-5 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <input placeholder="عنوان دوره" value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))} className="input-dark text-sm" />
+            <input placeholder="اسلاگ (slug)" value={form.slug} onChange={e => setForm(f => ({...f, slug: e.target.value}))} className="input-dark text-sm" dir="ltr" />
+          </div>
+          <input type="number" placeholder="قیمت (ریال)" value={form.price || ''} onChange={e => setForm(f => ({...f, price: parseInt(e.target.value) || 0}))} className="input-dark text-sm" />
+          <textarea placeholder="توضیحات" value={form.description} onChange={e => setForm(f => ({...f, description: e.target.value}))} className="input-dark text-sm" rows={3} />
+          <button onClick={handleSubmit} className="btn-gold w-full text-sm">ثبت دوره</button>
+        </div>
+      )}
+
       <div className="bg-[#0A0A0A] border border-[#D4A843]/10 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

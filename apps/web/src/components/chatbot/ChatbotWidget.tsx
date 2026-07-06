@@ -11,7 +11,7 @@ interface Message {
 export default function ChatbotWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'bot', content: 'سلام! من دستیار هوشمند آیان تراز هستم. می‌توانم به سوالات مالیاتی شما پاسخ دهم. برای مشاوره تخصصی، از صفحه مشاوره اقدام کنید.' },
+    { role: 'bot', content: 'سلام! من سامانه پاسخگویی آیان تراز هستم. می‌توانم به سوالات مالیاتی شما بر اساس دانشنامه پاسخ دهم. برای مشاوره تخصصی، از صفحه مشاوره اقدام کنید.' },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -61,7 +61,7 @@ export default function ChatbotWidget() {
           <div className="bg-gradient-to-l from-[#D4A843] to-[#B8862D] p-4 flex items-center gap-3">
             <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-lg">⚖️</div>
             <div className="flex-1">
-              <h3 className="font-bold text-[#111111] text-sm">دستیار مالیاتی</h3>
+              <h3 className="font-bold text-[#111111] text-sm">پرسش و پاسخ مالیاتی</h3>
               <p className="text-[#111111]/70 text-xs">پاسخگویی بر اساس دانشنامه</p>
             </div>
             <button onClick={() => setOpen(false)} className="text-[#111111]/60 hover:text-[#111111]">
