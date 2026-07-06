@@ -12,7 +12,7 @@ const sidebarItems = [
   { href: '/admin/users', label: 'مدیریت کاربران', icon: '👥' },
   { href: '/admin/consultations', label: 'مشاوره‌ها', icon: '📞' },
   { href: '/admin/orders', label: 'سفارش‌ها', icon: '🛒' },
-  { href: '/admin/chatbot', label: 'دانشنامه چت‌بات', icon: '🤖' },
+  { href: '/admin/chatbot', label: 'پرسش و پاسخ', icon: '🤖' },
   { href: '/admin/audit-logs', label: 'گزارش فعالیت', icon: '📋' },
   { href: '/admin/settings', label: 'تنظیمات', icon: '⚙️' },
 ];
