@@ -1,0 +1,36 @@
+node_modules
+.git
+.next
+dist
+build
+coverage
+tmp
+temp
+
+*.log
+*.md
+!README.md
+
+.env
+.env.*
+!.env.example
+
+.vscode
+.idea
+*.swp
+*.swo
+
+docker-data
+pgdata
+
+# Deploy artifacts
+.deploy_events.log
+.deploy_receipt_*.json
+.deploy_snapshot.json
+
+.DS_Store
+Thumbs.db
+
+# Keep pnpm-lock.yaml and .npmrc for Docker builds
+!pnpm-lock.yaml
+!.npmrc

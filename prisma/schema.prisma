@@ -1,0 +1,606 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  user
+  consultant
+  content_manager
+  admin
+}
+
+enum OTPStatus {
+  active
+  expired
+  used
+  blocked
+}
+
+enum ContentType {
+  article
+  video
+  minibook
+  static_page
+  faq
+}
+
+enum ContentStatus {
+  draft
+  review
+  published
+  archived
+}
+
+enum ContentVisibility {
+  public
+  authenticated
+  course_only
+  admin_only
+}
+
+enum CourseStatus {
+  draft
+  review
+  published
+  archived
+}
+
+enum ConsultationType {
+  accounting
+  tax
+  general
+}
+
+enum ConsultationStatus {
+  pending
+  contacted
+  scheduled
+  completed
+  canceled
+  no_response
+  rejected
+}
+
+enum OrderStatus {
+  pending
+  waiting_for_call
+  waiting_for_payment
+  confirmed
+  rejected
+  canceled
+  refunded
+  expired
+}
+
+enum OrderItemType {
+  course
+  consultation
+}
+
+enum RiskLevel {
+  low
+  medium
+  high
+  forbidden
+}
+
+enum EscalationStatus {
+  open
+  assigned
+  resolved
+  closed
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  phone         String   @unique
+  firstName     String   @default("") @map("first_name")
+  lastName      String   @default("") @map("last_name")
+  role          UserRole @default(user)
+  isActive      Boolean  @default(true) @map("is_active")
+  isStaff       Boolean   @default(false) @map("is_staff")
+  lastLoginAt   DateTime? @map("last_login_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  authoredContents      Content[]           @relation("ContentAuthor")
+  reviewedContents      Content[]           @relation("ContentReviewer")
+  courses               Course[]
+  enrollments           Enrollment[]
+  consultations         ConsultationRequest[] @relation("UserConsultations")
+  assignedConsults      ConsultationRequest[] @relation("AssignedConsultations")
+  orders                Order[]             @relation("UserOrders")
+  assignedOrders        Order[]             @relation("AssignedOrders")
+  verifiedOrders        Order[]             @relation("VerifiedOrders")
+  chatMessages          ChatMessage[]
+  auditLogs             AuditLog[]
+  refreshTokens         RefreshToken[]
+  sessions              Session[]
+  escalationTickets     EscalationTicket[]  @relation("EscalationRequester")
+  assignedEscalations   EscalationTicket[]  @relation("EscalationAssignee")
+  chatConversations     ChatConversation[]
+  updatedSystemSettings SystemSetting[]     @relation("SystemSettings")
+  taxSessions           TaxSession[]
+
+  @@index([role])
+  @@map("users")
+}
+
+model OTP {
+  id        Int       @id @default(autoincrement())
+  phone     String
+  codeHash  String    @map("code_hash")
+  attempts  Int       @default(0)
+  status    OTPStatus @default(active)
+  expiresAt  DateTime  @map("expires_at")
+  sentAt     DateTime? @map("sent_at")
+  verifiedAt DateTime? @map("verified_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([phone, status])
+  @@index([createdAt])
+  @@map("otps")
+}
+
+model Category {
+  id          Int         @id @default(autoincrement())
+  name        String
+  slug        String      @unique
+  contentType ContentType @map("content_type")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  contents    Content[]
+
+  @@map("categories")
+}
+
+model Content {
+  id              Int               @id @default(autoincrement())
+  contentType     ContentType       @map("content_type")
+  title           String
+  slug            String            @unique
+  summary         String            @default("")
+  body            String            @default("")
+  metaDescription String            @default("") @map("meta_description")
+  tags            String            @default("")
+  mediaUrl        String            @default("") @map("media_url")
+  thumbnailUrl    String            @default("") @map("thumbnail_url")
+  duration        Int               @default(0)
+  fileSize        Int               @default(0) @map("file_size")
+  pageCount       Int               @default(0) @map("page_count")
+  authorId        Int?              @map("author_id")
+  reviewedBy      Int?              @map("reviewed_by")
+  categoryId      Int?              @map("category_id")
+  status          ContentStatus     @default(draft)
+  visibility      ContentVisibility @default(public)
+  publishedAt     DateTime?         @map("published_at")
+  archivedAt      DateTime?         @map("archived_at")
+  reviewedAt      DateTime?         @map("reviewed_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  author    User?     @relation("ContentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  reviewer  User?     @relation("ContentReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+  category  Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([contentType, status, visibility])
+  @@index([slug])
+  @@index([tags])
+  @@index([authorId])
+  @@map("contents")
+}
+
+model Course {
+  id          Int          @id @default(autoincrement())
+  title       String
+  slug        String       @unique
+  description String       @default("")
+  price       Int          @default(0)
+  status      CourseStatus @default(draft)
+  authorId    Int?           @map("author_id")
+  publishedAt DateTime?    @map("published_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  author      User?          @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  videos      CourseVideo[]
+  enrollments Enrollment[]
+
+  @@index([status])
+  @@index([authorId])
+  @@map("courses")
+}
+
+model CourseVideo {
+  id        Int          @id @default(autoincrement())
+  courseId   Int          @map("course_id")
+  title     String
+  url       String
+  duration  Int          @default(0)
+  isSample  Boolean      @default(false) @map("is_sample")
+  sortOrder Int          @default(0) @map("sort_order")
+  status    CourseStatus @default(draft)
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId, status])
+  @@map("course_videos")
+}
+
+model Enrollment {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  courseId   Int      @map("course_id")
+  orderId   Int?     @map("order_id")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  order  Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, courseId])
+  @@index([orderId])
+  @@map("enrollments")
+}
+
+model ConsultationRequest {
+  id            Int                 @id @default(autoincrement())
+    userId      Int           @map("user_id")
+  requestType   ConsultationType    @map("request_type")
+  description   String
+  firstName     String              @default("") @map("first_name")
+  lastName      String              @default("") @map("last_name")
+  phoneNumber   String              @default("") @map("phone_number")
+  preferredTime String              @default("") @map("preferred_time")
+  status        ConsultationStatus  @default(pending)
+  assignedToId  Int?                @map("assigned_to_id")
+  internalNotes String              @default("") @map("internal_notes")
+  contactedAt   DateTime?           @map("contacted_at")
+  completedAt   DateTime?           @map("completed_at")
+  canceledAt    DateTime?           @map("canceled_at")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  user       User @relation("UserConsultations", fields: [userId], references: [id], onDelete: Restrict)
+  assignedTo User? @relation("AssignedConsultations", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([phoneNumber])
+  @@map("consultation_requests")
+}
+
+model Order {
+  id               Int           @id @default(autoincrement())
+  userId           Int           @map("user_id")
+  itemType         OrderItemType @map("item_type")
+  itemId           Int           @map("item_id")
+  amount           Int           @default(0)
+  status           OrderStatus   @default(pending)
+  paymentReference String        @default("") @map("payment_reference")
+  internalNotes    String        @default("") @map("internal_notes")
+  firstName        String        @default("") @map("first_name")
+  lastName         String        @default("") @map("last_name")
+  phoneNumber      String        @default("") @map("phone_number")
+  assignedToId     Int?          @map("assigned_to_id")
+  verifiedById     Int?          @map("verified_by_id")
+  verifiedAt       DateTime?     @map("verified_at")
+  confirmedAt      DateTime?     @map("confirmed_at")
+  rejectedAt       DateTime?     @map("rejected_at")
+  canceledAt       DateTime?     @map("canceled_at")
+  expiredAt        DateTime?     @map("expired_at")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  user       User  @relation("UserOrders", fields: [userId], references: [id], onDelete: Restrict)
+  assignedTo User? @relation("AssignedOrders", fields: [assignedToId], references: [id], onDelete: SetNull)
+  verifiedBy User? @relation("VerifiedOrders", fields: [verifiedById], references: [id], onDelete: SetNull)
+  enrollments Enrollment[]
+
+  @@index([userId, status])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([phoneNumber])
+  @@map("orders")
+}
+
+model KnowledgeBase {
+  id          Int       @id @default(autoincrement())
+  question    String
+  answer      String
+  category    String    @default("")
+  riskLevel   RiskLevel @default(low)
+  confidence  Float     @default(0.5) // 0.0 to 1.0
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isActive, riskLevel])
+  @@index([category])
+  @@map("knowledge_base")
+}
+
+model ChatMessage {
+  id             Int      @id @default(autoincrement())
+  conversationId Int?     @map("conversation_id")
+  sessionId      String   @map("session_id")
+  userId         Int?
+  role           String
+  content        String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user         User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  conversation ChatConversation?  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([conversationId])
+  @@map("chat_messages")
+}
+
+model ChatConversation {
+  id        Int           @id @default(autoincrement())
+  sessionId String        @unique @map("session_id")
+  userId    Int?
+  status    String        @default("active")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  user     User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages ChatMessage[]
+
+  @@index([userId])
+  @@map("chat_conversations")
+}
+
+model EscalationTicket {
+  id             Int              @id @default(autoincrement())
+  conversationId Int              @map("conversation_id")
+  userId         Int?
+  reason         String
+  status         EscalationStatus @default(open)
+  assignedToId   Int?           @map("assigned_to_id")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  resolvedAt     DateTime?        @map("resolved_at")
+
+  user       User? @relation("EscalationRequester", fields: [userId], references: [id], onDelete: SetNull)
+  assignedTo User? @relation("EscalationAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([conversationId])
+  @@map("escalation_tickets")
+}
+
+model Session {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("user_id")
+  tokenId      String?   @map("token_id")
+  deviceInfo   String?   @map("device_info")
+  ipAddress    String?   @map("ip_address")
+  lastActiveAt DateTime? @map("last_active_at")
+  expiresAt    DateTime  @map("expires_at")
+  revokedAt    DateTime? @map("revoked_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenId])
+  @@map("sessions")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  tokenHash String   @map("token_hash")
+  isRevoked Boolean  @default(false) @map("is_revoked")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  actorId    Int?     @map("actor_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   Int?     @map("entity_id")
+  oldValue   Json?    @map("old_value")
+  newValue   Json?    @map("new_value")
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+model SystemSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedBy Int?     @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  updatedByUser User? @relation("SystemSettings", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@index([updatedBy])
+  @@map("system_settings")
+}
+
+model RolePermission {
+  id            Int    @id @default(autoincrement())
+  role          UserRole
+  permissionKey String @map("permission_key")
+  enabled       Boolean @default(true)
+
+  @@unique([role, permissionKey])
+  @@map("role_permissions")
+}
+
+// ============ SmartTaxEngine Enums ============
+
+enum TaxBook {
+  DIRECT
+  INDIRECT
+}
+
+enum TaxCategory {
+  INHERITANCE
+  PROPERTY_INCOME
+  SALARY
+  BUSINESS
+  CORPORATE
+  INCIDENTAL_INCOME
+  EXEMPTION
+  TRANSFER
+  PENALTIES
+  TAX_AUTHORITIES
+  STAMP_DUTY
+}
+
+enum BracketType {
+  SALARY
+  RENTAL
+  INHERITANCE
+  BUSINESS
+  CORPORATE
+  TRANSFER
+  VAT
+  PROPERTY
+  INCIDENTAL
+  PENALTY
+}
+
+enum RuleActionType {
+  EXEMPT
+  PERCENTAGE_RATE
+  FIXED_RATE
+  DISCOUNT
+  MULTIPLIER
+  DEDUCTION
+}
+
+enum TaxSessionStep {
+  awaiting_query
+  searching
+  computing
+  processing
+  results_displayed
+  terminated
+}
+
+enum QueryType {
+  SEARCH
+  CALC
+  PROCEDURE
+  UNKNOWN
+}
+
+// ============ SmartTaxEngine Models ============
+
+model TaxArticle {
+  id            Int          @id @default(autoincrement())
+  articleNumber String       @map("article_number")
+  text          String
+  notes         String[]     @default([])
+  chapterTitle  String       @default("") @map("chapter_title")
+  book          TaxBook      @default(DIRECT)
+  category      TaxCategory? @map("category")
+  validFrom     DateTime     @map("valid_from")
+  validTo       DateTime?    @map("valid_to")
+  snapshotId    String       @map("snapshot_id")
+  isLatest      Boolean      @default(true) @map("is_latest")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  @@unique([articleNumber, validFrom])
+  @@index([articleNumber])
+  @@index([book, category])
+  @@index([validFrom, validTo])
+  @@index([articleNumber, validFrom, validTo])
+  @@index([snapshotId, isLatest])
+  @@map("tax_articles")
+}
+
+model TaxRule {
+  id              Int            @id @default(autoincrement())
+  type            BracketType    @map("type")
+  ruleKey         String         @map("rule_key")
+  description     String         @default("")
+  condition       Json
+  action          Json
+  priority        Int            @default(0)
+  effectiveFrom   DateTime       @map("effective_from")
+  effectiveTo     DateTime?      @map("effective_to")
+  isActive        Boolean        @default(true) @map("is_active")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  @@unique([ruleKey])
+  @@index([type, isActive, effectiveFrom, effectiveTo])
+  @@map("tax_rules")
+}
+
+model TaxBracket {
+  id            Int          @id @default(autoincrement())
+  year          Int
+  type          BracketType  @map("type")
+  bracketOrder  Int          @map("bracket_order")
+  minAmount     BigInt       @map("min_amount")
+  maxAmount     BigInt?      @map("max_amount")
+  rate          Float        @default(0)
+  description   String       @default("")
+  metadata      Json?        @default("{}")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  @@unique([year, type, bracketOrder])
+  @@index([year, type])
+  @@map("tax_brackets")
+}
+
+model TaxSession {
+  id              String         @id @default(uuid())
+  step            TaxSessionStep @default(awaiting_query)
+  queryType       String?        @map("query_type")
+  originalQuery   String?        @map("original_query")
+  detectedType    String?        @map("detected_type")
+  calcType        String?        @map("calc_type")
+  calcParams      Json?          @map("calc_params")
+  calcResult      Json?          @map("calc_result")
+  searchResults   Json?          @map("search_results")
+  selectedArticleId Int?         @map("selected_article_id")
+  procedureTopic  String?        @map("procedure_topic")
+  history         Json           @default("[]")
+  userId          Int?           @map("user_id")
+  user            User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  version         Int            @default(0)
+  messageHash     String?        @map("message_hash")
+  traceId         String?        @map("trace_id")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  expiresAt       DateTime       @map("expires_at")
+
+  @@index([expiresAt])
+  @@index([userId])
+  @@index([messageHash])
+  @@index([selectedArticleId])
+  @@map("tax_sessions")
+}

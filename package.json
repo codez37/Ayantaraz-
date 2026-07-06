@@ -1,0 +1,51 @@
+{
+  "name": "ayantaraz",
+  "version": "1.0.0",
+  "private": true,
+  "description": "آیان تراز — Accounting, Tax Consultation & Education Platform",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "build:validate": "turbo run build && npx tsx scripts/validate-all.ts",
+    "build:api": "turbo run build --filter=api",
+    "build:shared": "turbo run build --filter=@ayantaraz/shared",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yaml,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yaml,yml}\"",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean",
+    "db:generate": "prisma generate --schema=prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=prisma/schema.prisma",
+    "db:push": "prisma db push --schema=prisma/schema.prisma",
+    "db:seed": "prisma db seed --schema=prisma/schema.prisma",
+    "db:studio": "prisma studio --schema=prisma/schema.prisma",
+    "db:validate": "prisma validate --schema=prisma/schema.prisma",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose build",
+    "docker:prod:up": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d",
+    "docker:deploy": "docker compose up -d --build postgres redis api web nginx",
+    "healthcheck": "curl -s http://localhost:3001/health",
+    "setup": "pnpm install && pnpm db:generate && pnpm db:migrate && pnpm db:seed"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.0",
+    "turbo": "^2.4.0",
+    "typescript": "^5.7.3",
+    "zod": "^3.24.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": "^22.0.0",
+    "pnpm": "^11.9.0"
+  }
+}

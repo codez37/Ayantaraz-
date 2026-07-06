@@ -1,0 +1,53 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
+
+interface Setting {
+  key: string;
+  value: string;
+  updatedBy: number;
+}
+
+export default function AdminSettingsPage() {
+  const [settings, setSettings] = useState<Setting[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get<Setting[]>('/admin/settings')
+      .then(d => setSettings(Array.isArray(d) ? d : []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" /></div>;
+
+  return (
+    <div className="space-y-4">
+      <h1 className="text-xl font-black text-white">تنظیمات سیستم</h1>
+      <div className="bg-[#0A0A0A] border border-[#D4A843]/10 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[#D4A843]/10 text-right">
+                <th className="p-3 text-gray-400 font-bold">کلید</th>
+                <th className="p-3 text-gray-400 font-bold">مقدار</th>
+              </tr>
+            </thead>
+            <tbody>
+              {settings.map((s: Setting) => (
+                <tr key={s.key} className="border-b border-[#D4A843]/5 hover:bg-[#D4A843]/5">
+                  <td className="p-3 text-gray-300">{s.key}</td>
+                  <td className="p-3 text-gray-400 max-w-[400px] truncate text-left" dir="ltr">{s.value}</td>
+                </tr>
+              ))}
+              {settings.length === 0 && (
+                <tr><td colSpan={2} className="p-8 text-center text-gray-500">تنظیماتی یافت نشد</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

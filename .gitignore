@@ -1,0 +1,78 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.pnpm-debug.log
+
+# Build outputs
+dist/
+.next/
+build/
+*.tsbuildinfo
+
+# Lock files — pnpm-lock.yaml IS tracked (needed for Docker builds)
+package-lock.json
+
+# Security — never commit secrets
+*.pem
+*.key
+*.p12
+*.pfx
+*_rsa
+*_ed25519
+
+# Environment — SECURITY: never commit real secrets!
+# Only .env.example is allowed in the repo.
+# Production secrets go in /opt/ayan-taraz/env/ (outside repo).
+.env
+.env.local
+.env.development
+.env.staging
+.env.production
+.env.*.local
+**/.env
+**/.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage/
+
+# Temporary
+tmp/
+temp/
+
+# Docker
+docker-data/
+pgdata/
+
+# Prisma client (generated)
+node_modules/.prisma/
+
+# Turbo
+.turbo/
+
+# Jest
+jest-cache/
+
+# Database backups
+*.sql
+
+# Temporary / local files
+ERROR
+cookies.txt
+*.backup
+.deploy_receipt_*.json
+.deploy_snapshot.json
