@@ -21,8 +21,8 @@ export default function AdminAuditLogsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get<AuditLog[]>('/audit')
-      .then(d => setLogs(Array.isArray(d) ? d : []))
+    api.get<{ data: AuditLog[] }>('/admin/logs')
+      .then(d => setLogs(Array.isArray(d.data) ? d.data : []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

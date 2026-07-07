@@ -76,15 +76,15 @@ export default function TaxConsultantPage() {
     <div className="min-h-screen bg-[#111111]" dir="rtl">
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-black text-gold-gradient">مشاور مالیاتی هوشمند</h1>
-          <p className="text-gray-400 mt-2">پاسخگویی بر اساس قانون مالیاتهای مستقیم ایران</p>
+          <h1 className="text-3xl font-black text-gold-gradient">پرسش و پاسخ مالیاتی</h1>
+          <p className="text-gray-400 mt-2">پاسخگویی دقیق بر اساس قانون مالیاتهای مستقیم ایران</p>
         </div>
         <div className="bg-[#1A1A1A] rounded-2xl border border-[#D4A843]/20 overflow-hidden shadow-lg shadow-black/30">
           <div className="bg-gradient-to-l from-[#D4A843] to-[#B8862D] p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-black/20 rounded-full flex items-center justify-center text-xl">⚖️</div>
               <div>
-                <h2 className="font-bold text-[#111111]">دستیار مالیاتی</h2>
+                <h2 className="font-bold text-[#111111]">سامانه پاسخگویی</h2>
                 <p className="text-sm text-[#111111]/70">قانون مالیاتهای مستقیم</p>
               </div>
             </div>
@@ -104,9 +104,9 @@ export default function TaxConsultantPage() {
                     ? 'bg-[#1A1A1A] border border-[#D4A843]/10 text-gray-200 rounded-br-md'
                     : msg.step === 'error'
                     ? 'bg-red-900/20 border border-red-500/20 text-gray-200 rounded-bl-md'
-                    : 'bg-[#1C1C1C] border border-[#D4A843]/10 text-gray-200 rounded-bl-md shadow-sm'
+                    : 'bg-[#1C1C1C] border border-[#D4A843]/10 text-gray-200 rounded-bl-md shadow-sm font-medium'
                 }`}>
-                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                  <div className="whitespace-pre-wrap overflow-x-auto custom-scrollbar">{msg.content}</div>
                   {msg.referencedArticles && msg.referencedArticles.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-[#D4A843]/10">
                       <div className="text-xs text-gray-500 mb-1">مواد قانونی مرتبط:</div>

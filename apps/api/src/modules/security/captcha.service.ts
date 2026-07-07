@@ -15,7 +15,8 @@ export class CaptchaService {
   private readonly logger = new Logger(CaptchaService.name);
   private readonly secretKey: string;
   private readonly minScore: number;
-  private readonly verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
+  private readonly verifyUrl =
+    'https://www.google.com/recaptcha/api/siteverify';
 
   constructor(private config: ConfigService) {
     this.secretKey = this.config.getOrThrow<string>('RECAPTCHA_SECRET_KEY');
@@ -46,7 +47,9 @@ export class CaptchaService {
       const data: RecaptchaResponse = await response.json();
 
       if (!data.success) {
-        this.logger.warn(`reCAPTCHA failed: ${data['error-codes']?.join(', ') || 'unknown'}`);
+        this.logger.warn(
+          `reCAPTCHA failed: ${data['error-codes']?.join(', ') || 'unknown'}`,
+        );
         return false;
       }
 

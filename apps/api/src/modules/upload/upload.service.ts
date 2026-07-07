@@ -33,7 +33,9 @@ export class UploadService {
   constructor(private readonly config: ConfigService) {
     const key = this.config.get<string>('FILE_ENCRYPTION_KEY');
     if (!key || key.length < 32) {
-      throw new Error('FILE_ENCRYPTION_KEY is required (min 32 chars). Generate with: openssl rand -base64 24');
+      throw new Error(
+        'FILE_ENCRYPTION_KEY is required (min 32 chars). Generate with: openssl rand -base64 24',
+      );
     }
     this.encryptionKey = key;
     const subdirs = ['videos', 'thumbnails', 'documents', 'images', 'files'];

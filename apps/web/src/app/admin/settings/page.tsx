@@ -12,15 +12,32 @@ interface Setting {
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<Setting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
-  useEffect(() => {
+  const loadSettings = () => {
+    setLoading(true);
     api.get<Setting[]>('/admin/settings')
       .then(d => setSettings(Array.isArray(d) ? d : []))
       .catch(() => {})
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadSettings();
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" /></div>;
+  const handleUpdate = async (key: string) => {
+    try {
+      await api.patch(`/admin/settings/${key}`, { value: editValue });
+      setEditing(null);
+      loadSettings();
+    } catch {
+      alert('خطا در بروزرسانی');
+    }
+  };
+
+  if (loading && !editing) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-4">
@@ -32,13 +49,28 @@ export default function AdminSettingsPage() {
               <tr className="border-b border-[#D4A843]/10 text-right">
                 <th className="p-3 text-gray-400 font-bold">کلید</th>
                 <th className="p-3 text-gray-400 font-bold">مقدار</th>
+                <th className="p-3 text-gray-400 font-bold text-center">عملیات</th>
               </tr>
             </thead>
             <tbody>
               {settings.map((s: Setting) => (
                 <tr key={s.key} className="border-b border-[#D4A843]/5 hover:bg-[#D4A843]/5">
                   <td className="p-3 text-gray-300">{s.key}</td>
-                  <td className="p-3 text-gray-400 max-w-[400px] truncate text-left" dir="ltr">{s.value}</td>
+                  <td className="p-3 text-gray-400 max-w-[400px] truncate text-left" dir="ltr">
+                    {editing === s.key ? (
+                      <input value={editValue} onChange={e => setEditValue(e.target.value)} className="input-dark text-xs py-1" />
+                    ) : s.value}
+                  </td>
+                  <td className="p-3 text-center">
+                    {editing === s.key ? (
+                      <div className="flex gap-2 justify-center">
+                        <button onClick={() => handleUpdate(s.key)} className="text-green-400 text-xs">تایید</button>
+                        <button onClick={() => setEditing(null)} className="text-red-400 text-xs">لغو</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setEditing(s.key); setEditValue(s.value); }} className="text-blue-400 hover:underline text-xs">ویرایش</button>
+                    )}
+                  </td>
                 </tr>
               ))}
               {settings.length === 0 && (

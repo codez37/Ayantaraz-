@@ -10,7 +10,11 @@ export class CsrfController {
   getCsrfToken(@Req() req: Request, @Res() res: Response) {
     const existingToken = req.cookies?.['csrf-token'];
 
-    if (existingToken && typeof existingToken === 'string' && existingToken.length === 64) {
+    if (
+      existingToken &&
+      typeof existingToken === 'string' &&
+      existingToken.length === 64
+    ) {
       return res.json({ token: existingToken });
     }
 

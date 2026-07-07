@@ -15,7 +15,7 @@ export default function Header() {
     { href: '/videos', label: 'ویدیوها' },
     { href: '/minibooks', label: 'مینی‌بوک‌ها' },
     { href: '/courses', label: 'دوره‌ها' },
-    { href: '/tax-consultant', label: 'مشاور هوشمند' },
+    { href: '/tax-consultant', label: 'دستیار هوشمند' },
     { href: '/about', label: 'درباره ما' },
     { href: '/contact', label: 'تماس' },
   ];

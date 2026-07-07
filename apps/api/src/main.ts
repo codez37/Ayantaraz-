@@ -13,7 +13,7 @@ import { PrismaService } from './prisma/prisma.service';
 
 const logger = new JsonLogger();
 
-const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 async function waitForDatabase(prisma: PrismaService, retries = 10) {
   for (let i = 0; i < retries; i++) {
@@ -89,7 +89,8 @@ async function bootstrap() {
                 "'self'",
                 ...(frontendUrl ? [frontendUrl] : []),
                 ...(apiUrl ? [apiUrl] : []),
-                ...(process.env.EXTRA_CONNECT_SRC?.split(',').filter(Boolean) || []),
+                ...(process.env.EXTRA_CONNECT_SRC?.split(',').filter(Boolean) ||
+                  []),
               ],
             },
           }
@@ -127,7 +128,7 @@ async function bootstrap() {
   const trustedOrigins = new Set(
     rawOrigins
       .split(',')
-      .map(o => o.trim())
+      .map((o) => o.trim())
       .filter(Boolean)
       .filter(isValidOrigin)
       .map(normalizeOrigin),
@@ -232,7 +233,10 @@ async function bootstrap() {
   server.headersTimeout = 75_000;
 
   logger.log(`🚀 API running on 0.0.0.0:${port}`, 'Bootstrap');
-  logger.log(`🔒 Environment: ${process.env.NODE_ENV || 'development'}`, 'Bootstrap');
+  logger.log(
+    `🔒 Environment: ${process.env.NODE_ENV || 'development'}`,
+    'Bootstrap',
+  );
   logger.log(
     `🌐 CORS enabled for ${trustedOrigins.size} trusted origins`,
     'Bootstrap',
@@ -255,7 +259,11 @@ async function bootstrap() {
     logger.log(`Received ${signal} — starting graceful shutdown`, 'Bootstrap');
 
     const forceKill = setTimeout(() => {
-      logger.error('Force shutdown triggered after timeout', undefined, 'Bootstrap');
+      logger.error(
+        'Force shutdown triggered after timeout',
+        undefined,
+        'Bootstrap',
+      );
       process.exit(1);
     }, 20000);
 
@@ -269,7 +277,7 @@ async function bootstrap() {
       });
 
       // ✅ 2. Wait for existing connections to drain (TCP buffer)
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // ✅ 3. Close NestJS application
       await app.close();
@@ -305,9 +313,10 @@ async function bootstrap() {
   // ============================================================
   // PROCESS SIGNALS
   // ============================================================
-  ['SIGTERM', 'SIGINT'].forEach(sig => {
-    process.on(sig as NodeJS.Signals, () =>
-      void shutdown(sig as NodeJS.Signals),
+  ['SIGTERM', 'SIGINT'].forEach((sig) => {
+    process.on(
+      sig as NodeJS.Signals,
+      () => void shutdown(sig as NodeJS.Signals),
     );
   });
 

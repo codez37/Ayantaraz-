@@ -115,6 +115,13 @@ export class AdminService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new HttpException('کاربر یافت نشد', HttpStatus.NOT_FOUND);
 
+    if (user.role === 'admin') {
+      throw new HttpException(
+        'امکان مسدود کردن مدیر اصلی وجود ندارد',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const updated = await this.prisma.user.update({
       where: { id: userId },
       data: { isActive: !user.isActive },

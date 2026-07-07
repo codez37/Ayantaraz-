@@ -58,11 +58,11 @@ const nextConfig: NextConfig = {
                 : "script-src 'self' 'unsafe-inline'",
 
               // styles
-              "style-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
 
               // assets
               "img-src 'self' data: https:",
-              "font-src 'self' data: https:",
+              "font-src 'self' data: https: https://cdn.jsdelivr.net",
 
               // runtime connections
               "connect-src 'self' http://202.133.91.13",

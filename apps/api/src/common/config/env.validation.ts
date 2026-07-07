@@ -1,5 +1,11 @@
 import { plainToInstance } from 'class-transformer';
-import { IsString, IsNumber, IsOptional, IsIn, validateSync } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsIn,
+  validateSync,
+} from 'class-validator';
 
 class EnvironmentVariables {
   @IsString()
@@ -59,7 +65,7 @@ export function validateEnv(config: Record<string, unknown>) {
 
   if (errors.length > 0) {
     const msg = errors
-      .map(e => Object.values(e.constraints || {}).join(', '))
+      .map((e) => Object.values(e.constraints || {}).join(', '))
       .join('\n');
 
     throw new Error(`ENV_VALIDATION_FAILED:\n${msg}`);

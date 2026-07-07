@@ -11,7 +11,7 @@ export class CsrfMiddleware implements NestMiddleware {
     '/api/auth/refresh',
     '/api/health',
     '/api/csrf/token',
-    '/auth/otp',      // بدون prefix
+    '/auth/otp', // بدون prefix
     '/auth/verify',
     '/auth/refresh',
     '/health',
@@ -27,7 +27,7 @@ export class CsrfMiddleware implements NestMiddleware {
     const path = req.path || req.url || '';
 
     // Skip auth endpoints
-    if (this.skipPaths.some(sp => path.startsWith(sp))) {
+    if (this.skipPaths.some((sp) => path.startsWith(sp))) {
       return next();
     }
 
@@ -35,7 +35,9 @@ export class CsrfMiddleware implements NestMiddleware {
     const csrfCookie = req.cookies?.['csrf-token'];
 
     if (!csrfHeader || !csrfCookie) {
-      this.logger.warn(`CSRF missing: header=${!!csrfHeader} cookie=${!!csrfCookie} path=${path}`);
+      this.logger.warn(
+        `CSRF missing: header=${!!csrfHeader} cookie=${!!csrfCookie} path=${path}`,
+      );
       return res.status(403).json({ message: 'CSRF token required' });
     }
 
