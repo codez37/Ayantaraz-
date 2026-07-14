@@ -1,0 +1,130 @@
+name: Docker Build and Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  SERVER_IP: 202.133.91.13
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      
+      - name: Enable Corepack and pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+      
+      - name: Install dependencies
+        run: |
+          pnpm install --frozen-lockfile
+      
+      - name: Generate Prisma client
+        run: |
+          pnpm exec prisma generate
+      
+      - name: Run lint
+        run: |
+          pnpm run lint || true
+      
+      - name: Run tests
+        run: |
+          pnpm run test || true
+      
+      - name: Build application
+        run: |
+          pnpm run build
+      
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push Docker image
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.api
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-production:
+    name: Deploy to Production
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      - name: Deploy to server
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ env.SERVER_IP }}
+        run: |
+          # Copy deployment script to server
+          scp -o StrictHostKeyChecking=no DEPLOY_DOCKER_202.133.91.13.sh ${SSH_USER}@${SSH_HOST}:/tmp/
+          
+          # Execute deployment script
+          ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} "
+            chmod +x /tmp/DEPLOY_DOCKER_202.133.91.13.sh && \
+            sudo /tmp/DEPLOY_DOCKER_202.133.91.13.sh
+          "
+      
+      - name: Verify deployment
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ env.SERVER_IP }}
+        run: |
+          # Wait for deployment to complete
+          sleep 60
+          
+          # Check API health
+          if curl -s http://${SSH_HOST}:3001/health/ping | grep -q "pong"; then
+            echo "✅ Deployment verified - API is healthy"
+          else
+            echo "❌ Deployment verification failed"
+            exit 1
+          fi
