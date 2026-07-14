@@ -1,432 +1,352 @@
-import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
-import * as path from 'path';
-import * as fs from 'fs';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UploadService } from '../upload/upload.service';
-import { ContentStatus, Prisma } from '@prisma/client';
-
-const VALID_TRANSITIONS: Record<string, string[]> = {
-  draft: ['review', 'published'],
-  review: ['draft', 'published'],
-  published: ['draft', 'archived'],
-  archived: ['draft'],
-};
+import { Content, ContentStatus, ContentType } from '@prisma/client';
 
 @Injectable()
 export class ContentService {
-  private readonly logger = new Logger('ContentService');
+  private readonly logger = new Logger(ContentService.name);
 
-  constructor(
-    private prisma: PrismaService,
-    private uploadService: UploadService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  private toSlug(text: string): string {
-    return text
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9آ-ی\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .slice(0, 200);
+  async create(
+    data: {
+      title: string;
+      description?: string;
+      type: ContentType;
+      content?: string;
+      metadata?: any;
+      authorId: string;
+      categoryId?: string;
+      tags?: string[];
+      isPublic?: boolean;
+    },
+  ): Promise<Content> {
+    this.logger.log(`Creating new content: ${data.title}`);
+    return this.prisma.content.create({
+      data: {
+        title: data.title,
+        slug: this.generateSlug(data.title),
+        description: data.description || '',
+        type: data.type,
+        content: data.content || '',
+        metadata: data.metadata || {},
+        authorId: data.authorId,
+        categoryId: data.categoryId || null,
+        tags: data.tags || [],
+        isPublic: data.isPublic !== undefined ? data.isPublic : true,
+        status: ContentStatus.DRAFT,
+        viewCount: 0,
+        likeCount: 0,
+      },
+    });
   }
 
-  private canTransition(from: string, to: string, role: string): boolean {
-    const allowed = VALID_TRANSITIONS[from];
-    if (!allowed || !allowed.includes(to)) return false;
-    if (to === 'published' && from === 'draft' && role !== 'admin')
-      return false;
-    if (to === 'published' && from === 'review')
-      return ['admin', 'content_manager'].includes(role);
-    if (to === 'archived' && role !== 'admin') return false;
-    if (to === 'draft' && from === 'published' && role !== 'admin')
-      return false;
-    return true;
+  async findById(id: string): Promise<Content | null> {
+    this.logger.debug(`Finding content by ID: ${id}`);
+    return this.prisma.content.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          },
+        },
+        category: true,
+        likes: true,
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                phone: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
   }
 
-  private isLocalFile(url: string): boolean {
-    return url.startsWith('/uploads/');
+  async findBySlug(slug: string): Promise<Content | null> {
+    this.logger.debug(`Finding content by slug: ${slug}`);
+    return this.prisma.content.findUnique({
+      where: { slug },
+      include: {
+        author: {
+          select: {
+            id: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        category: true,
+        likes: true,
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                phone: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
   }
 
-  private validateFileBinding(data: {
-    mediaUrl?: string;
-    thumbnailUrl?: string;
-  }): void {
-    for (const [field, url] of Object.entries(data)) {
-      if (url && this.isLocalFile(url)) {
-        const fullPath = path.join(process.cwd(), url);
-        if (!fs.existsSync(fullPath)) {
-          throw new HttpException(
-            `فایل ${field} یافت نشد: ${url}`,
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-    }
-  }
-
-  private cleanupFiles(content: {
-    mediaUrl?: string;
-    thumbnailUrl?: string;
-  }): void {
-    for (const url of [content.mediaUrl, content.thumbnailUrl]) {
-      if (url && this.isLocalFile(url)) {
-        try {
-          this.uploadService.deleteFile(url);
-        } catch {
-          this.logger.warn(
-            JSON.stringify({
-              type: 'file-cleanup-failed',
-              url,
-            }),
-          );
-        }
-      }
-    }
-  }
-
-  async list(params: {
-    type?: string;
-    status?: string;
-    visibility?: string;
-    categoryId?: number;
-    search?: string;
-    tags?: string;
-    page?: number;
-    limit?: number;
-    userId?: number;
-    userRole?: string;
-  }) {
-    const {
-      type,
-      status,
-      visibility,
-      categoryId,
-      search,
-      tags,
-      page = 1,
-      limit = 20,
-      userId,
-      userRole,
-    } = params;
+  async list(
+    page: number = 1,
+    limit: number = 10,
+    filters: {
+      type?: ContentType;
+      status?: ContentStatus;
+      categoryId?: string;
+      authorId?: string;
+      isPublic?: boolean;
+      tags?: string[];
+      search?: string;
+    } = {},
+  ): Promise<{ contents: Content[]; total: number; page: number; limit: number }> {
+    this.logger.debug(`Listing content - page: ${page}, limit: ${limit}`);
     const skip = (page - 1) * limit;
-
-    const where: Prisma.ContentWhereInput = {};
-
-    if (type) where.contentType = type as import('@prisma/client').ContentType;
-    if (status) where.status = status as import('@prisma/client').ContentStatus;
-    if (visibility)
-      where.visibility =
-        visibility as import('@prisma/client').ContentVisibility;
-    if (categoryId) where.categoryId = categoryId;
-
-    if (search) {
+    const where: any = {};
+    if (filters.type) where.type = filters.type;
+    if (filters.status) where.status = filters.status;
+    if (filters.categoryId) where.categoryId = filters.categoryId;
+    if (filters.authorId) where.authorId = filters.authorId;
+    if (filters.isPublic !== undefined) where.isPublic = filters.isPublic;
+    if (filters.tags && filters.tags.length > 0) where.tags = { hasEvery: filters.tags };
+    if (filters.search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { summary: { contains: search, mode: 'insensitive' } },
-        { tags: { contains: search, mode: 'insensitive' } },
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } },
+        { content: { contains: filters.search, mode: 'insensitive' } },
       ];
     }
-
-    if (tags) {
-      const tagList = tags.split(',').map((t) => t.trim());
-      const tagFilters: Prisma.ContentWhereInput[] = tagList.map((tag) => ({
-        tags: { contains: tag, mode: 'insensitive' },
-      }));
-      if (where.AND) {
-        (where.AND as Prisma.ContentWhereInput[]).push(...tagFilters);
-      } else {
-        where.AND = tagFilters;
-      }
-    }
-
-    if (!userRole || userRole === 'user') {
-      const visibilityFilter: Prisma.ContentWhereInput[] = [
-        { visibility: 'public' },
-      ];
-      if (userId) {
-        visibilityFilter.push({
-          visibility: 'authenticated',
-          authorId: userId,
-        });
-      }
-      if (where.AND) {
-        (where.AND as Prisma.ContentWhereInput[]).push({
-          OR: visibilityFilter,
-        });
-      } else if (where.OR) {
-        where.AND = [{ OR: where.OR }, { OR: visibilityFilter }];
-        delete where.OR;
-      } else {
-        where.OR = visibilityFilter;
-      }
-      if (!status) where.status = 'published';
-    }
-
-    const [data, total] = await Promise.all([
+    const [contents, total] = await Promise.all([
       this.prisma.content.findMany({
         where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          author: { select: { id: true, firstName: true, lastName: true } },
-          reviewer: { select: { id: true, firstName: true, lastName: true } },
-          category: { select: { id: true, name: true, slug: true } },
+          author: {
+            select: {
+              id: true,
+              phone: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+          category: true,
+          _count: {
+            select: {
+              likes: true,
+              comments: true,
+              views: true,
+            },
+          },
         },
       }),
       this.prisma.content.count({ where }),
     ]);
-
     return {
-      data,
-      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+      contents: contents as any[],
+      total,
+      page,
+      limit,
     };
   }
 
-  async getBySlug(slug: string, userId?: number, userRole?: string) {
-    const content = await this.prisma.content.findUnique({
-      where: { slug },
+  async update(
+    id: string,
+    data: {
+      title?: string;
+      description?: string;
+      content?: string;
+      metadata?: any;
+      categoryId?: string;
+      tags?: string[];
+      isPublic?: boolean;
+      status?: ContentStatus;
+    },
+  ): Promise<Content> {
+    this.logger.log(`Updating content ${id}`);
+    const content = await this.findById(id);
+    if (!content) {
+      this.logger.error(`Content ${id} not found`);
+      throw new NotFoundException('Content not found');
+    }
+    const updateData: any = { ...data };
+    if (data.title) {
+      updateData.slug = this.generateSlug(data.title);
+    }
+    return this.prisma.content.update({
+      where: { id },
+      data: updateData,
+    });
+  }
+
+  async delete(id: string): Promise<Content> {
+    this.logger.log(`Deleting content ${id}`);
+    const content = await this.findById(id);
+    if (!content) {
+      this.logger.error(`Content ${id} not found`);
+      throw new NotFoundException('Content not found');
+    }
+    return this.prisma.content.delete({
+      where: { id },
+    });
+  }
+
+  async incrementViewCount(id: string): Promise<Content> {
+    this.logger.debug(`Incrementing view count for content ${id}`);
+    return this.prisma.content.update({
+      where: { id },
+      data: { viewCount: { increment: 1 } },
+    });
+  }
+
+  async likeContent(userId: string, contentId: string): Promise<Content> {
+    this.logger.debug(`User ${userId} liking content ${contentId}`);
+    const existingLike = await this.prisma.like.findFirst({
+      where: { userId, contentId },
+    });
+    if (existingLike) {
+      this.logger.debug('User already liked this content');
+      throw new Error('Already liked');
+    }
+    await this.prisma.like.create({
+      data: { userId, contentId },
+    });
+    return this.prisma.content.update({
+      where: { id: contentId },
+      data: { likeCount: { increment: 1 } },
+    });
+  }
+
+  async unlikeContent(userId: string, contentId: string): Promise<Content> {
+    this.logger.debug(`User ${userId} unliking content ${contentId}`);
+    const existingLike = await this.prisma.like.findFirst({
+      where: { userId, contentId },
+    });
+    if (!existingLike) {
+      this.logger.debug('User did not like this content');
+      throw new Error('Not liked');
+    }
+    await this.prisma.like.delete({
+      where: { id: existingLike.id },
+    });
+    return this.prisma.content.update({
+      where: { id: contentId },
+      data: { likeCount: { decrement: 1 } },
+    });
+  }
+
+  async getTrending(limit: number = 10): Promise<Content[]> {
+    this.logger.debug(`Getting trending content - limit: ${limit}`);
+    return this.prisma.content.findMany({
+      where: { isPublic: true, status: ContentStatus.PUBLISHED },
+      take: limit,
+      orderBy: [
+        { viewCount: 'desc' },
+        { likeCount: 'desc' },
+        { createdAt: 'desc' },
+      ],
       include: {
-        author: { select: { id: true, firstName: true, lastName: true } },
-        reviewer: { select: { id: true, firstName: true, lastName: true } },
+        author: {
+          select: {
+            id: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        category: true,
+        _count: {
+          select: {
+            likes: true,
+            views: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getLatest(limit: number = 10): Promise<Content[]> {
+    this.logger.debug(`Getting latest content - limit: ${limit}`);
+    return this.prisma.content.findMany({
+      where: { isPublic: true, status: ContentStatus.PUBLISHED },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        author: {
+          select: {
+            id: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
         category: true,
       },
     });
-
-    if (!content)
-      throw new HttpException('محتوا یافت نشد', HttpStatus.NOT_FOUND);
-
-    if (
-      content.status !== 'published' &&
-      !['admin', 'content_manager'].includes(userRole || '')
-    ) {
-      throw new HttpException('محتوا یافت نشد', HttpStatus.NOT_FOUND);
-    }
-
-    if (
-      content.visibility === 'admin_only' &&
-      !['admin', 'content_manager'].includes(userRole || '')
-    ) {
-      throw new HttpException('محتوا یافت نشد', HttpStatus.NOT_FOUND);
-    }
-
-    if (content.visibility === 'authenticated' && !userId) {
-      throw new HttpException(
-        'برای مشاهده این مطلب وارد شوید',
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-
-    return content;
   }
 
-  async create(
-    data: {
-      contentType: string;
-      title: string;
-      slug?: string;
-      summary?: string;
-      body?: string;
-      metaDescription?: string;
-      tags?: string;
-      mediaUrl?: string;
-      thumbnailUrl?: string;
-      duration?: number;
-      fileSize?: number;
-      pageCount?: number;
-      categoryId?: number;
-      visibility?: string;
-    },
-    authorId: number,
-  ) {
-    this.validateFileBinding(data);
-
-    const content = await this.prisma.content.create({
-      data: {
-        contentType: data.contentType as import('@prisma/client').ContentType,
-        title: data.title,
-        slug: data.slug || this.toSlug(data.title),
-        summary: data.summary || '',
-        body: data.body || '',
-        metaDescription: data.metaDescription || '',
-        tags: data.tags || '',
-        mediaUrl: data.mediaUrl || '',
-        thumbnailUrl: data.thumbnailUrl || '',
-        duration: data.duration || 0,
-        fileSize: data.fileSize || 0,
-        pageCount: data.pageCount || 0,
-        categoryId: data.categoryId ?? null,
-        visibility:
-          (data.visibility as import('@prisma/client').ContentVisibility) ||
-          'public',
-        status: 'draft',
-        authorId,
+  async getByAuthor(authorId: string, limit: number = 10): Promise<Content[]> {
+    this.logger.debug(`Getting content by author ${authorId} - limit: ${limit}`);
+    return this.prisma.content.findMany({
+      where: { authorId, isPublic: true, status: ContentStatus.PUBLISHED },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        category: true,
+        _count: {
+          select: {
+            likes: true,
+            views: true,
+          },
+        },
       },
     });
-
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: authorId,
-        action: 'content_create',
-        entityType: 'content',
-        entityId: content.id,
-        newValue: { title: content.title, contentType: content.contentType },
-      },
-    });
-
-    this.logger.log(
-      JSON.stringify({
-        type: 'content-created',
-        contentId: content.id,
-        contentType: content.contentType,
-        hasMedia: !!content.mediaUrl,
-        hasThumbnail: !!content.thumbnailUrl,
-      }),
-    );
-
-    return content;
   }
 
-  async update(
-    id: number,
-    data: Partial<{
-      title: string;
-      slug: string;
-      summary: string;
-      body: string;
-      metaDescription: string;
-      tags: string;
-      mediaUrl: string;
-      thumbnailUrl: string;
-      duration: number;
-      categoryId: number | null;
-      visibility: string;
-    }>,
-    userId: number,
-    userRole: string,
-  ) {
-    const existing = await this.prisma.content.findUnique({ where: { id } });
-    if (!existing)
-      throw new HttpException('محتوا یافت نشد', HttpStatus.NOT_FOUND);
-
-    if (
-      existing.status === 'published' &&
-      !['admin', 'content_manager'].includes(userRole)
-    ) {
-      throw new HttpException(
-        'محتوای منتشرشده فقط توسط مدیر قابل ویرایش است',
-        HttpStatus.FORBIDDEN,
-      );
+  async publish(id: string): Promise<Content> {
+    this.logger.log(`Publishing content ${id}`);
+    const content = await this.findById(id);
+    if (!content) {
+      this.logger.error(`Content ${id} not found`);
+      throw new NotFoundException('Content not found');
     }
-
-    this.validateFileBinding(data);
-
-    const updateData: Prisma.ContentUpdateInput = {};
-    if (data.title !== undefined) updateData.title = data.title;
-    if (data.slug !== undefined) updateData.slug = data.slug;
-    if (data.summary !== undefined) updateData.summary = data.summary;
-    if (data.body !== undefined) updateData.body = data.body;
-    if (data.metaDescription !== undefined)
-      updateData.metaDescription = data.metaDescription;
-    if (data.tags !== undefined) updateData.tags = data.tags;
-    if (data.mediaUrl !== undefined) updateData.mediaUrl = data.mediaUrl;
-    if (data.thumbnailUrl !== undefined)
-      updateData.thumbnailUrl = data.thumbnailUrl;
-    if (data.duration !== undefined) updateData.duration = data.duration;
-    if (data.categoryId !== undefined && data.categoryId !== null)
-      updateData.category = { connect: { id: data.categoryId } };
-    if (data.visibility !== undefined)
-      updateData.visibility =
-        data.visibility as import('@prisma/client').ContentVisibility;
-
-    const content = await this.prisma.content.update({
+    return this.prisma.content.update({
       where: { id },
-      data: updateData,
-    });
-
-    await this.prisma.auditLog.create({
       data: {
-        actorId: userId,
-        action: 'content_update',
-        entityType: 'content',
-        entityId: id,
-        oldValue: { title: existing.title, status: existing.status },
-        newValue: { title: content.title },
+        status: ContentStatus.PUBLISHED,
+        publishedAt: new Date(),
       },
     });
-
-    return content;
   }
 
-  async updateStatus(
-    id: number,
-    status: ContentStatus,
-    userId: number,
-    userRole: string,
-  ) {
-    const existing = await this.prisma.content.findUnique({ where: { id } });
-    if (!existing)
-      throw new HttpException('محتوا یافت نشد', HttpStatus.NOT_FOUND);
-
-    if (!this.canTransition(existing.status, status, userRole)) {
-      throw new HttpException(
-        'این تغییر وضعیت مجاز نیست',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const updateData: Prisma.ContentUpdateInput = { status };
-
-    if (status === 'published') {
-      updateData.publishedAt = new Date();
-      updateData.reviewer = { connect: { id: userId } };
-      updateData.reviewedAt = new Date();
-    }
-    if (status === 'archived') updateData.archivedAt = new Date();
-    if (
-      status === 'draft' &&
-      (existing.status === 'published' || existing.status === 'archived')
-    ) {
-      updateData.publishedAt = null;
-    }
-
-    const content = await this.prisma.content.update({
-      where: { id },
-      data: updateData,
-    });
-
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: userId,
-        action: `content_status_${status}`,
-        entityType: 'content',
-        entityId: id,
-        oldValue: { status: existing.status },
-        newValue: { status, publishedAt: updateData.publishedAt },
-      },
-    });
-
-    return content;
-  }
-
-  async archive(id: number, userId: number, userRole: string) {
-    const existing = await this.prisma.content.findUnique({ where: { id } });
-    if (!existing)
-      throw new HttpException('محتوا یافت نشد', HttpStatus.NOT_FOUND);
-
-    const result = await this.updateStatus(id, 'archived', userId, userRole);
-
-    this.cleanupFiles(existing);
-
-    this.logger.log(
-      JSON.stringify({
-        type: 'content-archived',
-        contentId: id,
-        filesCleaned: !!(existing.mediaUrl || existing.thumbnailUrl),
-      }),
-    );
-
-    return result;
+  private generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   }
 }

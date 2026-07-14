@@ -1,47 +1,114 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import { UserRole } from '@ayantaraz/shared/enums';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(UsersService.name);
 
-  async getProfile(userId: number) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    return user;
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findByPhone(phone: string): Promise<User | null> {
+    this.logger.debug(`Finding user by phone: ${phone}`);
+    return this.prisma.user.findUnique({
+      where: { phone },
+      include: {
+        sessions: false,
+        refreshTokens: false,
+      },
+    });
   }
 
-  async updateProfile(
-    userId: number,
-    data: { firstName?: string; lastName?: string },
-  ) {
-    const user = await this.prisma.user.update({
+  async findById(id: string): Promise<User | null> {
+    this.logger.debug(`Finding user by ID: ${id}`);
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        sessions: false,
+        refreshTokens: false,
+      },
+    });
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    this.logger.debug(`Finding user by email: ${email}`);
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
+  }
+
+  async create(
+    phone: string,
+    passwordHash: string,
+    firstName?: string,
+    lastName?: string,
+    email?: string,
+  ): Promise<User> {
+    this.logger.log(`Creating new user with phone: ${phone}`);
+    const existingUser = await this.findByPhone(phone);
+    if (existingUser) {
+      this.logger.warn(`User with phone ${phone} already exists`);
+      throw new Error('User with this phone number already exists');
+    }
+    return this.prisma.user.create({
+      data: {
+        phone,
+        passwordHash,
+        firstName: firstName || '',
+        lastName: lastName || '',
+        email: email || null,
+        role: 'user',
+        isActive: true,
+      },
+    });
+  }
+
+  async update(
+    id: string,
+    data: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+      passwordHash?: string;
+      role?: string;
+      isActive?: boolean;
+    },
+  ): Promise<User> {
+    this.logger.log(`Updating user ${id}`);
+    const user = await this.findById(id);
+    if (!user) {
+      this.logger.error(`User ${id} not found`);
+      throw new NotFoundException('User not found');
+    }
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async updatePassword(userId: string, passwordHash: string): Promise<User> {
+    this.logger.log(`Updating password for user ${userId}`);
+    return this.prisma.user.update({
       where: { id: userId },
-      data: {
-        ...(data.firstName !== undefined && { firstName: data.firstName }),
-        ...(data.lastName !== undefined && { lastName: data.lastName }),
-      },
+      data: { passwordHash },
     });
-
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: userId,
-        action: 'profile_update',
-        entityType: 'user',
-        entityId: userId,
-        newValue: data,
-      },
-    });
-
-    return user;
   }
 
-  async listUsers(page = 1, limit = 20) {
+  async list(
+    page: number = 1,
+    limit: number = 10,
+    role?: string,
+    isActive?: boolean,
+  ): Promise<{ users: User[]; total: number; page: number; limit: number }> {
+    this.logger.debug(`Listing users - page: ${page}, limit: ${limit}`);
     const skip = (page - 1) * limit;
+    const where: any = {};
+    if (role) where.role = role;
+    if (isActive !== undefined) where.isActive = isActive;
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -50,103 +117,120 @@ export class UsersService {
           phone: true,
           firstName: true,
           lastName: true,
+          email: true,
           role: true,
           isActive: true,
           createdAt: true,
+          updatedAt: true,
         },
       }),
-      this.prisma.user.count(),
+      this.prisma.user.count({ where }),
     ]);
     return {
-      data: users,
-      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+      users: users as any[],
+      total,
+      page,
+      limit,
     };
   }
 
-  async updateUserRole(userId: number, role: string) {
-    // Validate role
-    const validRoles = Object.values(UserRole);
-    if (!validRoles.includes(role as UserRole)) {
-      throw new HttpException('نقش نامعتبر است', HttpStatus.BAD_REQUEST);
+  async delete(id: string): Promise<User> {
+    this.logger.log(`Deleting user ${id}`);
+    const user = await this.findById(id);
+    if (!user) {
+      this.logger.error(`User ${id} not found`);
+      throw new NotFoundException('User not found');
     }
-
-    // Check user exists
-    const existingUser = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-    if (!existingUser) {
-      throw new HttpException('کاربر یافت نشد', HttpStatus.NOT_FOUND);
-    }
-
-    const user = await this.prisma.user.update({
-      where: { id: userId },
-      data: { role: role as Prisma.EnumUserRoleFieldUpdateOperationsInput },
-    });
-
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: userId,
-        action: 'role_update',
-        entityType: 'user',
-        entityId: userId,
-        newValue: { role },
-      },
-    });
-
-    return user;
-  }
-
-  async blockUser(userId: number) {
-    // Check user exists
-    const existingUser = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-    if (!existingUser) {
-      throw new HttpException('کاربر یافت نشد', HttpStatus.NOT_FOUND);
-    }
-
-    const user = await this.prisma.user.update({
-      where: { id: userId },
+    return this.prisma.user.update({
+      where: { id },
       data: { isActive: false },
     });
-
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: userId,
-        action: 'user_block',
-        entityType: 'user',
-        entityId: userId,
-        newValue: { isActive: false },
-      },
-    });
-
-    return user;
   }
 
-  async unblockUser(userId: number) {
-    // Check user exists
-    const existingUser = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-    if (!existingUser) {
-      throw new HttpException('کاربر یافت نشد', HttpStatus.NOT_FOUND);
+  async hardDelete(id: string): Promise<User> {
+    this.logger.warn(`Hard deleting user ${id}`);
+    const user = await this.findById(id);
+    if (!user) {
+      this.logger.error(`User ${id} not found`);
+      throw new NotFoundException('User not found');
     }
-
-    const user = await this.prisma.user.update({
-      where: { id: userId },
-      data: { isActive: true },
+    await this.prisma.refreshToken.deleteMany({ where: { userId: id } });
+    await this.prisma.session.deleteMany({ where: { userId: id } });
+    return this.prisma.user.delete({
+      where: { id },
     });
+  }
 
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: userId,
-        action: 'user_unblock',
-        entityType: 'user',
-        entityId: userId,
-        newValue: { isActive: true },
+  async findAdmins(): Promise<User[]> {
+    this.logger.debug('Finding admin users');
+    return this.prisma.user.findMany({
+      where: { role: 'admin', isActive: true },
+      select: {
+        id: true,
+        phone: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        createdAt: true,
       },
     });
+  }
 
-    return user;
+  async isAdmin(phone: string): Promise<boolean> {
+    const user = await this.findByPhone(phone);
+    return user?.role === 'admin' && user.isActive;
+  }
+
+  async getProfile(userId: string): Promise<any> {
+    this.logger.debug(`Getting profile for user ${userId}`);
+    const user = await this.findById(userId);
+    if (!user) {
+      this.logger.error(`User ${userId} not found`);
+      throw new NotFoundException('User not found');
+    }
+    return {
+      id: user.id,
+      phone: user.phone,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  async search(query: string, limit: number = 10): Promise<User[]> {
+    this.logger.debug(`Searching users with query: ${query}`);
+    return this.prisma.user.findMany({
+      where: {
+        OR: [
+          { phone: { contains: query } },
+          { firstName: { contains: query, mode: 'insensitive' } },
+          { lastName: { contains: query, mode: 'insensitive' } },
+          { email: { contains: query, mode: 'insensitive' } },
+        ],
+        isActive: true,
+      },
+      take: limit,
+      select: {
+        id: true,
+        phone: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+      },
+    });
+  }
+
+  async updateLastLogin(userId: string): Promise<User> {
+    this.logger.debug(`Updating last login for user ${userId}`);
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { lastLoginAt: new Date() },
+    });
   }
 }
