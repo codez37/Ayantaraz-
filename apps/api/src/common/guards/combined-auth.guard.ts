@@ -14,20 +14,12 @@ import { SecurityGuard } from '../../modules/security/security.guard';
  */
 @Injectable()
 export class CombinedAuthGuard implements CanActivate {
-  private readonly jwtGuard: JwtAuthGuard;
-  private readonly rolesGuard: RolesGuard;
-  private readonly securityGuard: SecurityGuard;
-
   constructor(
-    jwtGuard: JwtAuthGuard,
-    rolesGuard: RolesGuard,
-    securityGuard: SecurityGuard,
-    private reflector: Reflector,
-  ) {
-    this.jwtGuard = jwtGuard;
-    this.rolesGuard = rolesGuard;
-    this.securityGuard = securityGuard;
-  }
+    private readonly jwtGuard: JwtAuthGuard,
+    private readonly rolesGuard: RolesGuard,
+    private readonly securityGuard: SecurityGuard,
+    private readonly reflector: Reflector,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // First: Security Guard (IP validation, rate limiting, etc.)
