@@ -1,117 +1,34 @@
 version: '3.8'
-
 services:
-  # API Service
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile.api
-    container_name: ayantaraz-api
-    restart: unless-stopped
-    ports:
-      - "3001:3001"
+  web:
+    build: { context: ., dockerfile: Dockerfile }
+    ports: ["3000:3000"]
     environment:
       - NODE_ENV=production
-      - PORT=3001
-      - API_URL=http://202.133.91.13:3001
-      - FRONTEND_URL=http://202.133.91.13:3000
-      - DATABASE_URL=postgresql://ayantaraz:ayantaraz2024@db:5432/ayantaraz?schema=public
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - JWT_SECRET=ayantaraz-production-secret-key-2024-change-me
-      - JWT_REFRESH_SECRET=ayantaraz-production-refresh-secret-2024-change-me
-      - JWT_EXPIRATION=15m
-      - JWT_REFRESH_EXPIRATION=7d
-      - FILE_ENCRYPTION_KEY=ayantaraz-file-encryption-key-32-chars-2024
-      - CAPTCHA_SECRET=
-      - ALLOW_ALL_ORIGINS=true
-      - TRUSTED_ORIGINS=http://202.133.91.13,http://202.133.91.13:3000,http://202.133.91.13:3001
-      - COOKIE_SECURE=false
-      - COOKIE_HTTP_ONLY=true
-      - COOKIE_SAME_SITE=lax
-      - DB_POOL_MAX_CONNECTIONS=20
-      - DB_POOL_MIN_CONNECTIONS=5
-      - DB_POOL_MAX_REQUESTS_PER_CONNECTION=100
-      - DB_POOL_IDLE_TIMEOUT_MS=30000
-      - DB_POOL_CONNECTION_TIMEOUT_MS=5000
-      - DOCKER_ENV=true
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    volumes:
-      - ./uploads:/app/uploads
-      - ./prisma:/app/prisma
-    networks:
-      - ayantaraz-network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health/ping"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # PostgreSQL Database
-  db:
-    image: postgres:15-alpine
-    container_name: ayantaraz-db
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=ayantaraz
-      - POSTGRES_PASSWORD=ayantaraz2024
-      - POSTGRES_DB=ayantaraz
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - ayantaraz-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ayantaraz -d ayantaraz"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: ayantaraz-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ""
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    networks:
-      - ayantaraz-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
       timeout: 3s
       retries: 3
 
-  # Nginx Reverse Proxy (Optional - for HTTPS)
-  nginx:
-    image: nginx:alpine
-    container_name: ayantaraz-nginx
+  api:
+    build: { context: ., dockerfile: Dockerfile.api }
+    ports: ["4000:4000"]
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/ayantaraz?schema=public
+    depends_on: [db]
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./certs:/etc/nginx/certs
-    depends_on:
-      - api
-    networks:
-      - ayantaraz-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ayantaraz
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    restart: unless-stopped
 
 volumes:
   postgres_data:
-  redis_data:
-
-networks:
-  ayantaraz-network:
-    driver: bridge
