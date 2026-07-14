@@ -17,7 +17,7 @@ function readCompose(): string {
 }
 
 function readNginxConfig(): string {
-  return readFileSync(join(ROOT, 'infra/nginx/default-ip.conf'), 'utf8');
+  return readFileSync(join(ROOT, 'infra/nginx/default.conf'), 'utf8');
 }
 
 /**
@@ -54,7 +54,6 @@ describe('CONTRACT 16: Required Containers', () => {
   });
 
   it('exactly 5 services defined', () => {
-    // Count by checking each required service exists
     const requiredServices = ['postgres:', 'redis:', 'api:', 'web:', 'nginx:'];
     const found = requiredServices.filter((s) => compose.includes(`  ${s}`));
     expect(found.length).toBe(5);
@@ -77,7 +76,6 @@ describe('CONTRACT 17: Service Dependency Graph', () => {
   });
 
   it('nginx depends on api', () => {
-    // Find nginx section and check depends_on
     const nginxSection = compose.substring(compose.indexOf('nginx:'));
     expect(nginxSection).toMatch(/depends_on:.*api/s);
   });
@@ -186,7 +184,6 @@ describe('CONTRACT 20: Volume Configuration', () => {
       0,
       nextService > 0 ? nextService - compose.indexOf('postgres:') : undefined,
     );
-    // Volume name is postgres_data (mapped to /var/lib/postgresql/data)
     expect(pgDef).toMatch(/postgres_data/);
   });
 });
@@ -209,7 +206,7 @@ describe('CONTRACT 21: Restart Policy', () => {
 
   it('services have restart policy defined', () => {
     const restartCount = (compose.match(/restart:/g) || []).length;
-    expect(restartCount).toBeGreaterThanOrEqual(3); // At least api, web, nginx
+    expect(restartCount).toBeGreaterThanOrEqual(3);
   });
 });
 
@@ -221,7 +218,7 @@ describe('CONTRACT 21: Restart Policy', () => {
  */
 describe('CONTRACT 22: Nginx Reverse Proxy', () => {
   it('nginx config exists', () => {
-    const exists = existsSync(join(ROOT, 'infra/nginx/default-ip.conf'));
+    const exists = existsSync(join(ROOT, 'infra/nginx/default.conf'));
     expect(exists).toBe(true);
   });
 
@@ -251,13 +248,11 @@ describe('CONTRACT 23: env_file Resolution', () => {
 
   it('services use relative env_file path (not absolute)', () => {
     const envFileLines = compose.match(/env_file:/g) || [];
-    // All env_file references should use ./.env (relative)
     const absoluteEnvFiles = compose.match(/env_file:\s*\/[^/]/g) || [];
     expect(absoluteEnvFiles.length).toBe(0);
   });
 
   it('env_file references ./.env', () => {
-    // YAML format is env_file:\n  - ./.env (list format)
     expect(compose).toContain('- ./.env');
   });
 });
@@ -277,7 +272,7 @@ describe('CONTRACT 24: Log Rotation', () => {
 
   it('services have logging configuration', () => {
     const loggingCount = (compose.match(/logging:/g) || []).length;
-    expect(loggingCount).toBeGreaterThanOrEqual(2); // At least api and nginx
+    expect(loggingCount).toBeGreaterThanOrEqual(2);
   });
 });
 
@@ -289,10 +284,9 @@ describe('CONTRACT 24: Log Rotation', () => {
 describe('CONTRACT 25: Environment Security', () => {
   it('no hardcoded passwords in docker-compose.yml', () => {
     const compose = readCompose();
-    // Check for common hardcoded patterns
-    // Only reject hardcoded values, not env var references (${...})
     const hasHardcoded = (s: string) =>
       s && !s.includes('${') && !s.includes('$');
+
     const lines = compose.split('\n');
     const suspect = lines.filter((l) => {
       const pwMatch = l.match(/password:\s*['"]([^'"]+)['"]/i);
