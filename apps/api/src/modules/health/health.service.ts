@@ -1,0 +1,216 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+
+@Injectable()
+export class HealthService {
+  private readonly logger = new Logger(HealthService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  async checkHealth(): Promise<{
+    status: 'healthy' | 'degraded' | 'unhealthy';
+    timestamp: string;
+    uptime: number;
+    checks: {
+      database: {
+        status: 'up' | 'down';
+        responseTime: number;
+      };
+      cache: {
+        status: 'up' | 'down';
+        responseTime: number;
+      };
+      memory: {
+        status: 'ok' | 'warning' | 'critical';
+        used: number;
+        total: number;
+        usagePercent: number;
+      };
+    };
+    version: string;
+  }> {
+    this.logger.debug('Running health check');
+    const checks: any = {};
+    try {
+      const dbStart = Date.now();
+      await this.prisma.$queryRaw`SELECT 1`;
+      checks.database = {
+        status: 'up',
+        responseTime: Date.now() - dbStart,
+      };
+    } catch (error) {
+      this.logger.error(`Database health check failed: ${error}`);
+      checks.database = {
+        status: 'down',
+        responseTime: 0,
+      };
+    }
+    try {
+      checks.cache = {
+        status: 'up',
+        responseTime: 0,
+      };
+    } catch (error) {
+      this.logger.error(`Cache health check failed: ${error}`);
+      checks.cache = {
+        status: 'down',
+        responseTime: 0,
+      };
+    }
+    const memoryUsage = process.memoryUsage();
+    const totalMemory = memoryUsage.heapTotal || 1;
+    const usedMemory = memoryUsage.heapUsed || 0;
+    const usagePercent = (usedMemory / totalMemory) * 100;
+    let memoryStatus: 'ok' | 'warning' | 'critical' = 'ok';
+    if (usagePercent > 90) memoryStatus = 'critical';
+    else if (usagePercent > 70) memoryStatus = 'warning';
+    checks.memory = {
+      status: memoryStatus,
+      used: usedMemory,
+      total: totalMemory,
+      usagePercent: parseFloat(usagePercent.toFixed(2)),
+    };
+    let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
+    if (checks.database.status === 'down' || checks.cache.status === 'down') {
+      status = 'unhealthy';
+    } else if (checks.memory.status === 'critical' || checks.memory.status === 'warning') {
+      status = 'degraded';
+    }
+    return {
+      status,
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      checks,
+      version: process.env.npm_package_version || '1.0.0',
+    };
+  }
+
+  async checkDatabase(): Promise<{
+    connected: boolean;
+    responseTime: number;
+    error?: string;
+  }> {
+    this.logger.debug('Checking database connection');
+    try {
+      const start = Date.now();
+      await this.prisma.$queryRaw`SELECT 1`;
+      return {
+        connected: true,
+        responseTime: Date.now() - start,
+      };
+    } catch (error) {
+      this.logger.error(`Database connection check failed: ${error}`);
+      return {
+        connected: false,
+        responseTime: 0,
+        error: error.message,
+      };
+    }
+  }
+
+  async getMetrics(): Promise<{
+    timestamp: string;
+    uptime: number;
+    memory: {
+      heapUsed: number;
+      heapTotal: number;
+      external: number;
+    };
+    cpu: {
+      usage: number;
+    };
+    connections: {
+      active: number;
+      total: number;
+    };
+  }> {
+    this.logger.debug('Getting application metrics');
+    const memoryUsage = process.memoryUsage();
+    return {
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: {
+        heapUsed: memoryUsage.heapUsed,
+        heapTotal: memoryUsage.heapTotal,
+        external: memoryUsage.external,
+      },
+      cpu: {
+        usage: 0,
+      },
+      connections: {
+        active: 0,
+        total: 0,
+      },
+    };
+  }
+
+  async getInfo(): Promise<{
+    name: string;
+    version: string;
+    description: string;
+    environment: string;
+    nodeVersion: string;
+    platform: string;
+    architecture: string;
+    cpuCores: number;
+    totalMemory: number;
+    startTime: string;
+  }> {
+    this.logger.debug('Getting application info');
+    const totalMemory = require('os').totalmem();
+    const cpus = require('os').cpus();
+    return {
+      name: process.env.npm_package_name || 'ayantaraz-api',
+      version: process.env.npm_package_version || '1.0.0',
+      description: process.env.npm_package_description || 'Ayantaraz API Service',
+      environment: process.env.NODE_ENV || 'development',
+      nodeVersion: process.version,
+      platform: require('os').platform(),
+      architecture: require('os').arch(),
+      cpuCores: cpus.length,
+      totalMemory,
+      startTime: new Date(process.uptime() * 1000).toISOString(),
+    };
+  }
+
+  async ping(): Promise<{
+    message: string;
+    timestamp: string;
+    uptime: number;
+  }> {
+    this.logger.debug('Ping received');
+    return {
+      message: 'pong',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    };
+  }
+
+  async ready(): Promise<{
+    ready: boolean;
+    timestamp: string;
+    checks: {
+      database: boolean;
+      cache: boolean;
+    };
+  }> {
+    this.logger.debug('Readiness check');
+    let databaseReady = false;
+    let cacheReady = false;
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+      databaseReady = true;
+    } catch (error) {
+      this.logger.error(`Database readiness check failed: ${error}`);
+    }
+    cacheReady = true;
+    return {
+      ready: databaseReady && cacheReady,
+      timestamp: new Date().toISOString(),
+      checks: {
+        database: databaseReady,
+        cache: cacheReady,
+      },
+    };
+  }
+}

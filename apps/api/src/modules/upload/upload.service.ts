@@ -1,217 +1,295 @@
-import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
-import * as path from 'path';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
 import * as fs from 'fs';
-import * as crypto from 'crypto-js';
-import { ConfigService } from '@nestjs/config';
-
-export interface UploadedFile {
-  url: string;
-  originalName: string;
-  mimeType: string;
-  size: number;
-}
-
-const MAGIC_BYTES: Record<string, [number, number[]][]> = {
-  'image/jpeg': [[0, [0xff, 0xd8, 0xff]]],
-  'image/png': [[0, [0x89, 0x50, 0x4e, 0x47]]],
-  'image/webp': [
-    [0, [0x52, 0x49, 0x46, 0x46]],
-    [8, [0x57, 0x45, 0x42, 0x50]],
-  ],
-  'video/mp4': [[4, [0x66, 0x74, 0x79, 0x70]]],
-  'video/webm': [[0, [0x1a, 0x45, 0xdf, 0xa3]]],
-  'application/pdf': [[0, [0x25, 0x50, 0x44, 0x46]]],
-};
+import * as path from 'path';
+import * as crypto from 'crypto';
+import { Upload } from '@prisma/client';
 
 @Injectable()
 export class UploadService {
-  private readonly logger = new Logger('UploadService');
+  private readonly logger = new Logger(UploadService.name);
   private readonly uploadDir = path.join(process.cwd(), 'uploads');
+  private readonly maxFileSize = 10 * 1024 * 1024;
+  private readonly allowedMimeTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'application/pdf',
+    'text/plain',
+    'application/json',
+  ];
 
-  private readonly encryptionKey: string;
-
-  constructor(private readonly config: ConfigService) {
-    const key = this.config.get<string>('FILE_ENCRYPTION_KEY');
-    if (!key || key.length < 32) {
-      throw new Error(
-        'FILE_ENCRYPTION_KEY is required (min 32 chars). Generate with: openssl rand -base64 24',
-      );
-    }
-    this.encryptionKey = key;
-    const subdirs = ['videos', 'thumbnails', 'documents', 'images', 'files'];
-    for (const dir of subdirs) {
-      const full = path.join(this.uploadDir, dir);
-      if (!fs.existsSync(full)) {
-        fs.mkdirSync(full, { recursive: true });
-      }
+  constructor(private readonly prisma: PrismaService) {
+    if (!fs.existsSync(this.uploadDir)) {
+      fs.mkdirSync(this.uploadDir, { recursive: true });
+      this.logger.log(`Created upload directory at ${this.uploadDir}`);
     }
   }
 
-  private encryptFile(buffer: Buffer): Buffer {
-    const wordArray = crypto.lib.WordArray.create(buffer);
-    const encrypted = crypto.AES.encrypt(
-      wordArray,
-      this.encryptionKey,
-    ).toString();
-    return Buffer.from(encrypted, 'utf8');
-  }
-
-  private decryptFile(buffer: Buffer): Buffer {
-    const encrypted = buffer.toString('utf8');
-    const decrypted = crypto.AES.decrypt(encrypted, this.encryptionKey);
-    return Buffer.from(decrypted.toString(crypto.enc.Utf8), 'utf8');
-  }
-
-  getUploadDir(): string {
-    return this.uploadDir;
-  }
-
-  private validateMagicBytes(file: Express.Multer.File): boolean {
-    const patterns = MAGIC_BYTES[file.mimetype];
-    if (!patterns) return true;
-    const buf = file.buffer;
-    return patterns.every(([offset, bytes]) =>
-      bytes.every((byte, i) => buf[offset + i] === byte),
-    );
-  }
-
-  private detectMimeFromMagic(buffer: Buffer): string | null {
-    if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff)
-      return 'image/jpeg';
-    if (
-      buffer[0] === 0x89 &&
-      buffer[1] === 0x50 &&
-      buffer[2] === 0x4e &&
-      buffer[3] === 0x47
-    )
-      return 'image/png';
-    if (
-      buffer[0] === 0x25 &&
-      buffer[1] === 0x50 &&
-      buffer[2] === 0x44 &&
-      buffer[3] === 0x46
-    )
-      return 'application/pdf';
-    if (
-      buffer[0] === 0x1a &&
-      buffer[1] === 0x45 &&
-      buffer[2] === 0xdf &&
-      buffer[3] === 0xa3
-    )
-      return 'video/webm';
-    if (
-      buffer[4] === 0x66 &&
-      buffer[5] === 0x74 &&
-      buffer[6] === 0x79 &&
-      buffer[7] === 0x70
-    )
-      return 'video/mp4';
-    if (
-      buffer[0] === 0x52 &&
-      buffer[1] === 0x49 &&
-      buffer[2] === 0x46 &&
-      buffer[3] === 0x46
-    )
-      return 'image/webp';
-    return null;
-  }
-
-  saveFile(
-    file: Express.Multer.File,
-    subdir: string = 'files',
-    userId?: number,
-  ): UploadedFile {
-    this.logger.log(
-      JSON.stringify({
-        type: 'upload-start',
-        userId,
-        originalName: file.originalname,
-        declaredMime: file.mimetype,
-        size: file.size,
-        subdir,
-      }),
-    );
-
-    const declaredMime = file.mimetype;
-    const detectedMime = this.detectMimeFromMagic(file.buffer);
-
-    if (!detectedMime) {
-      this.logger.warn(
-        JSON.stringify({
-          type: 'upload-reject-magic',
-          userId,
-          originalName: file.originalname,
-          declaredMime,
-          reason: 'unknown_magic_bytes',
-        }),
-      );
-      throw new HttpException('فرمت فایل شناسایی نشد', HttpStatus.BAD_REQUEST);
-    }
-
-    if (declaredMime !== detectedMime) {
-      this.logger.warn(
-        JSON.stringify({
-          type: 'upload-reject-mime-mismatch',
-          userId,
-          originalName: file.originalname,
-          declaredMime,
-          detectedMime,
-        }),
-      );
-      throw new HttpException(
-        'نوع فایل با محتوای واقعی مطابقت ندارد',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
+  async uploadFile(
+    file: {
+      originalname: string;
+      mimetype: string;
+      size: number;
+      buffer: Buffer;
+    },
+    userId: string,
+    options: {
+      isPublic?: boolean;
+      description?: string;
+      tags?: string[];
+    } = {},
+  ): Promise<Upload> {
+    this.logger.log(`Uploading file: ${file.originalname} by user ${userId}`);
+    this.validateFile(file);
     const ext = path.extname(file.originalname).toLowerCase();
-    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-    const destDir = path.join(this.uploadDir, subdir);
-
-    if (!fs.existsSync(destDir)) {
-      fs.mkdirSync(destDir, { recursive: true });
-    }
-
-    const destPath = path.join(destDir, safeName);
-    const encryptedBuffer = this.encryptFile(file.buffer);
-    fs.writeFileSync(destPath, encryptedBuffer);
-
-    this.logger.log(
-      JSON.stringify({
-        type: 'upload-complete',
+    const basename = path.basename(file.originalname, ext);
+    const timestamp = Date.now();
+    const randomString = crypto.randomBytes(4).toString('hex');
+    const filename = `${basename}_${timestamp}_${randomString}${ext}`;
+    const filePath = path.join(this.uploadDir, filename);
+    fs.writeFileSync(filePath, file.buffer);
+    this.logger.debug(`File saved to ${filePath}`);
+    const upload = await this.prisma.upload.create({
+      data: {
+        filename: file.originalname,
+        storedFilename: filename,
+        path: filePath,
+        mimeType: file.mimetype,
+        size: file.size,
         userId,
-        originalName: file.originalname,
-        mime: detectedMime,
-        size: encryptedBuffer.length,
-        url: `/uploads/${subdir}/${safeName}`,
-      }),
-    );
+        isPublic: options.isPublic !== undefined ? options.isPublic : true,
+        description: options.description || '',
+        tags: options.tags || [],
+        checksum: this.calculateChecksum(file.buffer),
+      },
+    });
+    this.logger.log(`File uploaded successfully: ${upload.id}`);
+    return upload;
+  }
 
+  async findById(id: string): Promise<Upload | null> {
+    this.logger.debug(`Finding upload by ID: ${id}`);
+    return this.prisma.upload.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+  }
+
+  async list(
+    page: number = 1,
+    limit: number = 10,
+    filters: {
+      userId?: string;
+      isPublic?: boolean;
+      search?: string;
+    } = {},
+  ): Promise<{ uploads: Upload[]; total: number; page: number; limit: number }> {
+    this.logger.debug(`Listing uploads - page: ${page}, limit: ${limit}`);
+    const skip = (page - 1) * limit;
+    const where: any = {};
+    if (filters.userId) where.userId = filters.userId;
+    if (filters.isPublic !== undefined) where.isPublic = filters.isPublic;
+    if (filters.search) {
+      where.OR = [
+        { filename: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
+    const [uploads, total] = await Promise.all([
+      this.prisma.upload.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              phone: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      }),
+      this.prisma.upload.count({ where }),
+    ]);
     return {
-      url: `/uploads/${subdir}/${safeName}`,
-      originalName: file.originalname,
-      mimeType: detectedMime,
-      size: encryptedBuffer.length,
+      uploads: uploads as any[],
+      total,
+      page,
+      limit,
     };
   }
 
-  deleteFile(urlPath: string): void {
-    // Security: Prevent path traversal
-    if (urlPath.includes('..') || urlPath.startsWith('/')) {
-      throw new Error('Invalid file path');
+  async delete(id: string): Promise<Upload> {
+    this.logger.log(`Deleting upload ${id}`);
+    const upload = await this.findById(id);
+    if (!upload) {
+      this.logger.error(`Upload ${id} not found`);
+      throw new Error('Upload not found');
     }
-
-    const fullPath = path.join(process.cwd(), 'uploads', urlPath);
-    const uploadDir = path.join(process.cwd(), 'uploads');
-
-    // Security: Ensure resolved path is within uploads directory
-    if (!fullPath.startsWith(uploadDir)) {
-      throw new Error('Path traversal detected');
+    try {
+      if (fs.existsSync(upload.path)) {
+        fs.unlinkSync(upload.path);
+        this.logger.debug(`File deleted from filesystem: ${upload.path}`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to delete file from filesystem: ${error}`);
     }
+    return this.prisma.upload.delete({
+      where: { id },
+    });
+  }
 
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
-      this.logger.log(JSON.stringify({ type: 'file-delete', path: urlPath }));
+  async getFileStream(id: string): Promise<{ stream: fs.ReadStream; upload: Upload }> {
+    this.logger.debug(`Getting file stream for upload ${id}`);
+    const upload = await this.findById(id);
+    if (!upload) {
+      this.logger.error(`Upload ${id} not found`);
+      throw new Error('Upload not found');
     }
+    if (!fs.existsSync(upload.path)) {
+      this.logger.error(`File not found on filesystem: ${upload.path}`);
+      throw new Error('File not found');
+    }
+    const stream = fs.createReadStream(upload.path);
+    return { stream, upload };
+  }
+
+  async getFileBuffer(id: string): Promise<{ buffer: Buffer; upload: Upload }> {
+    this.logger.debug(`Getting file buffer for upload ${id}`);
+    const upload = await this.findById(id);
+    if (!upload) {
+      this.logger.error(`Upload ${id} not found`);
+      throw new Error('Upload not found');
+    }
+    if (!fs.existsSync(upload.path)) {
+      this.logger.error(`File not found on filesystem: ${upload.path}`);
+      throw new Error('File not found');
+    }
+    const buffer = fs.readFileSync(upload.path);
+    return { buffer, upload };
+  }
+
+  async updateMetadata(
+    id: string,
+    data: {
+      description?: string;
+      tags?: string[];
+      isPublic?: boolean;
+    },
+  ): Promise<Upload> {
+    this.logger.log(`Updating metadata for upload ${id}`);
+    const upload = await this.findById(id);
+    if (!upload) {
+      this.logger.error(`Upload ${id} not found`);
+      throw new Error('Upload not found');
+    }
+    return this.prisma.upload.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async getByUser(userId: string, limit: number = 10): Promise<Upload[]> {
+    this.logger.debug(`Getting uploads by user ${userId} - limit: ${limit}`);
+    return this.prisma.upload.findMany({
+      where: { userId },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getStorageStats(): Promise<{
+    totalFiles: number;
+    totalSize: number;
+    publicFiles: number;
+    privateFiles: number;
+  }> {
+    this.logger.debug('Getting storage statistics');
+    const [totalFiles, totalSize, publicFiles, privateFiles] = await Promise.all([
+      this.prisma.upload.count(),
+      this.prisma.upload.aggregate({
+        _sum: { size: true },
+      }),
+      this.prisma.upload.count({ where: { isPublic: true } }),
+      this.prisma.upload.count({ where: { isPublic: false } }),
+    ]);
+    return {
+      totalFiles,
+      totalSize: (totalSize as any)?._sum?.size || 0,
+      publicFiles,
+      privateFiles,
+    };
+  }
+
+  async cleanupOldFiles(days: number = 30): Promise<{ deletedCount: number; deletedSize: number }> {
+    this.logger.log(`Cleaning up files older than ${days} days`);
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const oldUploads = await this.prisma.upload.findMany({
+      where: { createdAt: { lt: cutoffDate } },
+    });
+    let deletedCount = 0;
+    let deletedSize = 0;
+    for (const upload of oldUploads) {
+      try {
+        if (fs.existsSync(upload.path)) {
+          const stats = fs.statSync(upload.path);
+          fs.unlinkSync(upload.path);
+          deletedSize += stats.size;
+          deletedCount++;
+          this.logger.debug(`Deleted file: ${upload.path}`);
+        }
+      } catch (error) {
+        this.logger.error(`Failed to delete file ${upload.path}: ${error}`);
+      }
+    }
+    await this.prisma.upload.deleteMany({
+      where: { createdAt: { lt: cutoffDate } },
+    });
+    this.logger.log(`Cleanup complete: ${deletedCount} files, ${deletedSize} bytes deleted`);
+    return { deletedCount, deletedSize };
+  }
+
+  private validateFile(file: { originalname: string; mimetype: string; size: number }): void {
+    if (file.size > this.maxFileSize) {
+      this.logger.warn(`File too large: ${file.originalname} (${file.size} bytes)`);
+      throw new BadRequestException(`File size exceeds maximum limit of ${this.maxFileSize / 1024 / 1024}MB`);
+    }
+    if (!this.allowedMimeTypes.includes(file.mimetype)) {
+      this.logger.warn(`Invalid mime type: ${file.mimetype} for file ${file.originalname}`);
+      throw new BadRequestException(`Invalid file type. Allowed types: ${this.allowedMimeTypes.join(', ')}`);
+    }
+    if (!file.originalname || file.originalname.length > 255) {
+      this.logger.warn(`Invalid filename: ${file.originalname}`);
+      throw new BadRequestException('Invalid filename');
+    }
+  }
+
+  private calculateChecksum(buffer: Buffer): string {
+    return crypto.createHash('sha256').update(buffer).digest('hex');
   }
 }
