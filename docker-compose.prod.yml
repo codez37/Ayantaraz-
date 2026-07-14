@@ -12,7 +12,7 @@ services:
       NODE_ENV: production
       LOG_LEVEL: warn
       PORT: "3001"
-      SERVER_IP: "202.133.91.13"
+      SERVER_IP: "${SERVER_IP:-0.0.0.0}"
     env_file:
       - .env.production
     expose:
@@ -60,15 +60,15 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         - NODE_ENV=production
-        - NEXT_PUBLIC_SITE_URL=http://202.133.91.13
+        - NEXT_PUBLIC_SITE_URL=${SITE_URL:-http://localhost}
     container_name: web-prod
     restart: unless-stopped
     environment:
       TZ: "${TZ:-Asia/Tehran}"
       NODE_ENV: production
       PORT: "3000"
-      NEXT_PUBLIC_SITE_URL: "http://202.133.91.13"
-      NEXT_PUBLIC_API_URL: "http://202.133.91.13/api"
+      NEXT_PUBLIC_SITE_URL: "${SITE_URL:-http://localhost}"
+      NEXT_PUBLIC_API_URL: "${API_URL:-http://localhost/api}"
     expose:
       - "3000"
     networks:
@@ -107,7 +107,7 @@ services:
     container_name: nginx-prod
     environment:
       TZ: "${TZ:-Asia/Tehran}"
-      SERVER_IP: "202.133.91.13"
+      SERVER_IP: "${SERVER_IP:-0.0.0.0}"
     ports:
       - "80:80"
     volumes:
