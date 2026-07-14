@@ -1,33 +1,22 @@
-import { Controller, Get, Req, Res } from '@nestjs/common';
-import type { Request, Response } from 'express';
-import { Public } from '../../common/decorators/public.decorator';
-import { randomBytes } from 'crypto';
+import { Controller, Get, Res, Logger } from '@nestjs/common';
+import { Response } from 'express';
+import * as crypto from 'crypto';
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME, CSRF_COOKIE_MAX_AGE } from '../../modules/auth/auth.constants';
 
 @Controller('csrf')
 export class CsrfController {
-  @Public()
-  @Get('token')
-  getCsrfToken(@Req() req: Request, @Res() res: Response) {
-    const existingToken = req.cookies?.['csrf-token'];
+  private readonly logger = new Logger(CsrfController.name);
 
-    if (
-      existingToken &&
-      typeof existingToken === 'string' &&
-      existingToken.length === 64
-    ) {
-      return res.json({ token: existingToken });
+  @Get()
+  getCsrfToken(@Res() res: Response): void {
+    try {
+      const token = crypto.randomBytes(32).toString('hex');
+      res.cookie(CSRF_COOKIE_NAME, token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: CSRF_COOKIE_MAX_AGE, path: '/' });
+      this.logger.debug('CSRF token generated and set in cookie');
+      res.json({ token, headerName: CSRF_HEADER_NAME, cookieName: CSRF_COOKIE_NAME });
+    } catch (error) {
+      this.logger.error(`Failed to generate CSRF token: ${error instanceof Error ? error.message : String(error)}`);
+      res.status(500).json({ error: 'Failed to generate CSRF token' });
     }
-
-    const token = randomBytes(32).toString('hex');
-
-    res.cookie('csrf-token', token, {
-      httpOnly: false,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000,
-      path: '/',
-    });
-
-    return res.json({ token });
   }
 }
