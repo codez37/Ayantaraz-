@@ -1,49 +1,177 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 
 interface Message {
+  id: string;
   role: 'user' | 'bot';
   content: string;
+  timestamp: Date;
+  status?: 'sending' | 'delivered' | 'error';
 }
+
+const GREETING_RESPONSES = [
+  'سلام! من سامانه هوشمند پاسخگویی مالیاتی آیان تراز هستم. می‌توانم به سوالات شما درباره مالیات، حسابداری، قوانین و مقررات پاسخ دهم.',
+  'در خدمت شما هستم. سامانه پرسش و پاسخ آیان تراز آماده پاسخگویی به سوالات مالیاتی و حسابداری شما است.',
+  'سلام. برای سوالات مالیاتی، حسابداری، تنظیم اظهارنامه و مشاوره مالی در خدمت شما هستم.',
+  'با سلام. من چت‌بات تخصصی مالیات و حسابداری هستم. سوالات خود را بپرسید.',
+];
+
+const FALLBACK_MESSAGES = [
+  'متأسفم، پاسخ دقیقی برای این سوال در دانشنامه پیدا نکردم. لطفاً سوال خود را دقیق‌تر مطرح کنید یا از بخش مشاوره استفاده نمایید.',
+  'این سوال نیاز به بررسی تخصصی دارد. می‌توانید از طریق فرم مشاوره با کارشناسان ما تماس بگیرید.',
+  'پاسخ این سوال در دانشنامه موجود نیست. پیشنهاد می‌کنم از مقالات آموزشی یا فرم مشاوره استفاده کنید.',
+  'برای این موضوع، مشاوره تخصصی توصیه می‌شود. کارشناسان ما آماده پاسخگویی هستند.',
+];
+
+const SUGGESTED_QUESTIONS = [
+  'مالیات بر ارزش افزوده چگونه محاسبه می‌شود؟',
+  'مدارک لازم برای تنظیم اظهارنامه مالیاتی چیست؟',
+  'معافیت‌های مالیاتی شامل چه مواردی می‌شود؟',
+  'تفاوت حسابداری صنعتی و مالی در چیست؟',
+  'چگونه می‌توانم مالیات خود را کاهش دهم؟',
+  'مهلت ارسال اظهارنامه مالیاتی چه زمانی است؟',
+];
 
 export default function ChatbotWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'bot', content: 'سلام! من سامانه پاسخگویی آیان تراز هستم. می‌توانم به سوالات مالیاتی شما بر اساس دانشنامه پاسخ دهم. برای مشاوره تخصصی، از صفحه مشاوره اقدام کنید.' },
+    {
+      id: 'initial',
+      role: 'bot',
+      content: GREETING_RESPONSES[Math.floor(Math.random() * GREETING_RESPONSES.length)],
+      timestamp: new Date(),
+      status: 'delivered',
+    },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    if (open && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && open) {
+        setOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [open]);
+
+  const generateId = useCallback(() => {
+    return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  }, []);
+
+  const formatTime = useCallback((date: Date): string => {
+    return date.toLocaleTimeString('fa-IR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  }, []);
+
   const handleSend = async () => {
     if (!input.trim() || loading) return;
+    
     const question = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: question }]);
+    setError(null);
+    setShowSuggestions(false);
+    
+    const userMessage: Message = {
+      id: generateId(),
+      role: 'user',
+      content: question,
+      timestamp: new Date(),
+      status: 'delivered',
+    };
+    setMessages((prev) => [...prev, userMessage]);
     setLoading(true);
 
     try {
-      const res = await api.post<{ answer: string }>('/chatbot/query', { question });
-      setMessages(prev => [...prev, { role: 'bot', content: res.answer }]);
-    } catch {
-      setMessages(prev => [...prev, { role: 'bot', content: 'متأسفم، خطایی رخ داد. لطفاً دوباره تلاش کنید.' }]);
+      const res = await api.post<{ answer: string; source?: string; riskLevel?: string }>(
+        '/chatbot/query',
+        { question },
+      );
+
+      const botMessage: Message = {
+        id: generateId(),
+        role: 'bot',
+        content: res.answer || FALLBACK_MESSAGES[Math.floor(Math.random() * FALLBACK_MESSAGES.length)],
+        timestamp: new Date(),
+        status: 'delivered',
+      };
+      setMessages((prev) => [...prev, botMessage]);
+      
+      if (res.source === 'fallback') {
+        setShowSuggestions(true);
+      }
+    } catch (err) {
+      setError('خطایی رخ داد. لطفاً دوباره تلاش کنید.');
+      const errorMessage: Message = {
+        id: generateId(),
+        role: 'bot',
+        content: 'متأسفم، خطایی در ارتباط با سرور رخ داد. لطفاً دوباره تلاش کنید.',
+        timestamp: new Date(),
+        status: 'error',
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSuggestedClick = (question: string) => {
+    setInput(question);
+    setShowSuggestions(false);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  const handleClearChat = () => {
+    setMessages([
+      {
+        id: generateId(),
+        role: 'bot',
+        content: 'گفتگوی جدید شروع شد. چگونه می‌توانم به شما کمک کنم؟',
+        timestamp: new Date(),
+        status: 'delivered',
+      },
+    ]);
+    setInput('');
+    setError(null);
+    setShowSuggestions(true);
+  };
+
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <>
       <button
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-6 left-6 z-50 bg-gradient-to-br from-[#D4A843] to-[#B8862D] text-[#111111] w-14 h-14 rounded-full shadow-lg hover:shadow-[#D4A843]/30 transition-all flex items-center justify-center text-2xl animate-pulse-glow"
-        aria-label="چت‌بات"
+        onClick={() => {
+          setOpen(!open);
+          if (!open) setShowSuggestions(false);
+        }}
+        className="fixed bottom-6 left-6 z-[60] bg-gradient-to-br from-[#F0D68A] to-[#B8862D] text-[#0A0A0A] w-14 h-14 rounded-full shadow-lg hover:shadow-[#D4A843]/30 transition-all duration-300 flex items-center justify-center text-2xl animate-pulse-glow hover:scale-105 active:scale-95"
+        aria-label="چت‌بات مالیاتی"
+        title="پرسش و پاسخ مالیاتی"
       >
         {open ? (
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,35 +182,72 @@ export default function ChatbotWidget() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
         )}
+        {messages.length > 1 && !open && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#D4A843] text-[#0A0A0A] text-xs font-bold rounded-full flex items-center justify-center">
+            {messages.filter(m => m.role === 'user').length}
+          </span>
+        )}
       </button>
 
       {open && (
-        <div className="fixed bottom-24 left-6 z-50 w-[360px] max-w-[calc(100vw-48px)] bg-[#111111] rounded-2xl shadow-2xl border border-[#D4A843]/20 flex flex-col h-[520px] max-h-[calc(100vh-200px)] overflow-hidden">
-          <div className="bg-gradient-to-l from-[#D4A843] to-[#B8862D] p-4 flex items-center gap-3">
-            <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-lg">⚖️</div>
-            <div className="flex-1">
-              <h3 className="font-bold text-[#111111] text-sm">پرسش و پاسخ مالیاتی</h3>
-              <p className="text-[#111111]/70 text-xs">پاسخگویی بر اساس دانشنامه</p>
+        <div
+          onClick={handleChatClick}
+          className="fixed bottom-24 left-6 z-[60] w-[360px] max-w-[calc(100vw-48px)] bg-[#111111] rounded-2xl shadow-2xl border border-[#D4A843]/20 flex flex-col h-[520px] max-h-[calc(100vh-200px)] overflow-hidden safe-area-bottom"
+        >
+          <div className="bg-gradient-to-l from-[#F0D68A] to-[#B8862D] p-4 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-lg backdrop-blur-sm">
+                ⚖️
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-[#0A0A0A] text-sm truncate">
+                  پرسش و پاسخ مالیاتی
+                </h3>
+                <p className="text-[#0A0A0A]/70 text-xs truncate">
+                  پاسخگویی بر اساس دانشنامه تخصصی
+                </p>
+              </div>
             </div>
-            <button onClick={() => setOpen(false)} className="text-[#111111]/60 hover:text-[#111111]">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleClearChat}
+                className="text-[#0A0A0A]/60 hover:text-[#0A0A0A] transition-colors p-1.5 rounded-lg hover:bg-white/20"
+                title="پاک کردن گفتگو"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                className="text-[#0A0A0A]/60 hover:text-[#0A0A0A] transition-colors p-1.5 rounded-lg hover:bg-white/20"
+                title="بستن"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#1A1A1A]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#1A1A1A] custom-scrollbar" onClick={(e) => e.stopPropagation()}>
+            {error && (
+              <div className="bg-[#D4A843]/10 border border-[#D4A843]/30 text-[#D4A843] p-3 rounded-xl text-sm text-center">
+                {error}
+              </div>
+            )}
+
             {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}>
-                <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed ${
-                  msg.role === 'user'
-                    ? 'bg-[#111111] text-gray-200 rounded-br-md'
-                    : 'bg-[#D4A843]/10 border border-[#D4A843]/20 text-gray-200 rounded-bl-md'
-                }`}>
-                  {msg.content}
+              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}` + (i > 0 ? ' animate-fade-in-up' : '')} style={{ animationDelay: `${i * 100}ms` }}>
+                <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed relative ${msg.role === 'user' ? 'bg-[#0A0A0A] text-gray-200 rounded-br-md border border-[#D4A843]/10' : 'bg-[#D4A843]/10 border border-[#D4A843]/20 text-gray-200 rounded-bl-md'}`}>
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                  <span className={`absolute bottom-1 text-[10px] opacity-50 ${msg.role === 'user' ? 'left-3' : 'right-3'}`}>
+                    {formatTime(msg.timestamp)}
+                  </span>
                 </div>
               </div>
             ))}
+
             {loading && (
               <div className="flex justify-end">
                 <div className="bg-[#D4A843]/10 border border-[#D4A843]/20 p-3 rounded-2xl rounded-bl-md">
@@ -94,28 +259,57 @@ export default function ChatbotWidget() {
                 </div>
               </div>
             )}
+
+            {showSuggestions && messages.length <= 2 && (
+              <div className="space-y-2 pt-2">
+                <p className="text-[11px] text-gray-500 text-center">پیشنهادهای ما:</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {SUGGESTED_QUESTIONS.slice(0, 3).map((q, i) => (
+                    <button key={i} onClick={() => handleSuggestedClick(q)} className="w-full text-left bg-[#0A0A0A]/50 border border-[#D4A843]/10 text-gray-400 p-2.5 rounded-xl text-xs hover:bg-[#0A0A0A]/80 hover:border-[#D4A843]/20 hover:text-gray-300 transition-all truncate">
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="border-t border-[#D4A843]/10 p-3 bg-[#111111] flex gap-2">
+          <div className="border-t border-[#D4A843]/10 p-3 bg-[#111111] flex gap-2 flex-shrink-0">
             <input
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="سوال خود را بپرسید..."
-              className="flex-1 bg-[#1A1A1A] border border-[#D4A843]/20 text-gray-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-[#D4A843] placeholder-gray-600"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder="سوال خود را درباره مالیات، حسابداری یا قوانین بپرسید..."
+              className="flex-1 bg-[#1A1A1A] border border-[#D4A843]/20 text-gray-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-[#D4A843] focus:ring-2 focus:ring-[#D4A843]/20 placeholder-gray-600 transition-all"
+              disabled={loading}
             />
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="bg-gradient-to-l from-[#D4A843] to-[#B8862D] text-[#111111] px-4 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-[#D4A843]/20 disabled:opacity-50 transition-all"
+              className="bg-gradient-to-l from-[#F0D68A] to-[#B8862D] text-[#0A0A0A] px-4 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-[#D4A843]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex-shrink-0"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V5m0 0l-7 7m7-7l7 7" />
               </svg>
             </button>
           </div>
+
+          <div className="text-center py-2 text-[10px] text-gray-600 bg-[#0A0A0A]/50">
+            سامانه هوشمند پاسخگویی آیان تراز
+          </div>
         </div>
+      )}
+
+      {open && (
+        <div className="fixed inset-0 z-[55] bg-black/30 backdrop-blur-sm transition-opacity duration-300" onClick={() => setOpen(false)} aria-hidden="true" />
       )}
     </>
   );
