@@ -18,9 +18,7 @@ import { UploadModule } from './modules/upload/upload.module';
 import { SeoModule } from './modules/seo/seo.module';
 import { SecurityModule } from './modules/security/security.module';
 
-import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
-import { RolesGuard } from './common/guards/roles.guard';
-import { SecurityGuard } from './modules/security/security.guard';
+import { CombinedAuthGuard } from './common/guards/combined-auth.guard';
 import { validateEnv } from './common/config/env.validation';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { CsrfMiddleware } from './modules/security/csrf.middleware';
@@ -48,9 +46,7 @@ import { CsrfMiddleware } from './modules/security/csrf.middleware';
     SeoModule,
   ],
   providers: [
-    { provide: APP_GUARD, useClass: SecurityGuard },
-    { provide: APP_GUARD, useClass: JwtAuthGuard },
-    { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: CombinedAuthGuard },
   ],
 })
 export class AppModule implements NestModule {
