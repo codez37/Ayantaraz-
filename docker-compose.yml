@@ -1,9 +1,6 @@
 version: '3.8'
 
 services:
-  # =========================================================
-  # EDGE GATEWAY (ONLY PUBLIC ENTRY POINT)
-  # =========================================================
   nginx:
     image: nginx:alpine
     container_name: ayantaraz-nginx
@@ -17,24 +14,7 @@ services:
     networks:
       - internal
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
-    tmpfs:
-      - /tmp:size=32m
-      - /var/cache/nginx:size=64m
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "5"
 
-  # =========================================================
-  # WEB (NEXT.JS SSR - INTERNAL ONLY)
-  # =========================================================
   web:
     build:
       context: .
@@ -45,28 +25,14 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      NEXT_PUBLIC_SITE_URL: http://202.133.91.13
+      NEXT_PUBLIC_SITE_URL: ${SITE_URL:-http://localhost}
       API_BASE_URL: /api
     depends_on:
       - api
     networks:
       - internal
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    tmpfs:
-      - /tmp:size=64m
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "5"
 
-  # =========================================================
-  # API (BFF / BACKEND - INTERNAL ONLY)
-  # =========================================================
   api:
     build:
       context: .
@@ -81,7 +47,7 @@ services:
       PORT: 3001
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
-      TRUSTED_ORIGINS: http://202.133.91.13
+      TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-http://localhost}
       API_BASE_PATH: /api
     depends_on:
       postgres:
@@ -91,21 +57,7 @@ services:
     networks:
       - internal
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    tmpfs:
-      - /tmp:size=64m
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "5"
 
-  # =========================================================
-  # DATABASE LAYER
-  # =========================================================
   postgres:
     image: postgres:16-alpine
     container_name: ayantaraz-postgres
@@ -124,19 +76,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "5"
 
-  # =========================================================
-  # CACHE LAYER
-  # =========================================================
   redis:
     image: redis:7-alpine
     container_name: ayantaraz-redis
@@ -155,26 +95,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "5"
 
-# =========================================================
-# NETWORK (NO PUBLIC SERVICE EXCEPT NGINX)
-# =========================================================
 networks:
   internal:
     driver: bridge
 
-# =========================================================
-# PERSISTENT STORAGE
-# =========================================================
 volumes:
   postgres_data:
   redis_data:
