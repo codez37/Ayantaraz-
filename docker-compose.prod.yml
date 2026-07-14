@@ -1,6 +1,7 @@
-version: "3.8"
+version: '3.8'
 
 services:
+  # API Service
   api:
     build:
       context: .
@@ -9,8 +10,31 @@ services:
     restart: unless-stopped
     ports:
       - "3001:3001"
-    env_file:
-      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - API_URL=http://202.133.91.13:3001
+      - FRONTEND_URL=http://202.133.91.13:3000
+      - DATABASE_URL=postgresql://ayantaraz:ayantaraz2024@db:5432/ayantaraz?schema=public
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=ayantaraz-production-secret-key-2024-change-me
+      - JWT_REFRESH_SECRET=ayantaraz-production-refresh-secret-2024-change-me
+      - JWT_EXPIRATION=15m
+      - JWT_REFRESH_EXPIRATION=7d
+      - FILE_ENCRYPTION_KEY=ayantaraz-file-encryption-key-32-chars-2024
+      - CAPTCHA_SECRET=
+      - ALLOW_ALL_ORIGINS=true
+      - TRUSTED_ORIGINS=http://202.133.91.13,http://202.133.91.13:3000,http://202.133.91.13:3001
+      - COOKIE_SECURE=false
+      - COOKIE_HTTP_ONLY=true
+      - COOKIE_SAME_SITE=lax
+      - DB_POOL_MAX_CONNECTIONS=20
+      - DB_POOL_MIN_CONNECTIONS=5
+      - DB_POOL_MAX_REQUESTS_PER_CONNECTION=100
+      - DB_POOL_IDLE_TIMEOUT_MS=30000
+      - DB_POOL_CONNECTION_TIMEOUT_MS=5000
+      - DOCKER_ENV=true
     depends_on:
       db:
         condition: service_healthy
@@ -28,6 +52,7 @@ services:
       retries: 3
       start_period: 40s
 
+  # PostgreSQL Database
   db:
     image: postgres:15-alpine
     container_name: ayantaraz-db
@@ -48,11 +73,12 @@ services:
       timeout: 5s
       retries: 5
 
+  # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: ayantaraz-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --requirepass ""
     volumes:
       - redis_data:/data
     ports:
@@ -64,6 +90,23 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+
+  # Nginx Reverse Proxy (Optional - for HTTPS)
+  nginx:
+    image: nginx:alpine
+    container_name: ayantaraz-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./certs:/etc/nginx/certs
+    depends_on:
+      - api
+    networks:
+      - ayantaraz-network
 
 volumes:
   postgres_data:
