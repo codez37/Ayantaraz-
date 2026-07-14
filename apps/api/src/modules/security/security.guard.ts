@@ -1,82 +1,55 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
-import { CaptchaService } from './captcha.service';
 import { RateLimiterService } from './rate-limiter.service';
-
-export const CAPTCHA_REQUIRED_KEY = 'captcha_required';
-export const RATE_LIMIT_TIER_KEY = 'rate_limit_tier';
-export const IS_PUBLIC_KEY = 'isPublic';
-
-const RATE_LIMITS: Record<string, { limit: number; windowMs: number }> = {
-  auth: { limit: 5, windowMs: 60_000 },
-  default: { limit: 100, windowMs: 60_000 },
-  strict: { limit: 10, windowMs: 60_000 },
-};
 
 @Injectable()
 export class SecurityGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private captchaService: CaptchaService,
-    private rateLimiterService: RateLimiterService,
-  ) {}
+  private readonly logger = new Logger(SecurityGuard.name);
+  constructor(private reflector: Reflector, private rateLimiter: RateLimiterService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
-    const clientKey = this.extractClientKey(request);
+    const request = context.switchToHttp().getRequest();
+    const ip = this.getClientIp(request);
+    const userId = request.user?.id?.toString();
+    const identifier = userId || ip;
 
-    // 1. Rate Limiting (cheapest first)
-    const tier =
-      this.reflector.getAllAndOverride<string>(RATE_LIMIT_TIER_KEY, [
-        context.getHandler(),
-        context.getClass(),
-      ]) || 'default';
+    const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [context.getHandler(), context.getClass()]);
+    if (isPublic) return true;
 
-    const rateConfig = RATE_LIMITS[tier] || RATE_LIMITS.default;
-    const allowed = await this.rateLimiterService.isAllowed(
-      `${tier}:${clientKey}`,
-      rateConfig.limit,
-      rateConfig.windowMs,
-    );
-    if (!allowed) {
-      throw new ForbiddenException(
-        'Too many requests. Please try again later.',
-      );
-    }
+    const routePath = this.getRoutePath(context);
+    const configName = this.getRateLimitConfig(routePath);
 
-    // 2. Captcha Verification
-    const requiresCaptcha = this.reflector.getAllAndOverride<boolean>(
-      CAPTCHA_REQUIRED_KEY,
-      [context.getHandler(), context.getClass()],
-    );
-    if (requiresCaptcha) {
-      const captchaToken = request.headers['x-captcha-token'] as string;
-      if (!captchaToken) {
-        throw new UnauthorizedException('Captcha required');
+    try {
+      const result = await this.rateLimiter.increment(identifier, configName);
+      if (!result.allowed) {
+        this.logger.warn(`Rate limit exceeded for ${identifier} on ${routePath}: ${result.remaining} remaining`);
+        return false;
       }
-      const valid = await this.captchaService.verify(captchaToken);
-      if (!valid) {
-        throw new UnauthorizedException('Invalid captcha');
-      }
-    }
 
-    return true;
+      const response = context.switchToHttp().getResponse();
+      response.setHeader('X-RateLimit-Limit', '100');
+      response.setHeader('X-RateLimit-Remaining', result.remaining.toString());
+      response.setHeader('X-RateLimit-Reset', Math.ceil(result.resetTime.getTime() / 1000).toString());
+      return true;
+    } catch (error) {
+      this.logger.error(`Rate limit check failed: ${error instanceof Error ? error.message : String(error)}`);
+      return true;
+    }
   }
 
-  private extractClientKey(req: Request): string {
-    const ip =
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
-      req.ip ||
-      req.socket.remoteAddress ||
-      'unknown';
-    const ua = req.headers['user-agent'] || '';
-    return `${ip}:${ua.slice(0, 50)}`;
+  private getClientIp(request: any): string {
+    const forwarded = request.headers['x-forwarded-for'];
+    if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
+    return request.ip || request.connection?.remoteAddress || 'unknown';
+  }
+
+  private getRoutePath(context: ExecutionContext): string {
+    try { const request = context.switchToHttp().getRequest(); return request.route?.path || request.path || 'unknown'; } catch { return 'unknown'; }
+  }
+
+  private getRateLimitConfig(routePath: string): string {
+    if (routePath.includes('/auth/') || routePath.includes('/login') || routePath.includes('/otp')) return 'auth';
+    if (routePath.startsWith('/api/')) return 'api';
+    return 'default';
   }
 }

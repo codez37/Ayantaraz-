@@ -1,77 +1,102 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient, RedisClientType } from 'redis';
+import { createClient, type RedisClientType } from 'redis';
+
+interface RateLimitConfig { windowMs: number; max: number; message: string; keyPrefix: string; }
+interface RateLimitResult { allowed: boolean; remaining: number; resetTime: Date; }
 
 @Injectable()
 export class RateLimiterService implements OnModuleDestroy {
   private readonly logger = new Logger(RateLimiterService.name);
-  private readonly redis: RedisClientType;
-  private connected = false;
+  private redisClient: RedisClientType | null = null;
+  private readonly configs: Map<string, RateLimitConfig> = new Map();
+  private readonly failOpen: boolean;
 
-  constructor(private config: ConfigService) {
-    const redisUrl = this.config.getOrThrow<string>('REDIS_URL');
-    this.redis = createClient({ url: redisUrl });
-
-    this.redis.on('error', (err: Error) => {
-      this.logger.error('Redis connection error', err.message);
-    });
-
-    this.redis
-      .connect()
-      .then(() => {
-        this.connected = true;
-        this.logger.log('Redis rate limiter connected');
-      })
-      .catch((err: Error) => {
-        this.logger.error('Redis initial connection failed', err.message);
-      });
-  }
-
-  async isAllowed(
-    key: string,
-    limit: number,
-    windowMs: number,
-  ): Promise<boolean> {
-    if (!this.connected) {
-      this.logger.warn('Redis not connected, allowing request');
-      return true;
-    }
-
-    const now = Date.now();
-    const windowKey = Math.floor(now / windowMs);
-    const redisKey = `ratelimit:${key}:${windowKey}`;
-
-    try {
-      const pipeline = this.redis.multi();
-      pipeline.incr(redisKey);
-      pipeline.pExpire(redisKey, windowMs);
-      const results = await pipeline.exec();
-
-      if (!results) {
-        this.logger.warn('Redis pipeline returned null');
-        return true;
-      }
-
-      const count = (results[0] as unknown as number) || 0;
-      return count <= limit;
-    } catch (err) {
-      this.logger.error('Rate limiter Redis error', (err as Error).message);
-      return true;
-    }
-  }
-
-  async reset(key: string): Promise<void> {
-    if (!this.connected) return;
-    const pattern = `ratelimit:${key}:*`;
-    const keys = await this.redis.keys(pattern);
-    if (keys.length > 0) {
-      await this.redis.del(keys);
-    }
+  constructor(private configService: ConfigService) {
+    this.failOpen = this.configService.get<string>('RATE_LIMITER_FAIL_OPEN') !== 'false';
+    this.initializeRedis();
+    this.configs.set('default', { windowMs: 60 * 1000, max: 100, message: 'Too many requests', keyPrefix: 'rl:default:' });
+    this.configs.set('auth', { windowMs: 60 * 1000, max: 5, message: 'Too many auth attempts', keyPrefix: 'rl:auth:' });
+    this.configs.set('short', { windowMs: 1000, max: 10, message: 'Too many requests', keyPrefix: 'rl:short:' });
+    this.configs.set('api', { windowMs: 60 * 1000, max: 60, message: 'API rate limit exceeded', keyPrefix: 'rl:api:' });
   }
 
   async onModuleDestroy() {
-    if (this.connected) {
-      await this.redis.quit();
-    }
+    if (this.redisClient) try { await this.redisClient.quit(); this.logger.log('Redis client disconnected'); } catch (error) { this.logger.error(`Error disconnecting Redis: ${error instanceof Error ? error.message : String(error)}`); }
   }
+
+  private initializeRedis(): void {
+    const redisUrl = this.configService.get<string>('REDIS_URL');
+    const redisHost = this.configService.get<string>('REDIS_HOST') || 'localhost';
+    const redisPort = parseInt(this.configService.get<string>('REDIS_PORT') || '6379');
+    const redisPassword = this.configService.get<string>('REDIS_PASSWORD');
+
+    try {
+      this.redisClient = createClient({ url: redisUrl || `redis://${redisHost}:${redisPort}`, password: redisPassword, socket: { connectTimeout: 5000, reconnectStrategy: (retries) => Math.min(retries * 100, 5000) } });
+      this.redisClient.on('error', (error) => this.logger.error(`Redis error: ${error.message}`));
+      this.redisClient.on('connect', () => this.logger.log('Connected to Redis for rate limiting'));
+      this.redisClient.connect().catch((error) => { this.logger.error(`Failed to connect to Redis: ${error instanceof Error ? error.message : String(error)}`); this.redisClient = null; });
+    } catch (error) { this.logger.error(`Failed to initialize Redis: ${error instanceof Error ? error.message : String(error)}`); this.redisClient = null; }
+  }
+
+  async check(identifier: string, configName: string = 'default'): Promise<RateLimitResult> {
+    const config = this.configs.get(configName) || this.configs.get('default')!;
+    if (!this.redisClient) return this.failOpen ? { allowed: true, remaining: config.max, resetTime: new Date(Date.now() + config.windowMs) } : { allowed: false, remaining: 0, resetTime: new Date(Date.now() + config.windowMs) };
+
+    try {
+      const key = `${config.keyPrefix}${identifier}`;
+      const now = Date.now();
+      const windowStart = now - config.windowMs;
+      const multi = this.redisClient.multi();
+      multi.zremrangebyScore(key, 0, windowStart);
+      multi.zadd(key, { score: now, value: now.toString() });
+      multi.zcard(key);
+      multi.expire(key, Math.ceil(config.windowMs / 1000));
+      const results = await multi.exec();
+      const currentCount = results[2] as number;
+      const allowed = currentCount < config.max;
+      const remaining = Math.max(0, config.max - currentCount - 1);
+      const resetTime = new Date(now + config.windowMs);
+      if (!allowed) this.logger.warn(`Rate limit exceeded for ${identifier} on ${configName}: ${currentCount}/${config.max}`);
+      return { allowed, remaining, resetTime };
+    } catch (error) { return this.failOpen ? { allowed: true, remaining: config.max, resetTime: new Date(Date.now() + config.windowMs) } : { allowed: false, remaining: 0, resetTime: new Date(Date.now() + config.windowMs) }; }
+  }
+
+  async increment(identifier: string, configName: string = 'default'): Promise<RateLimitResult> {
+    const config = this.configs.get(configName) || this.configs.get('default')!;
+    if (!this.redisClient) return this.failOpen ? { allowed: true, remaining: config.max, resetTime: new Date(Date.now() + config.windowMs) } : { allowed: false, remaining: 0, resetTime: new Date(Date.now() + config.windowMs) };
+
+    try {
+      const key = `${config.keyPrefix}${identifier}`;
+      const now = Date.now();
+      const windowStart = now - config.windowMs;
+      const multi = this.redisClient.multi();
+      multi.zremrangebyScore(key, 0, windowStart);
+      multi.zadd(key, { score: now, value: now.toString() });
+      multi.zcard(key);
+      multi.expire(key, Math.ceil(config.windowMs / 1000));
+      const results = await multi.exec();
+      const currentCount = results[2] as number;
+      const allowed = currentCount <= config.max;
+      const remaining = Math.max(0, config.max - currentCount);
+      const resetTime = new Date(now + config.windowMs);
+      return { allowed, remaining, resetTime };
+    } catch (error) { return this.failOpen ? { allowed: true, remaining: config.max, resetTime: new Date(Date.now() + config.windowMs) } : { allowed: false, remaining: 0, resetTime: new Date(Date.now() + config.windowMs) }; }
+  }
+
+  async reset(identifier: string, configName: string = 'default'): Promise<void> {
+    const config = this.configs.get(configName) || this.configs.get('default')!;
+    const key = `${config.keyPrefix}${identifier}`;
+    if (this.redisClient) try { await this.redisClient.del(key); this.logger.debug(`Rate limit reset for ${identifier}`); } catch (error) { this.logger.error(`Failed to reset rate limit: ${error instanceof Error ? error.message : String(error)}`); }
+  }
+
+  async getRemaining(identifier: string, configName: string = 'default'): Promise<number> {
+    const config = this.configs.get(configName) || this.configs.get('default')!;
+    const key = `${config.keyPrefix}${identifier}`;
+    if (!this.redisClient) return config.max;
+    try { const count = await this.redisClient.zcard(key); return Math.max(0, config.max - count); } catch (error) { this.logger.error(`Failed to get remaining: ${error instanceof Error ? error.message : String(error)}`); return config.max; }
+  }
+
+  addConfig(name: string, config: RateLimitConfig): void { this.configs.set(name, config); this.logger.log(`Added rate limit config: ${name}`); }
+  isRedisAvailable(): boolean { return this.redisClient !== null; }
 }
