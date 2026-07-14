@@ -1,0 +1,56 @@
+# Ayantaraz API - Production Dockerfile
+# Multi-stage build for optimized image size
+# Uses pnpm for dependency management
+
+# Stage 1: Build stage
+FROM node:18-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Install pnpm globally
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Install dependencies (production only, no dev dependencies)
+RUN pnpm install --frozen-lockfile --production
+
+# Stage 2: Runtime stage
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install pnpm globally
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy built dependencies from builder
+COPY --from=builder /app/node_modules ./node_modules
+
+# Copy application source code
+COPY . .
+
+# Generate Prisma client
+RUN pnpm exec prisma generate
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Change ownership of the app directory
+RUN chown -R nodejs:nodejs /app
+
+# Switch to non-root user
+USER nodejs
+
+# Expose API port
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health/ping || exit 1
+
+# Start the application
+CMD ["pnpm", "run", "start:prod"]
