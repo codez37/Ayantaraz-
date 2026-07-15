@@ -1,1 +1,0 @@
-DEPLOYMENT GUIDE UPDATED - IP now configured via SITE_URL environment variable. SMS_API_KEY must be set in .env file for OTP login to work.
