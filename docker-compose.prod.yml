@@ -1,1 +1,50 @@
-Could not read this page (the site blocked automated access or returned no readable content). Do not retry; try a different source.
+version: '3.8'
+
+# Production overrides for docker-compose.yml
+# Use: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  api:
+    environment:
+      - NODE_ENV=production
+      - API_URL=http://202.133.91.13:3001
+      - FRONTEND_URL=http://202.133.91.13:3000
+      - SITE_URL=http://202.133.91.13
+      - COOKIE_DOMAIN=202.133.91.13
+      - TRUSTED_ORIGINS=http://202.133.91.13,http://202.133.91.13:3000,http://202.133.91.13:3001
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  db:
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  redis:
+    command: redis-server --requirepass Ay4nt4r4z2024RedisPass --maxmemory 256mb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+volumes:
+  postgres_data:
+    driver: local
+    name: ayantaraz-postgres-prod-data
+  redis_data:
+    driver: local
+    name: ayantaraz-redis-prod-data
