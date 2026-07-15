@@ -1,1 +1,75 @@
-Could not read this page (the site blocked automated access or returned no readable content). Do not retry; try a different source.
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: ayantaraz-api
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./prisma:/app/prisma
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    networks:
+      - ayantaraz-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: ayantaraz-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ayantaraz
+      POSTGRES_PASSWORD: Ay4nt4r4z2024DbPass
+      POSTGRES_DB: ayantaraz
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ayantaraz -d ayantaraz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ayantaraz-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ayantaraz-redis
+    restart: unless-stopped
+    command: redis-server --requirepass Ay4nt4r4z2024RedisPass
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "Ay4nt4r4z2024RedisPass", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ayantaraz-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  ayantaraz-network:
+    driver: bridge
