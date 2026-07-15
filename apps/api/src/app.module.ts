@@ -12,6 +12,7 @@ import { ContentModule } from './modules/content/content.module';
 import { HealthModule } from './modules/health/health.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { SecurityModule } from './modules/security/security.module';
+import { ChatbotModule } from './modules/chatbot/chatbot.module';
 
 import { CombinedAuthGuard } from './common/guards/combined-auth.guard';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
@@ -29,7 +30,7 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     }),
     CacheModule.registerAsync({ isGlobal: true, useFactory: async () => ({ store: 'redis', host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379'), password: process.env.REDIS_PASSWORD, ttl: 300 }) }),
     EventEmitterModule.forRoot(),
-    PrismaModule, AuthModule, UsersModule, ContentModule, HealthModule, UploadModule, SecurityModule,
+    PrismaModule, AuthModule, UsersModule, ContentModule, HealthModule, UploadModule, SecurityModule, ChatbotModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: CombinedAuthGuard }],
 })
