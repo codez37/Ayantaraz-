@@ -21,10 +21,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # ✅ اول pnpm، بعد Node (ترتیب حیاتی)
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 11.9.0
+          run_install: false  # مهم: خودمان pnpm install را اجرا می‌کنیم
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -32,6 +34,7 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
+      # ✅ حالا pnpm حتماً کار می‌کند
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
