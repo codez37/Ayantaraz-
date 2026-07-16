@@ -50,8 +50,6 @@ services:
     image: redis:7-alpine
     container_name: ayantaraz-redis
     restart: unless-stopped
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
     command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
