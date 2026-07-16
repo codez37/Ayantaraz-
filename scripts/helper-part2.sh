@@ -86,8 +86,8 @@ validate_release(){
   [ -f "${d}/docker-compose.yml" ]||{ log "  FAIL: no compose"; er=$((er+1)); }
   [ -f "${d}/.env" ]||{ log "  FAIL: no .env"; er=$((er+1)); }
   [ -f "${d}/VERSION" ]||{ log "  FAIL: no VERSION"; er=$((er+1)); }
-  [ -f "${d}/infra/docker/Dockerfile.api" ]||{ log "  FAIL: no api df"; er=$((er+1)); }
-  [ -f "${d}/infra/docker/Dockerfile.web" ]||{ log "  FAIL: no web df"; er=$((er+1)); }
+  [ -f "${d}/apps/api/Dockerfile" ]||{ log "  FAIL: no api df"; er=$((er+1)); }
+  [ -f "${d}/apps/web/Dockerfile" ]||{ log "  FAIL: no web df"; er=$((er+1)); }
   [ -s "${d}/.env" ]||{ log "  FAIL: .env empty"; er=$((er+1)); }
   return ${er}
 }
