@@ -26,28 +26,28 @@ if not exist "%ENV_FILE%" (
     echo PORT=3001
     echo.
     echo # CORS
-    echo CORS_ORIGINS=http://202.133.91.13
+    echo CORS_ORIGINS=
     echo.
     echo # Database
     echo POSTGRES_USER=ayantaraz
     echo POSTGRES_DB=ayantaraz
-    echo POSTGRES_PASSWORD=1BLTvcXfFFmKSzAtorghas0r
-    echo DATABASE_URL=postgresql://ayantaraz:1BLTvcXfFFmKSzAtorghas0r@postgres:5432/ayantaraz?schema=public
+    echo POSTGRES_PASSWORD=%POSTGRES_PASSWORD%
+    echo DATABASE_URL=postgresql://ayantaraz:%POSTGRES_PASSWORD%@postgres:5432/ayantaraz?schema=public
     echo.
     echo # Redis
-    echo REDIS_URL=redis://:ayantaraz_redis_2024@redis:6379
-    echo REDIS_PASSWORD=ayantaraz_redis_2024
+    echo REDIS_URL=redis://:%REDIS_PASSWORD%@redis:6379
+    echo REDIS_PASSWORD=%REDIS_PASSWORD%
     echo.
     echo # Auth
-    echo JWT_SECRET=ayantaraz_jwt_secret_2026_secure_64_chars_long_abcdefghijklmnopqrstuvwxyz0123456789
+    echo JWT_SECRET=%JWT_SECRET%
     echo JWT_EXPIRES_IN=30d
-    echo SESSION_SECRET=ayantaraz_session_secret_2026_secure_64_chars
+    echo SESSION_SECRET=%SESSION_SECRET%
     echo.
     echo # Uploads
-    echo FILE_ENCRYPTION_KEY=ayantaraz_file_encryption_key_32_bytes_long_1234567890
+    echo FILE_ENCRYPTION_KEY=%FILE_ENCRYPTION_KEY%
     echo.
     echo # SMS (Placeholder)
-    echo SMS_API_KEY=CHANGE_ME
+    echo SMS_API_KEY=%SMS_API_KEY%
     echo.
     echo # Rate Limiting
     echo RATE_LIMIT_TTL=60000
@@ -58,7 +58,7 @@ if not exist "%ENV_FILE%" (
   ) > "%ENV_FILE%"
   echo %GREEN%✓ Created %ENV_FILE%%NC%
 ) else (
-  echo %YELLOW%⚠ %ENV_FILE% already exists, skipping creation%NC%
+  echo %YELLOW%╙ %ENV_FILE% already exists, skipping creation%NC%
 )
 
 :: Copy release files
