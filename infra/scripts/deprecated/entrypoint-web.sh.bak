@@ -1,0 +1,4 @@
+# DEPRECATED - This file was a placeholder and has been archived
+# Original location: /infra/docker/entrypoint-web.sh
+# This file contained error text and was not a valid entrypoint script
+# Use a proper entrypoint script for web service
