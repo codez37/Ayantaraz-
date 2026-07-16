@@ -1,4 +1,5 @@
 #!/bin/bash
+# NOTE: After cloning, run: chmod +x deploy-prod.sh
 
 # Ayantaraz Production Deployment Script
 # This script deploys the application to production using Docker Compose
