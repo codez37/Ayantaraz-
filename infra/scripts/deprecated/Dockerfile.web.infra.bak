@@ -1,0 +1,6 @@
+# DEPRECATED - Archived from infra/docker/Dockerfile.web
+# Reason: Critical security issue
+# - Runs as ROOT user (not acceptable for production)
+# - No HEALTHCHECK
+# - Single-stage build (not optimized)
+# Use apps/web/Dockerfile instead

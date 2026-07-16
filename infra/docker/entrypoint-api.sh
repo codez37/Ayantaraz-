@@ -1,12 +1,11 @@
 #!/bin/sh
 
 # Ayantaraz API Entrypoint Script
-# Production-Ready | Server: 202.133.91.13
+# Production-Ready
 
 set -e
 
 echo "Ayantaraz API Entrypoint"
-echo "Server: 202.133.91.13"
 
 # Ensure uploads directory exists
 mkdir -p /app/uploads

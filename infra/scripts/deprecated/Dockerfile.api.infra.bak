@@ -1,0 +1,5 @@
+# DEPRECATED - Archived from infra/docker/Dockerfile.api
+# Reason: Security and optimization issues
+# - No HEALTHCHECK
+# - Less optimized multi-stage build
+# Use apps/api/Dockerfile instead
