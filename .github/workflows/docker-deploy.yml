@@ -21,7 +21,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ✅ تغییرات اصلی اینجاست
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -32,6 +31,7 @@ jobs:
         with:
           node-version: '24'
           cache: 'pnpm'
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -92,16 +92,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
       - name: Deploy to production server
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
         run: ssh -o StrictHostKeyChecking=yes ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "cd /opt/ayan-taraz && ./deploy.sh"
+
       - name: Verify deployment
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
