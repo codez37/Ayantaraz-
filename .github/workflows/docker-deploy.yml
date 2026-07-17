@@ -21,12 +21,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ✅ اول pnpm، بعد Node (ترتیب حیاتی)
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 11.9.0
-          run_install: false  # مهم: خودمان pnpm install را اجرا می‌کنیم
+          run_install: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,7 +33,6 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      # ✅ حالا pnpm حتماً کار می‌کند
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -88,10 +86,40 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy-to-production:
+  deploy-to-staging:
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: https://staging.ayantaraz.example.com
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+      - name: Deploy to staging server
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SERVER_IP: ${{ secrets.STAGING_SERVER_IP }}
+        run: ssh -o StrictHostKeyChecking=yes ${{ secrets.SSH_USER }}@${{ secrets.STAGING_SERVER_IP }} "cd /opt/ayan-taraz && ./deploy.sh staging"
+
+      - name: Verify staging deployment
+        env:
+          SERVER_IP: ${{ secrets.STAGING_SERVER_IP }}
+        run: sleep 30 && curl -f http://${{ secrets.STAGING_SERVER_IP }}:3001/health || exit 1
+
+  deploy-to-production:
+    needs: deploy-to-staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://ayantaraz.example.com
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -108,7 +136,7 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
         run: ssh -o StrictHostKeyChecking=yes ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "cd /opt/ayan-taraz && ./deploy.sh"
 
-      - name: Verify deployment
+      - name: Verify production deployment
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
         run: sleep 30 && curl -f http://${{ secrets.SERVER_IP }}:3001/health || exit 1
