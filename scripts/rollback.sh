@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# ============================================
-# Ayantaraz — Rollback (trace-correlated, WAL)
-# ============================================
 set -euo pipefail
 
-SERVER_IP="202.133.91.13"
-SERVER_USER="ayan"
+SERVER_IP="${SERVER_IP:-}"
+SERVER_USER="${SERVER_USER:-}"
 FORCE=false
 [ "${1:-}" = "--force" ] && FORCE=true
 
-TRACE_ID="rollback_$(date -u +%Y%m%d%H%M%S)_$(head -c 4 /dev/urandom | od -An -tx1 | tr -d ' ' 2>/dev/null || echo "x")"
+[ -z "$SERVER_IP" ] && { echo "ERROR: SERVER_IP not set in environment"; exit 1; }
+[ -z "$SERVER_USER" ] && { echo "ERROR: SERVER_USER not set in environment"; exit 1; }
+
+TRACE_ID="rollback_$(date -u +%Y%m%d%H%M%S)_$(head -c 4 /dev/urandom | od -An -tx1 | tr -d " " 2>/dev/null || echo "x")"
 remote() { ssh "${SERVER_USER}@${SERVER_IP}" "TRACE_ID=${TRACE_ID} $*"; }
 
 echo "Rollback (trace: ${TRACE_ID})..."
