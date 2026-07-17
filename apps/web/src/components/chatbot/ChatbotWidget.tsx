@@ -120,7 +120,7 @@ export default function ChatbotWidget() {
       if (res.source === 'fallback') {
         setShowSuggestions(true);
       }
-    } catch (err) {
+    } catch {
       setError('خطایی رخ داد. لطفاً دوباره تلاش کنید.');
       const errorMessage: Message = {
         id: generateId(),

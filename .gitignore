@@ -1,1 +1,19 @@
-Could not read this page (the site blocked automated access or returned no readable content). Do not retry; try a different source.
+node_modules/
+.pnpm-store/
+.turbo/
+.next/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.DS_Store
+uploads/
+apps/**/node_modules/
+packages/**/node_modules/
+apps/**/.turbo/
+packages/**/.turbo/
+apps/api/dist/
+packages/shared/dist/

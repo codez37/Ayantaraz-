@@ -96,7 +96,6 @@ describe('TaxEngineAdminController', () => {
 
       expect(prisma.taxArticle.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           where: expect.objectContaining({
             category: 'INHERITANCE',
             book: 'DIRECT',
@@ -153,7 +152,7 @@ describe('TaxEngineAdminController', () => {
       expect(prisma.taxArticle.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 1 },
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
           data: expect.objectContaining({ validTo: expect.any(Date) }),
         }),
       );
@@ -218,10 +217,10 @@ describe('TaxEngineAdminController', () => {
       expect(prisma.taxRule.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 1 },
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
           data: expect.objectContaining({
             isActive: false,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
             effectiveTo: expect.any(Date),
           }),
         }),
@@ -266,7 +265,6 @@ describe('TaxEngineAdminController', () => {
 
       expect(prisma.taxBracket.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           where: expect.objectContaining({ year: 1403, type: 'SALARY' }),
         }),
       );
@@ -298,7 +296,7 @@ describe('TaxEngineAdminController', () => {
       expect(prisma.taxBracket.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 1 },
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
           data: expect.objectContaining({ rate: 15 }),
         }),
       );
