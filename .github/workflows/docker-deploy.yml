@@ -1,3 +1,5 @@
+url: https://raw.githubusercontent.com/codez37/Ayantaraz-/6aba4673a2b69324ce613879afbcee34f2f1cb90/.github/workflows/docker-deploy.yml
+
 name: Docker Build and Deploy
 
 on:
@@ -75,13 +77,20 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Docker image
+      - name: Build and push API Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: apps/api/Dockerfile
+
+      - name: Build and push Web Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/web/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.ou
+tputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -139,4 +148,5 @@ jobs:
       - name: Verify production deployment
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
-        run: sleep 30 && curl -f http://${{ secrets.SERVER_IP }}:3001/health || exit 1
+        run: sleep 30 && curl -f http://${{ secrets.SERVER_IP }}:30
+01/health || exit 1
