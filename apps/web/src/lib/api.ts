@@ -16,10 +16,12 @@ function isPublicPath(path: string): boolean {
   return PUBLIC_PATHS.some(p => path.includes(p));
 }
 
+type ApiRequestOptions = RequestInit & { redirectOnUnauthorized?: boolean };
+
 class ApiClient {
   private async request<T>(
     path: string,
-    options: RequestInit = {},
+    options: ApiRequestOptions = {},
   ): Promise<T> {
     const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
 
@@ -28,14 +30,16 @@ class ApiClient {
       ...(options.headers as Record<string, string>),
     };
 
+    const { redirectOnUnauthorized = true, ...fetchOptions } = options;
+
     const response = await fetch(url, {
-      ...options,
+      ...fetchOptions,
       headers,
       credentials: 'include',
     });
 
     if (response.status === 401 && !isPublicPath(path)) {
-      if (isBrowser) {
+      if (isBrowser && redirectOnUnauthorized) {
         window.location.href = '/auth';
       }
       throw new Error('Unauthorized');
@@ -49,9 +53,9 @@ class ApiClient {
     return response.json();
   }
 
-  get<T>(path: string, params?: Record<string, string>): Promise<T> {
+  get<T>(path: string, params?: Record<string, string>, extra?: { redirectOnUnauthorized?: boolean }): Promise<T> {
     const query = params ? '?' + new URLSearchParams(params).toString() : '';
-    return this.request<T>(`${path}${query}`);
+    return this.request<T>(`${path}${query}`, { redirectOnUnauthorized: extra?.redirectOnUnauthorized });
   }
 
   post<T = unknown>(

@@ -12,7 +12,7 @@ import { ChatbotService } from './chatbot.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { RequireCaptcha, RateLimitTier } from '../security/decorators';
+import { RateLimitTier } from '../security/decorators';
 import { UserRole } from '@prisma/client';
 import { ChatQueryDto } from './dto/chat-query.dto';
 import { CreateKnowledgeDto } from './dto/create-knowledge.dto';
@@ -24,7 +24,6 @@ export class ChatbotController {
   constructor(private chatbotService: ChatbotService) {}
 
   @Public()
-  @RequireCaptcha()
   @RateLimitTier('chatbot')
   @Post('query')
   query(@Body() dto: ChatQueryDto, @CurrentUser('id') userId?: number) {

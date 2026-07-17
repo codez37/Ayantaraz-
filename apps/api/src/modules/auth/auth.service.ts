@@ -24,6 +24,8 @@ import {
   COOKIE_SAME_SITE,
   COOKIE_ACCESS_TOKEN_MAX_AGE,
   COOKIE_REFRESH_TOKEN_MAX_AGE,
+  JWT_EXPIRATION,
+  JWT_REFRESH_EXPIRATION,
 } from './auth.constants';
 
 export interface TokensResult { accessToken: string; refreshToken: string; }
@@ -69,7 +71,8 @@ export class AuthService {
     if (!otp) { this.logger.warn(`OTP verify failed: no active code for ${normalized}`); throw new HttpException(OTP_VERIFY_FAILED, HttpStatus.UNAUTHORIZED); }
     await this.prisma.oTP.update({ where: { id: otp.id }, data: { attempts: { increment: 1 } } });
     const codeHash = this.hashToken(code);
-    const hashesEqual = storedHash.length === codeHash.length && crypto.timingSafeEqual(Buffer.from(otp.codeHash), Buffer.from(codeHash));
+    const storedHash = otp.codeHash;
+    const hashesEqual = storedHash.length === codeHash.length && crypto.timingSafeEqual(Buffer.from(storedHash), Buffer.from(codeHash));
     if (!hashesEqual) {
       if (otp.attempts + 1 >= OTP_MAX_ATTEMPTS) await this.prisma.oTP.update({ where: { id: otp.id }, data: { status: 'blocked' } });
       await this.prisma.auditLog.create({ data: { action: 'auth:otp_fail', entityType: 'otp', entityId: otp.id, newValue: { phone: normalized, attempt: otp.attempts + 1 } } });
@@ -124,6 +127,26 @@ export class AuthService {
     await this.storeRefreshToken(user.id, tokens.refreshToken);
     if (res) this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
     return { tokens, user: this.sanitizeUser(user) };
+  }
+
+  async getSessionInfo(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        phone: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+      },
+    });
+    if (!user || !user.isActive) {
+      throw new HttpException('Session not found', HttpStatus.UNAUTHORIZED);
+    }
+    return { user };
   }
 
   private async storeRefreshToken(userId: number, token: string): Promise<void> {

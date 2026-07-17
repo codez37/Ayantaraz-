@@ -215,6 +215,58 @@ export class ChatbotService {
     return `\n\n💡 می‌توانید سوال خود را دقیق‌تر بپرسید، مثلاً:\n${sample}`;
   }
 
+  private formatProfessionalAnswer(params: {
+    answer: string;
+    source: string;
+    confidence: number;
+    riskLevel: RiskLevel;
+    relatedTopics?: string[];
+  }): string {
+    const cleanAnswer = params.answer.trim();
+    const confidenceLabel =
+      params.confidence >= 8 ? 'بالا' : params.confidence >= 3 ? 'متوسط' : 'محدود';
+    const riskNotice =
+      params.riskLevel === 'medium'
+        ? '\n\n⚠️ توجه: این پاسخ عمومی است؛ قبل از اقدام اجرایی، وضعیت پرونده، سال مالی و مستندات باید بررسی شود.'
+        : '';
+    const related = params.relatedTopics?.length
+      ? `\n\n🔎 مسیرهای پیشنهادی بعدی:\n${params.relatedTopics
+          .slice(0, 3)
+          .map((topic) => `• ${topic}`)
+          .join('\n')}`
+      : '';
+
+    return [
+      '✅ پاسخ تخصصی آیان تراز',
+      '',
+      cleanAnswer,
+      riskNotice,
+      related,
+      '',
+      `📚 منبع پاسخ: ${params.source}`,
+      `🎯 سطح اطمینان بازیابی: ${confidenceLabel}`,
+      '📌 اگر مبلغ، تاریخ، نوع شخصیت حقیقی/حقوقی یا سال مالی در سوال اثر دارد، همان جزئیات را هم ارسال کنید تا پاسخ دقیق‌تر شود.',
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  private buildEscalationAnswer(reason: 'high' | 'forbidden'): string {
+    if (reason === 'forbidden') {
+      return [
+        '⛔ این درخواست در محدوده راهنمایی مجاز سامانه نیست.',
+        'من نمی‌توانم درباره دور زدن قانون، جعل، سندسازی یا پنهان‌سازی درآمد راهکار ارائه کنم.',
+        '✅ مسیر امن: موضوع را به شکل قانونی مطرح کنید؛ مثلاً «روش صحیح اصلاح اظهارنامه» یا «نحوه اعتراض قانونی به برگ تشخیص».',
+      ].join('\n');
+    }
+
+    return [
+      '⚠️ این موضوع ریسک اجرایی بالایی دارد و پاسخ قطعی بدون بررسی پرونده قابل اتکا نیست.',
+      '✅ اقدام پیشنهادی: از بخش «ثبت وقت مشاوره» درخواست بدهید تا کارشناس با اطلاعات پرونده، تاریخ‌ها، مبالغ و مستندات بررسی کند.',
+      '📌 تا قبل از بررسی تخصصی، از اقدام برگشت‌ناپذیر یا ارسال اطلاعات ناقص به سامانه‌های رسمی خودداری کنید.',
+    ].join('\n');
+  }
+
   private async searchKnowledge(
     question: string,
     contextQuestions?: string[],
@@ -227,6 +279,8 @@ export class ChatbotService {
     const allTexts = [question, ...(contextQuestions || [])].join(' ');
     const terms = this.expandTerms(allTexts);
     const bigrams = this.extractBigrams(terms);
+
+    if (terms.length === 0 && bigrams.length === 0) return null;
 
     const matches = await this.prisma.knowledgeBase.findMany({
       where: {
@@ -367,15 +421,25 @@ export class ChatbotService {
     const topic = this.detectTopic(question);
     const suggestions = this.buildTopicSuggestions(question);
 
-    if (topic && suggestions) {
-      return `متوجه شدم سوال شما درباره "${topic}" است، اما پاسخ دقیقی در دانشنامه خود ندارم.${suggestions}\n\n🔄 همچنین می‌توانید سوال را به صورت دیگری مطرح کنید یا از بخش پرسش و پاسخ مالیاتی استفاده نمایید.`;
-    }
-
     if (riskLevel === 'high') {
-      return 'برای این موضوع، مشاوره انسانی توصیه می‌شود. لطفاً از طریق فرم مشاوره درخواست خود را ثبت کنید.\n\n💡 می‌توانید به صفحه "سوالات مالیاتی" نیز مراجعه کنید.';
+      return this.buildEscalationAnswer('high');
     }
 
-    return 'متأسفم، پاسخ دقیقی برای سوال شما پیدا نکردم.\n\n💡 نکات مفید:\n• سوال خود را دقیق‌تر و با جزییات بیشتر بپرسید\n• از کلمات کلیدی مرتبط با موضوع استفاده کنید\n• می‌توانید از سامانه پرسش و پاسخ مالیاتی کمک بگیرید\n• یا از طریق فرم مشاوره با کارشناسان ما تماس بگیرید';
+    if (topic && suggestions) {
+      return [
+        `✅ موضوع سوال شما را «${topic}» تشخیص دادم، اما در دانشنامه فعال فعلی پاسخ قطعی و قابل استناد پیدا نشد.`,
+        suggestions.trim(),
+        '🎯 برای پاسخ دقیق‌تر، مبلغ، سال مالی، نوع کسب‌وکار و مرحله پرونده را اضافه کنید.',
+        '📞 اگر پرونده فوریت دارد، از مسیر ثبت وقت مشاوره اقدام کنید.',
+      ].join('\n\n');
+    }
+
+    return [
+      'برای این پرسش، پاسخ مستقیم و مستند در دانشنامه فعال پیدا نشد.',
+      'برای اینکه پاسخ دقیق‌تر بدهم، لطفاً سوال را با این ساختار بفرستید:',
+      '1) موضوع اصلی؛ 2) سال مالی یا تاریخ؛ 3) شخص حقیقی/حقوقی؛ 4) مبلغ یا سند اثرگذار؛ 5) هدف شما از پرسش.',
+      'نمونه پرسش بهتر: «برای شرکت خدماتی در سال ۱۴۰۵، جریمه دیرکرد ارزش افزوده با مبلغ ... چگونه محاسبه می‌شود؟»',
+    ].join('\n');
   }
 
   async query(question: string, userId?: number) {
@@ -387,8 +451,7 @@ export class ChatbotService {
     const risk = this.classifyRisk(question);
 
     if (risk.level === 'forbidden') {
-      const refusal =
-        'این سوال خارج از حوزه راهنمایی مجاز است. لطفاً با مشاور حقوقی رسمی مشورت کنید.';
+      const refusal = this.buildEscalationAnswer('forbidden');
       await this.logMessage(conversation.id, sessionId, userId, 'bot', refusal);
       return { answer: refusal, riskLevel: risk.level, source: 'refused' };
     }
@@ -396,15 +459,13 @@ export class ChatbotService {
     const kbResult = await this.searchKnowledge(question, []);
 
     if (kbResult && kbResult.confidence >= 0.3) {
-      let answer = kbResult.answer;
-      if (risk.level === 'medium') {
-        answer +=
-          '\n\n⚠️ این پاسخ عمومی است و برای تصمیم نهایی نیاز به بررسی تخصصی دارد.';
-      }
-      if (kbResult.relatedTopics && kbResult.relatedTopics.length > 0) {
-        answer += '\n\n💡 همچنین می‌توانید درباره این موضوعات بپرسید:\n';
-        answer += kbResult.relatedTopics.map((t) => `• ${t}`).join('\n');
-      }
+      const answer = this.formatProfessionalAnswer({
+        answer: kbResult.answer,
+        source: kbResult.source,
+        confidence: kbResult.confidence,
+        riskLevel: risk.level,
+        relatedTopics: kbResult.relatedTopics,
+      });
 
       await this.logMessage(conversation.id, sessionId, userId, 'bot', answer);
       return {
@@ -424,8 +485,7 @@ export class ChatbotService {
           status: 'open',
         },
       });
-      const escalationMsg =
-        'برای این موضوع، مشاوره انسانی توصیه می‌شود. لطفاً از طریق فرم مشاوره درخواست خود را ثبت کنید.';
+      const escalationMsg = this.buildEscalationAnswer('high');
       await this.logMessage(
         conversation.id,
         sessionId,

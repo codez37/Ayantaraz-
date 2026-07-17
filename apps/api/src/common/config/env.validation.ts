@@ -1,7 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import {
   IsString,
-  IsNumber,
   IsOptional,
   IsIn,
   validateSync,
@@ -22,14 +21,6 @@ class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
-  RECAPTCHA_SECRET_KEY!: string;
-
-  @IsOptional()
-  @IsNumber()
-  RECAPTCHA_MIN_SCORE!: number;
-
-  @IsString()
-  @IsOptional()
   SMS_API_KEY!: string;
 
   @IsString()
@@ -47,14 +38,7 @@ class EnvironmentVariables {
 }
 
 export function validateEnv(config: Record<string, unknown>) {
-  const normalized = {
-    ...config,
-    RECAPTCHA_MIN_SCORE: config.RECAPTCHA_MIN_SCORE
-      ? Number(config.RECAPTCHA_MIN_SCORE)
-      : 0.5,
-  };
-
-  const validated = plainToInstance(EnvironmentVariables, normalized, {
+  const validated = plainToInstance(EnvironmentVariables, config, {
     enableImplicitConversion: false,
   });
 
