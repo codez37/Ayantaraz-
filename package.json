@@ -25,9 +25,13 @@
     "docker:down": "docker compose down",
     "docker:build": "docker compose build",
     "docker:prod:up": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d",
-    "docker:deploy": "docker compose up -d --build postgres redis api web nginx",
+    "docker:deploy": "docker compose up -d --build db redis api web nginx",
     "healthcheck": "curl -s http://localhost:3001/health",
-    "setup": "pnpm install && pnpm db:generate && pnpm db:migrate && pnpm db:seed"
+    "setup": "pnpm install && pnpm db:generate && pnpm db:migrate && pnpm db:seed",
+    "env:create": "bash scripts/env.sh create",
+    "env:validate": "bash scripts/env.sh validate",
+    "deploy:production": "bash scripts/deploy-production.sh",
+    "verify:production": "bash scripts/final-verification.sh"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
