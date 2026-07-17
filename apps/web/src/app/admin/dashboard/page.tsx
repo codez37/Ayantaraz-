@@ -1,6 +1,6 @@
 'use client';
 
-import { AdminLayout } from './layout';
+import { AdminLayout } from '../layout';
 
 export default function AdminDashboardPage() {
   return (

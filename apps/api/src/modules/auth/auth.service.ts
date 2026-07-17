@@ -28,68 +28,173 @@ import {
   JWT_REFRESH_EXPIRATION,
 } from './auth.constants';
 
-export interface TokensResult { accessToken: string; refreshToken: string; }
+export interface TokensResult {
+  accessToken: string;
+  refreshToken: string;
+}
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  constructor(private prisma: PrismaService, private jwtService: JwtService, private sessionService: SessionService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+    private sessionService: SessionService,
+  ) {}
 
   normalizePhone(input: string): string {
     let phone = input.replace(/[^\d+]/g, '');
     if (phone.startsWith('+98')) phone = '0' + phone.slice(3);
     else if (phone.startsWith('0098')) phone = '0' + phone.slice(4);
-    else if (phone.startsWith('98') && phone.length === 12) phone = '0' + phone.slice(2);
+    else if (phone.startsWith('98') && phone.length === 12)
+      phone = '0' + phone.slice(2);
     return phone;
   }
 
-  private generateOtpCode(): string { return String(100000 + crypto.randomInt(0, 900000)).slice(1); }
-  private hashToken(token: string): string { return crypto.createHash('sha256').update(token).digest('hex'); }
+  private generateOtpCode(): string {
+    return String(100000 + crypto.randomInt(0, 900000)).slice(1);
+  }
+  private hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
 
   async requestOtp(phone: string): Promise<{ message: string }> {
     const normalized = this.normalizePhone(phone);
-    if (!/^09\d{9}$/.test(normalized)) throw new HttpException('Invalid phone number', HttpStatus.BAD_REQUEST);
-    const recentCount = await this.prisma.oTP.count({ where: { phone: normalized, createdAt: { gte: new Date(Date.now() - OTP_REQUEST_WINDOW_MS) } } });
-    if (recentCount >= OTP_REQUEST_LIMIT) throw new HttpException(`Max OTP requests reached. Wait ${OTP_REQUEST_WINDOW_MS / 60000} minutes.`, HttpStatus.TOO_MANY_REQUESTS);
-    const recentFailCount = await this.prisma.oTP.count({ where: { phone: normalized, status: 'blocked', createdAt: { gte: new Date(Date.now() - OTP_LOCK_WINDOW_MS) } } });
-    if (recentFailCount >= OTP_MAX_ATTEMPTS) throw new HttpException('Too many failed attempts. Wait 30 minutes.', HttpStatus.TOO_MANY_REQUESTS);
+    if (!/^09\d{9}$/.test(normalized))
+      throw new HttpException('Invalid phone number', HttpStatus.BAD_REQUEST);
+    const recentCount = await this.prisma.oTP.count({
+      where: {
+        phone: normalized,
+        createdAt: { gte: new Date(Date.now() - OTP_REQUEST_WINDOW_MS) },
+      },
+    });
+    if (recentCount >= OTP_REQUEST_LIMIT)
+      throw new HttpException(
+        `Max OTP requests reached. Wait ${OTP_REQUEST_WINDOW_MS / 60000} minutes.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    const recentFailCount = await this.prisma.oTP.count({
+      where: {
+        phone: normalized,
+        status: 'blocked',
+        createdAt: { gte: new Date(Date.now() - OTP_LOCK_WINDOW_MS) },
+      },
+    });
+    if (recentFailCount >= OTP_MAX_ATTEMPTS)
+      throw new HttpException(
+        'Too many failed attempts. Wait 30 minutes.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     const code = this.generateOtpCode();
     const codeHash = this.hashToken(code);
     const expiresAt = new Date(Date.now() + OTP_EXPIRATION_MS);
-    await this.prisma.oTP.create({ data: { phone: normalized, codeHash, expiresAt, sentAt: new Date() } });
-    await this.prisma.auditLog.create({ data: { action: 'auth:otp_send', entityType: 'otp', newValue: { phone: normalized } } });
+    await this.prisma.oTP.create({
+      data: { phone: normalized, codeHash, expiresAt, sentAt: new Date() },
+    });
+    await this.prisma.auditLog.create({
+      data: {
+        action: 'auth:otp_send',
+        entityType: 'otp',
+        newValue: { phone: normalized },
+      },
+    });
     const sent = await this.sendSms(normalized, code);
-    return { message: sent ? 'OTP sent successfully' : 'OTP sent, but SMS may be delayed' };
+    return {
+      message: sent
+        ? 'OTP sent successfully'
+        : 'OTP sent, but SMS may be delayed',
+    };
   }
 
-  async verifyOtp(phone: string, code: string, ipAddress?: string, deviceInfo?: string, res?: Response) {
+  async verifyOtp(
+    phone: string,
+    code: string,
+    ipAddress?: string,
+    deviceInfo?: string,
+    res?: Response,
+  ) {
     const normalized = this.normalizePhone(phone);
-    if (!/^09\d{9}$/.test(normalized) || !/^\d{6}$/.test(code)) throw new HttpException(OTP_VERIFY_FAILED, HttpStatus.UNAUTHORIZED);
-    const recentBlocked = await this.prisma.oTP.count({ where: { phone: normalized, status: 'blocked', createdAt: { gte: new Date(Date.now() - OTP_LOCK_WINDOW_MS) } } });
-    if (recentBlocked >= OTP_MAX_ATTEMPTS) throw new HttpException(OTP_VERIFY_FAILED, HttpStatus.UNAUTHORIZED);
-    const otp = await this.prisma.oTP.findFirst({ where: { phone: normalized, status: 'active', expiresAt: { gte: new Date() } }, orderBy: { createdAt: 'desc' } });
-    if (!otp) { this.logger.warn(`OTP verify failed: no active code for ${normalized}`); throw new HttpException(OTP_VERIFY_FAILED, HttpStatus.UNAUTHORIZED); }
-    await this.prisma.oTP.update({ where: { id: otp.id }, data: { attempts: { increment: 1 } } });
+    if (!/^09\d{9}$/.test(normalized) || !/^\d{6}$/.test(code))
+      throw new HttpException(OTP_VERIFY_FAILED, HttpStatus.UNAUTHORIZED);
+    const recentBlocked = await this.prisma.oTP.count({
+      where: {
+        phone: normalized,
+        status: 'blocked',
+        createdAt: { gte: new Date(Date.now() - OTP_LOCK_WINDOW_MS) },
+      },
+    });
+    if (recentBlocked >= OTP_MAX_ATTEMPTS)
+      throw new HttpException(OTP_VERIFY_FAILED, HttpStatus.UNAUTHORIZED);
+    const otp = await this.prisma.oTP.findFirst({
+      where: {
+        phone: normalized,
+        status: 'active',
+        expiresAt: { gte: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!otp) {
+      this.logger.warn(`OTP verify failed: no active code for ${normalized}`);
+      throw new HttpException(OTP_VERIFY_FAILED, HttpStatus.UNAUTHORIZED);
+    }
+    await this.prisma.oTP.update({
+      where: { id: otp.id },
+      data: { attempts: { increment: 1 } },
+    });
     const codeHash = this.hashToken(code);
     const storedHash = otp.codeHash;
-    const hashesEqual = storedHash.length === codeHash.length && crypto.timingSafeEqual(Buffer.from(storedHash), Buffer.from(codeHash));
+    const hashesEqual =
+      storedHash.length === codeHash.length &&
+      crypto.timingSafeEqual(Buffer.from(storedHash), Buffer.from(codeHash));
     if (!hashesEqual) {
-      if (otp.attempts + 1 >= OTP_MAX_ATTEMPTS) await this.prisma.oTP.update({ where: { id: otp.id }, data: { status: 'blocked' } });
-      await this.prisma.auditLog.create({ data: { action: 'auth:otp_fail', entityType: 'otp', entityId: otp.id, newValue: { phone: normalized, attempt: otp.attempts + 1 } } });
+      if (otp.attempts + 1 >= OTP_MAX_ATTEMPTS)
+        await this.prisma.oTP.update({
+          where: { id: otp.id },
+          data: { status: 'blocked' },
+        });
+      await this.prisma.auditLog.create({
+        data: {
+          action: 'auth:otp_fail',
+          entityType: 'otp',
+          entityId: otp.id,
+          newValue: { phone: normalized, attempt: otp.attempts + 1 },
+        },
+      });
       this.logger.warn(`OTP verify failed: wrong code for ${normalized}`);
       throw new HttpException(OTP_VERIFY_FAILED, HttpStatus.UNAUTHORIZED);
     }
-    const claimed = await this.prisma.oTP.updateMany({ where: { id: otp.id, status: 'active' }, data: { status: 'used', verifiedAt: new Date() } });
-    if (claimed.count === 0) { this.logger.warn(`OTP verify failed: already used for ${normalized}`); throw new HttpException(OTP_VERIFY_FAILED, HttpStatus.UNAUTHORIZED); }
+    const claimed = await this.prisma.oTP.updateMany({
+      where: { id: otp.id, status: 'active' },
+      data: { status: 'used', verifiedAt: new Date() },
+    });
+    if (claimed.count === 0) {
+      this.logger.warn(`OTP verify failed: already used for ${normalized}`);
+      throw new HttpException(OTP_VERIFY_FAILED, HttpStatus.UNAUTHORIZED);
+    }
     const { user, isNew } = await this.prisma.$transaction(async (tx) => {
       let u = await tx.user.findUnique({ where: { phone: normalized } });
+      const isNewUser = !u;
       if (!u) {
-        await tx.session.updateMany({ where: { user: { phone: normalized } }, data: { revokedAt: new Date() } });
+        await tx.session.updateMany({
+          where: { user: { phone: normalized } },
+          data: { revokedAt: new Date() },
+        });
         u = await tx.user.create({ data: { phone: normalized, role: 'user' } });
       }
-      u = await tx.user.update({ where: { id: u.id }, data: { lastLoginAt: new Date() } });
-      await tx.auditLog.create({ data: { actorId: u.id, action: 'auth:login', entityType: 'user', entityId: u.id, newValue: { phone: normalized, isNew } } });
-      return { user: u, isNew };
+      u = await tx.user.update({
+        where: { id: u.id },
+        data: { lastLoginAt: new Date() },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: u.id,
+          action: 'auth:login',
+          entityType: 'user',
+          entityId: u.id,
+          newValue: { phone: normalized, isNew: isNewUser },
+        },
+      });
+      return { user: u, isNew: isNewUser };
     });
     const tokens = this.generateTokens(user);
     await this.storeRefreshToken(user.id, tokens.refreshToken);
@@ -100,29 +205,73 @@ export class AuthService {
   }
 
   async logout(userId: number, res?: Response): Promise<void> {
-    await this.prisma.refreshToken.updateMany({ where: { userId, isRevoked: false }, data: { isRevoked: true } });
+    await this.prisma.refreshToken.updateMany({
+      where: { userId, isRevoked: false },
+      data: { isRevoked: true },
+    });
     await this.sessionService.revokeAll(userId);
-    await this.prisma.auditLog.create({ data: { actorId: userId, action: 'auth:logout', entityType: 'user', entityId: userId } });
+    await this.prisma.auditLog.create({
+      data: {
+        actorId: userId,
+        action: 'auth:logout',
+        entityType: 'user',
+        entityId: userId,
+      },
+    });
     if (res) this.clearAuthCookies(res);
   }
 
   async refreshTokens(refreshToken: string, res?: Response) {
-    let payload: { sub: number; phone: string; role: string; iss?: string; aud?: string; };
+    let payload: {
+      sub: number;
+      phone: string;
+      role: string;
+      iss?: string;
+      aud?: string;
+    };
     try {
-      payload = this.jwtService.verify(refreshToken, { secret: process.env.JWT_REFRESH_SECRET, algorithms: [TOKEN_ALGORITHM], issuer: TOKEN_ISSUER, audience: TOKEN_AUDIENCE_REFRESH, clockTolerance: REFRESH_CLOCK_TOLERANCE });
-    } catch (err: any) { throw new HttpException(err.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token', HttpStatus.UNAUTHORIZED); }
-    if (payload.iss !== TOKEN_ISSUER || payload.aud !== TOKEN_AUDIENCE_REFRESH) throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
-    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
-    if (!user || !user.isActive) throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+      payload = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+        algorithms: [TOKEN_ALGORITHM],
+        issuer: TOKEN_ISSUER,
+        audience: TOKEN_AUDIENCE_REFRESH,
+        clockTolerance: REFRESH_CLOCK_TOLERANCE,
+      });
+    } catch (err: any) {
+      throw new HttpException(
+        err.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+    if (payload.iss !== TOKEN_ISSUER || payload.aud !== TOKEN_AUDIENCE_REFRESH)
+      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+    });
+    if (!user || !user.isActive)
+      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
     const hash = this.hashToken(refreshToken);
-    const stored = await this.prisma.refreshToken.findFirst({ where: { tokenHash: hash, userId: user.id, isRevoked: false, expiresAt: { gte: new Date() } } });
+    const stored = await this.prisma.refreshToken.findFirst({
+      where: {
+        tokenHash: hash,
+        userId: user.id,
+        isRevoked: false,
+        expiresAt: { gte: new Date() },
+      },
+    });
     if (!stored) {
-      await this.prisma.refreshToken.updateMany({ where: { userId: user.id, isRevoked: false }, data: { isRevoked: true } });
+      await this.prisma.refreshToken.updateMany({
+        where: { userId: user.id, isRevoked: false },
+        data: { isRevoked: true },
+      });
       await this.sessionService.revokeAll(user.id);
       this.logger.warn(`Refresh token reused for user ${user.id}`);
       throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
     }
-    await this.prisma.refreshToken.update({ where: { id: stored.id }, data: { isRevoked: true } });
+    await this.prisma.refreshToken.update({
+      where: { id: stored.id },
+      data: { isRevoked: true },
+    });
     const tokens = this.generateTokens(user);
     await this.storeRefreshToken(user.id, tokens.refreshToken);
     if (res) this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
@@ -149,26 +298,76 @@ export class AuthService {
     return { user };
   }
 
-  private async storeRefreshToken(userId: number, token: string): Promise<void> {
+  private async storeRefreshToken(
+    userId: number,
+    token: string,
+  ): Promise<void> {
     const hash = this.hashToken(token);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    await this.prisma.refreshToken.create({ data: { userId, tokenHash: hash, expiresAt } });
+    await this.prisma.refreshToken.create({
+      data: { userId, tokenHash: hash, expiresAt },
+    });
   }
 
   private generateTokens(user: User): TokensResult {
-    const payload = { sub: user.id, phone: user.phone, role: user.role, jti: crypto.randomUUID() };
+    const payload = {
+      sub: user.id,
+      phone: user.phone,
+      role: user.role,
+      jti: crypto.randomUUID(),
+    };
     return {
-      accessToken: this.jwtService.sign(payload, { algorithm: TOKEN_ALGORITHM, expiresIn: JWT_EXPIRATION as any, issuer: TOKEN_ISSUER, audience: TOKEN_AUDIENCE_ACCESS, header: { typ: 'JWT', alg: TOKEN_ALGORITHM } }),
-      refreshToken: this.jwtService.sign(payload, { algorithm: TOKEN_ALGORITHM, secret: process.env.JWT_REFRESH_SECRET, expiresIn: JWT_REFRESH_EXPIRATION as any, issuer: TOKEN_ISSUER, audience: TOKEN_AUDIENCE_REFRESH, header: { typ: 'JWT', alg: TOKEN_ALGORITHM } }),
+      accessToken: this.jwtService.sign(payload, {
+        algorithm: TOKEN_ALGORITHM,
+        expiresIn: JWT_EXPIRATION as any,
+        issuer: TOKEN_ISSUER,
+        audience: TOKEN_AUDIENCE_ACCESS,
+        header: { typ: 'JWT', alg: TOKEN_ALGORITHM },
+      }),
+      refreshToken: this.jwtService.sign(payload, {
+        algorithm: TOKEN_ALGORITHM,
+        secret: process.env.JWT_REFRESH_SECRET,
+        expiresIn: JWT_REFRESH_EXPIRATION as any,
+        issuer: TOKEN_ISSUER,
+        audience: TOKEN_AUDIENCE_REFRESH,
+        header: { typ: 'JWT', alg: TOKEN_ALGORITHM },
+      }),
     };
   }
 
-  private sanitizeUser(user: User) { return { id: user.id, phone: user.phone, firstName: user.firstName, lastName: user.lastName, role: user.role, isActive: user.isActive, lastLoginAt: user.lastLoginAt, createdAt: user.createdAt }; }
+  private sanitizeUser(user: User) {
+    return {
+      id: user.id,
+      phone: user.phone,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      isActive: user.isActive,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+    };
+  }
 
-  private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+  private setAuthCookies(
+    res: Response,
+    accessToken: string,
+    refreshToken: string,
+  ) {
     const isProduction = process.env.NODE_ENV === 'production';
-    res.cookie('accessToken', accessToken, { httpOnly: COOKIE_HTTP_ONLY, secure: isProduction ? COOKIE_SECURE : false, sameSite: COOKIE_SAME_SITE, maxAge: COOKIE_ACCESS_TOKEN_MAX_AGE, path: '/' });
-    res.cookie('refreshToken', refreshToken, { httpOnly: COOKIE_HTTP_ONLY, secure: isProduction ? COOKIE_SECURE : false, sameSite: COOKIE_SAME_SITE, maxAge: COOKIE_REFRESH_TOKEN_MAX_AGE, path: '/' });
+    res.cookie('accessToken', accessToken, {
+      httpOnly: COOKIE_HTTP_ONLY,
+      secure: isProduction ? COOKIE_SECURE : false,
+      sameSite: COOKIE_SAME_SITE,
+      maxAge: COOKIE_ACCESS_TOKEN_MAX_AGE,
+      path: '/',
+    });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: COOKIE_HTTP_ONLY,
+      secure: isProduction ? COOKIE_SECURE : false,
+      sameSite: COOKIE_SAME_SITE,
+      maxAge: COOKIE_REFRESH_TOKEN_MAX_AGE,
+      path: '/',
+    });
   }
 
   private clearAuthCookies(res: Response) {
@@ -178,21 +377,53 @@ export class AuthService {
 
   private async sendSms(phone: string, code: string): Promise<boolean> {
     const apiKey = process.env.SMS_API_KEY;
-    if (!apiKey) { this.logger.warn('SMS_API_KEY not set'); return false; }
+    if (!apiKey) {
+      this.logger.warn('SMS_API_KEY not set');
+      return false;
+    }
     try {
       const url = 'https://s.api.ir/api/sw1/SmsOTP';
       const body = JSON.stringify({ code, mobile: phone, templateId: 1 });
       const response = await new Promise<any>((resolve, reject) => {
-        const req = https.request(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` }, timeout: 10000 }, (res) => {
-          let data = ''; res.on('data', (chunk) => { data += chunk; }); res.on('end', () => resolve({ status: res.statusCode || 0, data }));
+        const req = https.request(
+          url,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${apiKey}`,
+            },
+            timeout: 10000,
+          },
+          (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+              data += chunk;
+            });
+            res.on('end', () => resolve({ status: res.statusCode || 0, data }));
+          },
+        );
+        req.on('error', reject);
+        req.on('timeout', () => {
+          req.destroy();
+          reject(new Error('SMS timeout'));
         });
-        req.on('error', reject); req.on('timeout', () => { req.destroy(); reject(new Error('SMS timeout')); });
-        req.write(body); req.end();
+        req.write(body);
+        req.end();
       });
-      if (response.status !== 200) { this.logger.warn(`SMS provider returned status ${response.status}`); return false; }
+      if (response.status !== 200) {
+        this.logger.warn(`SMS provider returned status ${response.status}`);
+        return false;
+      }
       const result = JSON.parse(response.data);
-      if (result.success === false) { this.logger.warn('SMS provider rejected request'); return false; }
+      if (result.success === false) {
+        this.logger.warn('SMS provider rejected request');
+        return false;
+      }
       return true;
-    } catch (err) { this.logger.error('SMS delivery failed', err as Error); return false; }
+    } catch (err) {
+      this.logger.error('SMS delivery failed', err as Error);
+      return false;
+    }
   }
 }

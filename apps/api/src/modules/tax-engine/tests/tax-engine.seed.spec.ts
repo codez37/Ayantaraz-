@@ -31,7 +31,7 @@ describe('seedTaxEngine', () => {
             bracketOrder: 1,
           },
         },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         create: expect.objectContaining({
           minAmount: BigInt(0),
           maxAmount: BigInt(12000000),
@@ -54,7 +54,7 @@ describe('seedTaxEngine', () => {
             bracketOrder: 1,
           },
         },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         create: expect.objectContaining({ rate: 25, maxAmount: null }),
       }),
     );
@@ -72,7 +72,7 @@ describe('seedTaxEngine', () => {
             bracketOrder: 1,
           },
         },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         create: expect.objectContaining({ rate: 25, maxAmount: null }),
       }),
     );
@@ -90,7 +90,7 @@ describe('seedTaxEngine', () => {
     expect(prisma.taxRule.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { ruleKey: 'RENTAL_COST_DEDUCTION' },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         create: expect.objectContaining({
           ruleKey: 'RENTAL_COST_DEDUCTION',
           type: 'RENTAL',
@@ -105,7 +105,7 @@ describe('seedTaxEngine', () => {
     expect(prisma.taxRule.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { ruleKey: 'TRANSFER_PROPERTY_RATE' },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         create: expect.objectContaining({
           ruleKey: 'TRANSFER_PROPERTY_RATE',
           type: 'TRANSFER',

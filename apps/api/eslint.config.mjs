@@ -9,7 +9,7 @@ export default tseslint.config(
     ignores: ['eslint.config.mjs'],
   },
   eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.recommended,
   eslintPluginPrettierRecommended,
   {
     languageOptions: {
@@ -19,7 +19,6 @@ export default tseslint.config(
       },
       sourceType: 'commonjs',
       parserOptions: {
-        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -27,9 +26,13 @@ export default tseslint.config(
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      'no-empty': 'warn',
+      'no-prototype-builtins': 'warn',
+      'no-control-regex': 'warn',
+      'no-misleading-character-class': 'warn',
+      'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
   },
 );

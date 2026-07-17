@@ -15,8 +15,10 @@ export default function AdminSettingsPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
 
-  const loadSettings = () => {
-    setLoading(true);
+  const loadSettings = (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     api.get<Setting[]>('/admin/settings')
       .then(d => setSettings(Array.isArray(d) ? d : []))
       .catch(() => {})
@@ -24,7 +26,10 @@ export default function AdminSettingsPage() {
   };
 
   useEffect(() => {
-    loadSettings();
+    api.get<Setting[]>('/admin/settings')
+      .then(d => setSettings(Array.isArray(d) ? d : []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const handleUpdate = async (key: string) => {

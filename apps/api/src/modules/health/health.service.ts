@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { arch, cpus, platform, totalmem } from 'os';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -73,7 +74,10 @@ export class HealthService {
     let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
     if (checks.database.status === 'down' || checks.cache.status === 'down') {
       status = 'unhealthy';
-    } else if (checks.memory.status === 'critical' || checks.memory.status === 'warning') {
+    } else if (
+      checks.memory.status === 'critical' ||
+      checks.memory.status === 'warning'
+    ) {
       status = 'degraded';
     }
     return {
@@ -103,7 +107,7 @@ export class HealthService {
       return {
         connected: false,
         responseTime: 0,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -157,17 +161,18 @@ export class HealthService {
     startTime: string;
   }> {
     this.logger.debug('Getting application info');
-    const totalMemory = require('os').totalmem();
-    const cpus = require('os').cpus();
+    const totalMemory = totalmem();
+    const cpuList = cpus();
     return {
       name: process.env.npm_package_name || 'ayantaraz-api',
       version: process.env.npm_package_version || '1.0.0',
-      description: process.env.npm_package_description || 'Ayantaraz API Service',
+      description:
+        process.env.npm_package_description || 'Ayantaraz API Service',
       environment: process.env.NODE_ENV || 'development',
       nodeVersion: process.version,
-      platform: require('os').platform(),
-      architecture: require('os').arch(),
-      cpuCores: cpus.length,
+      platform: platform(),
+      architecture: arch(),
+      cpuCores: cpuList.length,
       totalMemory,
       startTime: new Date(process.uptime() * 1000).toISOString(),
     };

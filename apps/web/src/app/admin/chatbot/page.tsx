@@ -23,8 +23,10 @@ export default function AdminChatbotPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ question: '', answer: '', category: '', riskLevel: 'low', isActive: true });
 
-  const loadData = () => {
-    setLoading(true);
+  const loadData = (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     api.get<{ data: KnowledgeEntry[] }>('/chatbot/knowledge')
       .then(d => setEntries(Array.isArray(d.data) ? d.data : []))
       .catch(() => {})
@@ -32,7 +34,10 @@ export default function AdminChatbotPage() {
   };
 
   useEffect(() => {
-    loadData();
+    api.get<{ data: KnowledgeEntry[] }>('/chatbot/knowledge')
+      .then(d => setEntries(Array.isArray(d.data) ? d.data : []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const handleSubmit = async () => {
@@ -46,7 +51,7 @@ export default function AdminChatbotPage() {
       setEditing(null);
       setForm({ question: '', answer: '', category: '', riskLevel: 'low', isActive: true });
       loadData();
-    } catch (err) {
+    } catch {
       alert('خطا در ذخیره اطلاعات');
     }
   };

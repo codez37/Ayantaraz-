@@ -45,7 +45,6 @@ describe('TaxComputeEngineService', () => {
 
       engine.registerCalculator(mockCalc);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockCalc.canHandle).not.toHaveBeenCalled();
     });
   });

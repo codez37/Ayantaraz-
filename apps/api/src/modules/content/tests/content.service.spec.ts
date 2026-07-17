@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ContentService } from '../content.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { UploadService } from '../../upload/upload.service';
+import { ContentType } from '@prisma/client';
 
 describe('ContentService', () => {
   let service: ContentService;
@@ -36,7 +37,7 @@ describe('ContentService', () => {
   describe('create', () => {
     it('should create content as draft', async () => {
       const input = {
-        contentType: 'article',
+        contentType: ContentType.article,
         title: 'Test Article',
         slug: 'test-article',
         body: 'Body',
@@ -127,8 +128,8 @@ describe('ContentService', () => {
       mockPrisma.content.findMany.mockResolvedValue([{ id: 1, title: 'A' }]);
       mockPrisma.content.count.mockResolvedValue(1);
       const result = await service.list({ page: 1, limit: 20 });
-      expect(result.data).toHaveLength(1);
-      expect(result.meta.total).toBe(1);
+      expect(result.contents).toHaveLength(1);
+      expect(result.total).toBe(1);
     });
   });
 });

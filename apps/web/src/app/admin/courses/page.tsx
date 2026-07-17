@@ -10,8 +10,10 @@ export default function AdminCoursesPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', slug: '', price: 0, description: '' });
 
-  const loadCourses = () => {
-    setLoading(true);
+  const loadCourses = (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     api.get<Course[]>('/courses')
       .then(d => setCourses(Array.isArray(d) ? d : []))
       .catch(() => {})
@@ -19,7 +21,10 @@ export default function AdminCoursesPage() {
   };
 
   useEffect(() => {
-    loadCourses();
+    api.get<Course[]>('/courses')
+      .then(d => setCourses(Array.isArray(d) ? d : []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const handleSubmit = async () => {
