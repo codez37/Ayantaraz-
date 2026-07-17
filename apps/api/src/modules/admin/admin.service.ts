@@ -150,8 +150,6 @@ export class AdminService {
     'tax_law_version',
     'default_tax_year',
     'max_upload_size',
-    'captcha_site_key',
-    'captcha_secret_key',
   ]);
 
   async updateSetting(key: string, value: string, actorId: number) {

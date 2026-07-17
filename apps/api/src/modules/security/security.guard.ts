@@ -2,6 +2,8 @@ import { Injectable, CanActivate, ExecutionContext, Logger } from '@nestjs/commo
 import { Reflector } from '@nestjs/core';
 import { RateLimiterService } from './rate-limiter.service';
 
+export const RATE_LIMIT_TIER_KEY = 'rateLimitTier';
+
 @Injectable()
 export class SecurityGuard implements CanActivate {
   private readonly logger = new Logger(SecurityGuard.name);
@@ -12,12 +14,8 @@ export class SecurityGuard implements CanActivate {
     const ip = this.getClientIp(request);
     const userId = request.user?.id?.toString();
     const identifier = userId || ip;
-
-    const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [context.getHandler(), context.getClass()]);
-    if (isPublic) return true;
-
     const routePath = this.getRoutePath(context);
-    const configName = this.getRateLimitConfig(routePath);
+    const configName = this.getRateLimitConfig(context, routePath);
 
     try {
       const result = await this.rateLimiter.increment(identifier, configName);
@@ -27,14 +25,14 @@ export class SecurityGuard implements CanActivate {
       }
 
       const response = context.switchToHttp().getResponse();
-      response.setHeader('X-RateLimit-Limit', '100');
+      response.setHeader('X-RateLimit-Tier', configName);
       response.setHeader('X-RateLimit-Remaining', result.remaining.toString());
       response.setHeader('X-RateLimit-Reset', Math.ceil(result.resetTime.getTime() / 1000).toString());
-      return true;
     } catch (error) {
       this.logger.error(`Rate limit check failed: ${error instanceof Error ? error.message : String(error)}`);
-      return true;
     }
+
+    return true;
   }
 
   private getClientIp(request: any): string {
@@ -47,7 +45,9 @@ export class SecurityGuard implements CanActivate {
     try { const request = context.switchToHttp().getRequest(); return request.route?.path || request.path || 'unknown'; } catch { return 'unknown'; }
   }
 
-  private getRateLimitConfig(routePath: string): string {
+  private getRateLimitConfig(context: ExecutionContext, routePath: string): string {
+    const tier = this.reflector.getAllAndOverride<string>(RATE_LIMIT_TIER_KEY, [context.getHandler(), context.getClass()]);
+    if (tier) return tier;
     if (routePath.includes('/auth/') || routePath.includes('/login') || routePath.includes('/otp')) return 'auth';
     if (routePath.startsWith('/api/')) return 'api';
     return 'default';

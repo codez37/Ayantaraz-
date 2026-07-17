@@ -1,8 +1,7 @@
-'use client';
-
 import { ReactNode } from 'react';
 import { Vazirmatn } from 'next/font/google';
 import './globals.css';
+import ClientShell from './client-shell';
 
 const vazirmatn = Vazirmatn({
   subsets: ['arabic', 'latin'],
@@ -22,7 +21,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <title>آیانتاراز</title>
       </head>
       <body className={vazirmatn.className}>
-        <main className="min-h-screen bg-[#0a0a0a] text-white">{children}</main>
+        <ClientShell>{children}</ClientShell>
       </body>
     </html>
   );

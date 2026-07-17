@@ -19,10 +19,10 @@ const GREETING_RESPONSES = [
 ];
 
 const FALLBACK_MESSAGES = [
-  'متأسفم، پاسخ دقیقی برای این سوال در دانشنامه پیدا نکردم. لطفاً سوال خود را دقیق‌تر مطرح کنید یا از بخش مشاوره استفاده نمایید.',
-  'این سوال نیاز به بررسی تخصصی دارد. می‌توانید از طریق فرم مشاوره با کارشناسان ما تماس بگیرید.',
-  'پاسخ این سوال در دانشنامه موجود نیست. پیشنهاد می‌کنم از مقالات آموزشی یا فرم مشاوره استفاده کنید.',
-  'برای این موضوع، مشاوره تخصصی توصیه می‌شود. کارشناسان ما آماده پاسخگویی هستند.',
+  'برای این سوال پاسخ مستند کافی در دانشنامه فعال پیدا نشد. اگر سال مالی، مبلغ، نوع کسب‌وکار و مرحله پرونده را اضافه کنید دقیق‌تر راهنمایی می‌کنم.',
+  'این موضوع به اطلاعات پرونده وابسته است. مسیر امن: جزئیات را کامل‌تر بفرستید یا از فرم مشاوره برای بررسی انسانی استفاده کنید.',
+  'برای پاسخ دقیق‌تر، سوال را با ساختار موضوع، سال، شخص حقیقی/حقوقی، مبلغ و هدف اقدام ارسال کنید.',
+  'پاسخ قطعی بدون مستندات کافی ممکن نیست؛ لطفاً داده‌های اثرگذار را اضافه کنید تا پاسخ حرفه‌ای‌تر ارائه شود.',
 ];
 
 const SUGGESTED_QUESTIONS = [
@@ -40,7 +40,7 @@ export default function ChatbotWidget() {
     {
       id: 'initial',
       role: 'bot',
-      content: GREETING_RESPONSES[Math.floor(Math.random() * GREETING_RESPONSES.length)],
+      content: GREETING_RESPONSES[0],
       timestamp: new Date(),
       status: 'delivered',
     },
@@ -111,7 +111,7 @@ export default function ChatbotWidget() {
       const botMessage: Message = {
         id: generateId(),
         role: 'bot',
-        content: res.answer || FALLBACK_MESSAGES[Math.floor(Math.random() * FALLBACK_MESSAGES.length)],
+        content: res.answer || FALLBACK_MESSAGES[0],
         timestamp: new Date(),
         status: 'delivered',
       };
@@ -167,9 +167,9 @@ export default function ChatbotWidget() {
       <button
         onClick={() => {
           setOpen(!open);
-          if (!open) setShowSuggestions(false);
+          if (!open) setShowSuggestions(true);
         }}
-        className="fixed bottom-6 left-6 z-[60] bg-gradient-to-br from-[#F0D68A] to-[#B8862D] text-[#0A0A0A] w-14 h-14 rounded-full shadow-lg hover:shadow-[#D4A843]/30 transition-all duration-300 flex items-center justify-center text-2xl animate-pulse-glow hover:scale-105 active:scale-95"
+        className="fixed bottom-6 left-6 z-[60] flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#F0D68A] to-[#B8862D] text-2xl text-[#0A0A0A] shadow-lg shadow-[#D4A843]/20 transition-all duration-300 hover:scale-105 hover:shadow-[#D4A843]/40 active:scale-95"
         aria-label="چت‌بات مالیاتی"
         title="پرسش و پاسخ مالیاتی"
       >
@@ -192,7 +192,7 @@ export default function ChatbotWidget() {
       {open && (
         <div
           onClick={handleChatClick}
-          className="fixed bottom-24 left-6 z-[60] w-[360px] max-w-[calc(100vw-48px)] bg-[#111111] rounded-2xl shadow-2xl border border-[#D4A843]/20 flex flex-col h-[520px] max-h-[calc(100vh-200px)] overflow-hidden safe-area-bottom"
+          className="glass-gold fixed bottom-24 left-6 z-[60] flex h-[560px] max-h-[calc(100vh-200px)] w-[380px] max-w-[calc(100vw-48px)] flex-col overflow-hidden rounded-3xl safe-area-bottom"
         >
           <div className="bg-gradient-to-l from-[#F0D68A] to-[#B8862D] p-4 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-3">

@@ -1,6 +1,32 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  Content,
+  ContentStatus,
+  ContentType,
+  ContentVisibility,
+  UserRole,
+} from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Content, ContentStatus, ContentType } from '@prisma/client';
+import { CreateContentDto } from './dto/create-content.dto';
+import { UpdateContentDto } from './dto/update-content.dto';
+
+type ContentListFilters = {
+  type?: string;
+  status?: string;
+  visibility?: string;
+  categoryId?: number;
+  search?: string;
+  tags?: string;
+  page?: number;
+  limit?: number;
+  userId?: number;
+  userRole?: string;
+};
 
 @Injectable()
 export class ContentService {
@@ -8,337 +34,154 @@ export class ContentService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    data: {
-      title: string;
-      description?: string;
-      type: ContentType;
-      content?: string;
-      metadata?: any;
-      authorId: string;
-      categoryId?: string;
-      tags?: string[];
-      isPublic?: boolean;
-    },
-  ): Promise<Content> {
-    this.logger.log(`Creating new content: ${data.title}`);
+  async create(dto: CreateContentDto, userId: number): Promise<Content> {
+    const slug = dto.slug?.trim() || this.generateSlug(dto.title);
+    this.logger.log(`Creating content: ${dto.title}`);
+
     return this.prisma.content.create({
       data: {
-        title: data.title,
-        slug: this.generateSlug(data.title),
-        description: data.description || '',
-        type: data.type,
-        content: data.content || '',
-        metadata: data.metadata || {},
-        authorId: data.authorId,
-        categoryId: data.categoryId || null,
-        tags: data.tags || [],
-        isPublic: data.isPublic !== undefined ? data.isPublic : true,
-        status: ContentStatus.DRAFT,
-        viewCount: 0,
-        likeCount: 0,
+        contentType: dto.contentType,
+        title: dto.title,
+        slug,
+        summary: dto.summary ?? '',
+        body: dto.body ?? '',
+        metaDescription: dto.metaDescription ?? '',
+        tags: dto.tags ?? '',
+        mediaUrl: dto.mediaUrl ?? '',
+        thumbnailUrl: dto.thumbnailUrl ?? '',
+        duration: dto.duration ?? 0,
+        fileSize: dto.fileSize ?? 0,
+        pageCount: dto.pageCount ?? 0,
+        visibility: dto.visibility ?? ContentVisibility.public,
+        categoryId: dto.categoryId ?? null,
+        authorId: userId,
+        status: ContentStatus.draft,
       },
     });
   }
 
-  async findById(id: string): Promise<Content | null> {
-    this.logger.debug(`Finding content by ID: ${id}`);
-    return this.prisma.content.findUnique({
-      where: { id },
-      include: {
-        author: {
-          select: {
-            id: true,
-            phone: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-          },
-        },
-        category: true,
-        likes: true,
-        comments: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                phone: true,
-                firstName: true,
-                lastName: true,
-              },
-            },
-          },
-          take: 5,
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    });
-  }
+  async list(filters: ContentListFilters = {}) {
+    const page = Math.max(Number(filters.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(filters.limit) || 10, 1), 100);
+    const where: Record<string, unknown> = {};
 
-  async findBySlug(slug: string): Promise<Content | null> {
-    this.logger.debug(`Finding content by slug: ${slug}`);
-    return this.prisma.content.findUnique({
-      where: { slug },
-      include: {
-        author: {
-          select: {
-            id: true,
-            phone: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
-        category: true,
-        likes: true,
-        comments: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                phone: true,
-                firstName: true,
-                lastName: true,
-              },
-            },
-          },
-          take: 5,
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    });
-  }
-
-  async list(
-    page: number = 1,
-    limit: number = 10,
-    filters: {
-      type?: ContentType;
-      status?: ContentStatus;
-      categoryId?: string;
-      authorId?: string;
-      isPublic?: boolean;
-      tags?: string[];
-      search?: string;
-    } = {},
-  ): Promise<{ contents: Content[]; total: number; page: number; limit: number }> {
-    this.logger.debug(`Listing content - page: ${page}, limit: ${limit}`);
-    const skip = (page - 1) * limit;
-    const where: any = {};
-    if (filters.type) where.type = filters.type;
-    if (filters.status) where.status = filters.status;
+    if (this.isEnumValue(ContentType, filters.type)) where.contentType = filters.type;
+    if (this.isEnumValue(ContentStatus, filters.status)) where.status = filters.status;
+    if (this.isEnumValue(ContentVisibility, filters.visibility)) where.visibility = filters.visibility;
     if (filters.categoryId) where.categoryId = filters.categoryId;
-    if (filters.authorId) where.authorId = filters.authorId;
-    if (filters.isPublic !== undefined) where.isPublic = filters.isPublic;
-    if (filters.tags && filters.tags.length > 0) where.tags = { hasEvery: filters.tags };
+    if (filters.tags) where.tags = { contains: filters.tags, mode: 'insensitive' };
     if (filters.search) {
       where.OR = [
         { title: { contains: filters.search, mode: 'insensitive' } },
-        { description: { contains: filters.search, mode: 'insensitive' } },
-        { content: { contains: filters.search, mode: 'insensitive' } },
+        { summary: { contains: filters.search, mode: 'insensitive' } },
+        { body: { contains: filters.search, mode: 'insensitive' } },
       ];
     }
+
+    if (!this.canManage(filters.userRole)) {
+      where.status = ContentStatus.published;
+      where.visibility = filters.userId
+        ? { in: [ContentVisibility.public, ContentVisibility.authenticated] }
+        : ContentVisibility.public;
+    }
+
     const [contents, total] = await Promise.all([
       this.prisma.content.findMany({
         where,
-        skip,
+        skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          author: {
-            select: {
-              id: true,
-              phone: true,
-              firstName: true,
-              lastName: true,
-            },
-          },
+          author: { select: { id: true, phone: true, firstName: true, lastName: true, role: true } },
           category: true,
-          _count: {
-            select: {
-              likes: true,
-              comments: true,
-              views: true,
-            },
-          },
         },
       }),
       this.prisma.content.count({ where }),
     ]);
-    return {
-      contents: contents as any[],
-      total,
-      page,
-      limit,
-    };
+
+    return { contents, total, page, limit };
+  }
+
+  async getBySlug(slug: string, userId?: number, userRole?: string): Promise<Content> {
+    const content = await this.prisma.content.findUnique({
+      where: { slug },
+      include: {
+        author: { select: { id: true, phone: true, firstName: true, lastName: true, role: true } },
+        category: true,
+      },
+    });
+    if (!content) throw new NotFoundException('Content not found');
+    this.assertReadable(content, userId, userRole);
+    return content;
   }
 
   async update(
-    id: string,
-    data: {
-      title?: string;
-      description?: string;
-      content?: string;
-      metadata?: any;
-      categoryId?: string;
-      tags?: string[];
-      isPublic?: boolean;
-      status?: ContentStatus;
-    },
+    id: number,
+    dto: UpdateContentDto,
+    userId: number,
+    userRole: string,
   ): Promise<Content> {
-    this.logger.log(`Updating content ${id}`);
-    const content = await this.findById(id);
-    if (!content) {
-      this.logger.error(`Content ${id} not found`);
-      throw new NotFoundException('Content not found');
+    const content = await this.getManagedContent(id, userId, userRole);
+    const data: UpdateContentDto & { reviewedBy?: number; reviewedAt?: Date; publishedAt?: Date | null; archivedAt?: Date | null } = { ...dto };
+    if (dto.title && !dto.slug) data.slug = this.generateSlug(dto.title);
+    if (dto.status) this.applyStatusMetadata(data, dto.status, userId);
+
+    return this.prisma.content.update({ where: { id: content.id }, data });
+  }
+
+  async updateStatus(
+    id: number,
+    status: ContentStatus,
+    userId: number,
+    userRole: string,
+  ): Promise<Content> {
+    await this.getManagedContent(id, userId, userRole);
+    const data: { status: ContentStatus; reviewedBy?: number; reviewedAt?: Date; publishedAt?: Date | null; archivedAt?: Date | null } = { status };
+    this.applyStatusMetadata(data, status, userId);
+    return this.prisma.content.update({ where: { id }, data });
+  }
+
+  async archive(id: number, userId: number, userRole: string): Promise<Content> {
+    return this.updateStatus(id, ContentStatus.archived, userId, userRole);
+  }
+
+  private async getManagedContent(id: number, userId: number, userRole: string): Promise<Content> {
+    const content = await this.prisma.content.findUnique({ where: { id } });
+    if (!content) throw new NotFoundException('Content not found');
+    if (!this.canManage(userRole) || (userRole === UserRole.content_manager && content.authorId !== userId)) {
+      throw new ForbiddenException('Not allowed to manage this content');
     }
-    const updateData: any = { ...data };
-    if (data.title) {
-      updateData.slug = this.generateSlug(data.title);
+    return content;
+  }
+
+  private assertReadable(content: Content, userId?: number, userRole?: string): void {
+    if (this.canManage(userRole)) return;
+    if (content.status !== ContentStatus.published) throw new NotFoundException('Content not found');
+    if (content.visibility === ContentVisibility.public) return;
+    if (content.visibility === ContentVisibility.authenticated && userId) return;
+    throw new ForbiddenException('Not allowed to view this content');
+  }
+
+  private applyStatusMetadata(
+    data: { status: ContentStatus; reviewedBy?: number; reviewedAt?: Date; publishedAt?: Date | null; archivedAt?: Date | null },
+    status: ContentStatus,
+    userId: number,
+  ): void {
+    if (status === ContentStatus.published) {
+      data.reviewedBy = userId;
+      data.reviewedAt = new Date();
+      data.publishedAt = new Date();
+      data.archivedAt = null;
     }
-    return this.prisma.content.update({
-      where: { id },
-      data: updateData,
-    });
+    if (status === ContentStatus.archived) data.archivedAt = new Date();
   }
 
-  async delete(id: string): Promise<Content> {
-    this.logger.log(`Deleting content ${id}`);
-    const content = await this.findById(id);
-    if (!content) {
-      this.logger.error(`Content ${id} not found`);
-      throw new NotFoundException('Content not found');
-    }
-    return this.prisma.content.delete({
-      where: { id },
-    });
+  private canManage(role?: string): boolean {
+    return role === UserRole.admin || role === UserRole.content_manager;
   }
 
-  async incrementViewCount(id: string): Promise<Content> {
-    this.logger.debug(`Incrementing view count for content ${id}`);
-    return this.prisma.content.update({
-      where: { id },
-      data: { viewCount: { increment: 1 } },
-    });
-  }
-
-  async likeContent(userId: string, contentId: string): Promise<Content> {
-    this.logger.debug(`User ${userId} liking content ${contentId}`);
-    const existingLike = await this.prisma.like.findFirst({
-      where: { userId, contentId },
-    });
-    if (existingLike) {
-      this.logger.debug('User already liked this content');
-      throw new Error('Already liked');
-    }
-    await this.prisma.like.create({
-      data: { userId, contentId },
-    });
-    return this.prisma.content.update({
-      where: { id: contentId },
-      data: { likeCount: { increment: 1 } },
-    });
-  }
-
-  async unlikeContent(userId: string, contentId: string): Promise<Content> {
-    this.logger.debug(`User ${userId} unliking content ${contentId}`);
-    const existingLike = await this.prisma.like.findFirst({
-      where: { userId, contentId },
-    });
-    if (!existingLike) {
-      this.logger.debug('User did not like this content');
-      throw new Error('Not liked');
-    }
-    await this.prisma.like.delete({
-      where: { id: existingLike.id },
-    });
-    return this.prisma.content.update({
-      where: { id: contentId },
-      data: { likeCount: { decrement: 1 } },
-    });
-  }
-
-  async getTrending(limit: number = 10): Promise<Content[]> {
-    this.logger.debug(`Getting trending content - limit: ${limit}`);
-    return this.prisma.content.findMany({
-      where: { isPublic: true, status: ContentStatus.PUBLISHED },
-      take: limit,
-      orderBy: [
-        { viewCount: 'desc' },
-        { likeCount: 'desc' },
-        { createdAt: 'desc' },
-      ],
-      include: {
-        author: {
-          select: {
-            id: true,
-            phone: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
-        category: true,
-        _count: {
-          select: {
-            likes: true,
-            views: true,
-          },
-        },
-      },
-    });
-  }
-
-  async getLatest(limit: number = 10): Promise<Content[]> {
-    this.logger.debug(`Getting latest content - limit: ${limit}`);
-    return this.prisma.content.findMany({
-      where: { isPublic: true, status: ContentStatus.PUBLISHED },
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        author: {
-          select: {
-            id: true,
-            phone: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
-        category: true,
-      },
-    });
-  }
-
-  async getByAuthor(authorId: string, limit: number = 10): Promise<Content[]> {
-    this.logger.debug(`Getting content by author ${authorId} - limit: ${limit}`);
-    return this.prisma.content.findMany({
-      where: { authorId, isPublic: true, status: ContentStatus.PUBLISHED },
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        category: true,
-        _count: {
-          select: {
-            likes: true,
-            views: true,
-          },
-        },
-      },
-    });
-  }
-
-  async publish(id: string): Promise<Content> {
-    this.logger.log(`Publishing content ${id}`);
-    const content = await this.findById(id);
-    if (!content) {
-      this.logger.error(`Content ${id} not found`);
-      throw new NotFoundException('Content not found');
-    }
-    return this.prisma.content.update({
-      where: { id },
-      data: {
-        status: ContentStatus.PUBLISHED,
-        publishedAt: new Date(),
-      },
-    });
+  private isEnumValue<T extends Record<string, string>>(values: T, value?: string): value is T[keyof T] {
+    return Boolean(value && Object.values(values).includes(value));
   }
 
   private generateSlug(title: string): string {

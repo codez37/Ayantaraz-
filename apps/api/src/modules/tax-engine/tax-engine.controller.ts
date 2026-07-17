@@ -9,7 +9,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Public } from '../../common/decorators/public.decorator';
-import { RequireCaptcha, RateLimitTier } from '../security/decorators';
+import { RateLimitTier } from '../security/decorators';
 import { TaxQueryDto } from './dto/tax-query.dto';
 import { ResetSessionDto } from './dto/reset-session.dto';
 import { TaxEngineService } from './tax-engine.service';
@@ -39,7 +39,6 @@ export class TaxEngineController {
   }
 
   @Public()
-  @RequireCaptcha()
   @RateLimitTier('tax_engine')
   @Post('query')
   @HttpCode(HttpStatus.OK)

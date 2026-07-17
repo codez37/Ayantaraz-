@@ -19,6 +19,8 @@ export class RateLimiterService implements OnModuleDestroy {
     this.configs.set('auth', { windowMs: 60 * 1000, max: 5, message: 'Too many auth attempts', keyPrefix: 'rl:auth:' });
     this.configs.set('short', { windowMs: 1000, max: 10, message: 'Too many requests', keyPrefix: 'rl:short:' });
     this.configs.set('api', { windowMs: 60 * 1000, max: 60, message: 'API rate limit exceeded', keyPrefix: 'rl:api:' });
+    this.configs.set('chatbot', { windowMs: 60 * 1000, max: 20, message: 'Chatbot rate limit exceeded', keyPrefix: 'rl:chatbot:' });
+    this.configs.set('tax_engine', { windowMs: 60 * 1000, max: 20, message: 'Tax engine rate limit exceeded', keyPrefix: 'rl:tax_engine:' });
   }
 
   async onModuleDestroy() {
