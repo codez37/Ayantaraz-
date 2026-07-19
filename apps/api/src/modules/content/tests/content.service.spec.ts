@@ -44,7 +44,7 @@ describe('ContentService', () => {
       const expected = { id: 1, ...input, status: 'draft', authorId: 1 };
       mockPrisma.content.create.mockResolvedValue(expected);
 
-      const result = await service.create(input, 1);
+      const result = await service.create(input as any, 1);
       expect(result.status).toBe('draft');
       expect(mockPrisma.content.create).toHaveBeenCalled();
       expect(mockPrisma.auditLog.create).toHaveBeenCalled();
@@ -56,6 +56,7 @@ describe('ContentService', () => {
       mockPrisma.content.findUnique.mockResolvedValue({
         id: 1,
         status: 'draft',
+        authorId: 1,
       });
       mockPrisma.content.update.mockResolvedValue({ id: 1, status: 'review' });
 
@@ -72,6 +73,7 @@ describe('ContentService', () => {
       mockPrisma.content.findUnique.mockResolvedValue({
         id: 1,
         status: 'draft',
+        authorId: 1,
       });
       await expect(
         service.updateStatus(1, 'archived', 1, 'content_manager'),
@@ -82,6 +84,7 @@ describe('ContentService', () => {
       mockPrisma.content.findUnique.mockResolvedValue({
         id: 1,
         status: 'archived',
+        authorId: 1,
       });
       await expect(
         service.updateStatus(1, 'published', 1, 'admin'),
@@ -127,8 +130,8 @@ describe('ContentService', () => {
       mockPrisma.content.findMany.mockResolvedValue([{ id: 1, title: 'A' }]);
       mockPrisma.content.count.mockResolvedValue(1);
       const result = await service.list({ page: 1, limit: 20 });
-      expect(result.data).toHaveLength(1);
-      expect(result.meta.total).toBe(1);
+      expect(result.contents).toHaveLength(1);
+      expect(result.total).toBe(1);
     });
   });
 });

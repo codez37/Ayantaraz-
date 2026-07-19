@@ -6,10 +6,10 @@ import { SecurityGuard } from '../../modules/security/security.guard';
 
 /**
  * Combined Authentication Guard
- * 
+ *
  * Combines SecurityGuard, JwtAuthGuard, and RolesGuard into a single guard
  * to ensure all security checks are applied.
- * 
+ *
  * This is necessary because NestJS only uses the LAST registered APP_GUARD.
  */
 @Injectable()

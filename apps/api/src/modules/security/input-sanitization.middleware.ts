@@ -1,4 +1,9 @@
-import { Injectable, NestMiddleware, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
 @Injectable()
@@ -7,12 +12,17 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     try {
-      if (req.body && typeof req.body === 'object') this.sanitizeObject(req.body);
-      if (req.query && typeof req.query === 'object') this.sanitizeObject(req.query);
-      if (req.params && typeof req.params === 'object') this.sanitizeObject(req.params);
+      if (req.body && typeof req.body === 'object')
+        this.sanitizeObject(req.body);
+      if (req.query && typeof req.query === 'object')
+        this.sanitizeObject(req.query);
+      if (req.params && typeof req.params === 'object')
+        this.sanitizeObject(req.params);
       next();
     } catch (error) {
-      this.logger.error(`Input sanitization failed: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.error(
+        `Input sanitization failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new BadRequestException('Invalid input data');
     }
   }
@@ -23,7 +33,8 @@ export class InputSanitizationMiddleware implements NestMiddleware {
       if (obj.hasOwnProperty(key)) {
         const value = obj[key];
         if (typeof value === 'string') obj[key] = this.sanitizeString(value);
-        else if (typeof value === 'object' && value !== null) this.sanitizeObject(value);
+        else if (typeof value === 'object' && value !== null)
+          this.sanitizeObject(value);
         else if (Array.isArray(value)) this.sanitizeArray(value);
       }
     }
@@ -32,7 +43,8 @@ export class InputSanitizationMiddleware implements NestMiddleware {
   private sanitizeArray(arr: any[]): void {
     for (let i = 0; i < arr.length; i++) {
       if (typeof arr[i] === 'string') arr[i] = this.sanitizeString(arr[i]);
-      else if (typeof arr[i] === 'object' && arr[i] !== null) this.sanitizeObject(arr[i]);
+      else if (typeof arr[i] === 'object' && arr[i] !== null)
+        this.sanitizeObject(arr[i]);
     }
   }
 
@@ -47,20 +59,38 @@ export class InputSanitizationMiddleware implements NestMiddleware {
   }
 
   private checkForSqlInjection(value: string): void {
-    const sqlPatterns = [/(--\s|#|;|\/\*|\*\/)/i, /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|TRUNCATE|EXEC|UNION)\b)/i, /(\b(OR|AND)\b\s+\d+\s*=\s*\d+)/i, /(\b(WAITFOR|DELAY)\b)/i, /(\b(XP_|MSSQL_|SP_)\w+)/i];
+    const sqlPatterns = [
+      /(--\s|#|;|\/\*|\*\/)/i,
+      /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|TRUNCATE|EXEC|UNION)\b)/i,
+      /(\b(OR|AND)\b\s+\d+\s*=\s*\d+)/i,
+      /(\b(WAITFOR|DELAY)\b)/i,
+      /(\b(XP_|MSSQL_|SP_)\w+)/i,
+    ];
     for (const pattern of sqlPatterns) {
       if (pattern.test(value)) {
-        this.logger.warn(`Potential SQL injection detected: ${value.substring(0, 50)}...`);
-        throw new BadRequestException('Invalid input - potential SQL injection detected');
+        this.logger.warn(
+          `Potential SQL injection detected: ${value.substring(0, 50)}...`,
+        );
+        throw new BadRequestException(
+          'Invalid input - potential SQL injection detected',
+        );
       }
     }
   }
 
   private checkForXss(value: string): void {
-    const xssPatterns = [/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/i, /javascript:/i, /on\w+\s*=/i, /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/i, /<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/i];
+    const xssPatterns = [
+      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/i,
+      /javascript:/i,
+      /on\w+\s*=/i,
+      /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/i,
+      /<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/i,
+    ];
     for (const pattern of xssPatterns) {
       if (pattern.test(value)) {
-        this.logger.warn(`Potential XSS detected: ${value.substring(0, 50)}...`);
+        this.logger.warn(
+          `Potential XSS detected: ${value.substring(0, 50)}...`,
+        );
         throw new BadRequestException('Invalid input - potential XSS detected');
       }
     }

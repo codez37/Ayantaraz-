@@ -8,16 +8,8 @@ import { CsrfController } from './csrf.controller';
 @Global()
 @Module({
   controllers: [CsrfController],
-  providers: [
-    RateLimiterService,
-    AbuseTrackerService,
-    SecurityGuard,
-  ],
-  exports: [
-    RateLimiterService,
-    AbuseTrackerService,
-    SecurityGuard,
-  ],
+  providers: [RateLimiterService, AbuseTrackerService, SecurityGuard],
+  exports: [RateLimiterService, AbuseTrackerService, SecurityGuard],
 })
 export class SecurityModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

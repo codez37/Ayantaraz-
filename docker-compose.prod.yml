@@ -25,7 +25,7 @@ services:
         max_attempts: 3
         window: 120s
 
-  db:
+  postgres:
     deploy:
       resources:
         limits:
@@ -38,6 +38,20 @@ services:
         limits:
           cpus: '0.5'
           memory: 256M
+
+  web:
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  nginx:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
 
 volumes:
   postgres_data:

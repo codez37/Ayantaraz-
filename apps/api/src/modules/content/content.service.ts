@@ -38,7 +38,7 @@ export class ContentService {
     const slug = dto.slug?.trim() || this.generateSlug(dto.title);
     this.logger.log(`Creating content: ${dto.title}`);
 
-    return this.prisma.content.create({
+    const content = await this.prisma.content.create({
       data: {
         contentType: dto.contentType,
         title: dto.title,
@@ -58,6 +58,22 @@ export class ContentService {
         status: ContentStatus.draft,
       },
     });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorId: userId,
+        action: 'content:create',
+        entityType: 'content',
+        entityId: content.id,
+        newValue: {
+          id: content.id,
+          title: content.title,
+          status: content.status,
+        },
+      },
+    });
+
+    return content;
   }
 
   async list(filters: ContentListFilters = {}) {
@@ -65,11 +81,15 @@ export class ContentService {
     const limit = Math.min(Math.max(Number(filters.limit) || 10, 1), 100);
     const where: Record<string, unknown> = {};
 
-    if (this.isEnumValue(ContentType, filters.type)) where.contentType = filters.type;
-    if (this.isEnumValue(ContentStatus, filters.status)) where.status = filters.status;
-    if (this.isEnumValue(ContentVisibility, filters.visibility)) where.visibility = filters.visibility;
+    if (this.isEnumValue(ContentType, filters.type))
+      where.contentType = filters.type;
+    if (this.isEnumValue(ContentStatus, filters.status))
+      where.status = filters.status;
+    if (this.isEnumValue(ContentVisibility, filters.visibility))
+      where.visibility = filters.visibility;
     if (filters.categoryId) where.categoryId = filters.categoryId;
-    if (filters.tags) where.tags = { contains: filters.tags, mode: 'insensitive' };
+    if (filters.tags)
+      where.tags = { contains: filters.tags, mode: 'insensitive' };
     if (filters.search) {
       where.OR = [
         { title: { contains: filters.search, mode: 'insensitive' } },
@@ -92,7 +112,15 @@ export class ContentService {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          author: { select: { id: true, phone: true, firstName: true, lastName: true, role: true } },
+          author: {
+            select: {
+              id: true,
+              phone: true,
+              firstName: true,
+              lastName: true,
+              role: true,
+            },
+          },
           category: true,
         },
       }),
@@ -102,11 +130,23 @@ export class ContentService {
     return { contents, total, page, limit };
   }
 
-  async getBySlug(slug: string, userId?: number, userRole?: string): Promise<Content> {
+  async getBySlug(
+    slug: string,
+    userId?: number,
+    userRole?: string,
+  ): Promise<Content> {
     const content = await this.prisma.content.findUnique({
       where: { slug },
       include: {
-        author: { select: { id: true, phone: true, firstName: true, lastName: true, role: true } },
+        author: {
+          select: {
+            id: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          },
+        },
         category: true,
       },
     });
@@ -122,7 +162,12 @@ export class ContentService {
     userRole: string,
   ): Promise<Content> {
     const content = await this.getManagedContent(id, userId, userRole);
-    const data: UpdateContentDto & { reviewedBy?: number; reviewedAt?: Date; publishedAt?: Date | null; archivedAt?: Date | null } = { ...dto };
+    const data: UpdateContentDto & {
+      reviewedBy?: number;
+      reviewedAt?: Date;
+      publishedAt?: Date | null;
+      archivedAt?: Date | null;
+    } = { ...dto };
     if (dto.title && !dto.slug) data.slug = this.generateSlug(dto.title);
     if (dto.status) this.applyStatusMetadata(data, dto.status, userId);
 
@@ -135,35 +180,65 @@ export class ContentService {
     userId: number,
     userRole: string,
   ): Promise<Content> {
-    await this.getManagedContent(id, userId, userRole);
-    const data: { status: ContentStatus; reviewedBy?: number; reviewedAt?: Date; publishedAt?: Date | null; archivedAt?: Date | null } = { status };
+    const content = await this.getManagedContent(id, userId, userRole);
+    this.validateStatusTransition(content.status, status, userRole);
+    const data: {
+      status: ContentStatus;
+      reviewedBy?: number;
+      reviewedAt?: Date;
+      publishedAt?: Date | null;
+      archivedAt?: Date | null;
+    } = { status };
     this.applyStatusMetadata(data, status, userId);
     return this.prisma.content.update({ where: { id }, data });
   }
 
-  async archive(id: number, userId: number, userRole: string): Promise<Content> {
+  async archive(
+    id: number,
+    userId: number,
+    userRole: string,
+  ): Promise<Content> {
     return this.updateStatus(id, ContentStatus.archived, userId, userRole);
   }
 
-  private async getManagedContent(id: number, userId: number, userRole: string): Promise<Content> {
+  private async getManagedContent(
+    id: number,
+    userId: number,
+    userRole: string,
+  ): Promise<Content> {
     const content = await this.prisma.content.findUnique({ where: { id } });
     if (!content) throw new NotFoundException('Content not found');
-    if (!this.canManage(userRole) || (userRole === UserRole.content_manager && content.authorId !== userId)) {
+    if (
+      !this.canManage(userRole) ||
+      (userRole === UserRole.content_manager && content.authorId !== userId)
+    ) {
       throw new ForbiddenException('Not allowed to manage this content');
     }
     return content;
   }
 
-  private assertReadable(content: Content, userId?: number, userRole?: string): void {
+  private assertReadable(
+    content: Content,
+    userId?: number,
+    userRole?: string,
+  ): void {
     if (this.canManage(userRole)) return;
-    if (content.status !== ContentStatus.published) throw new NotFoundException('Content not found');
+    if (content.status !== ContentStatus.published)
+      throw new NotFoundException('Content not found');
     if (content.visibility === ContentVisibility.public) return;
-    if (content.visibility === ContentVisibility.authenticated && userId) return;
+    if (content.visibility === ContentVisibility.authenticated && userId)
+      return;
     throw new ForbiddenException('Not allowed to view this content');
   }
 
   private applyStatusMetadata(
-    data: { status: ContentStatus; reviewedBy?: number; reviewedAt?: Date; publishedAt?: Date | null; archivedAt?: Date | null },
+    data: {
+      status?: ContentStatus;
+      reviewedBy?: number;
+      reviewedAt?: Date;
+      publishedAt?: Date | null;
+      archivedAt?: Date | null;
+    },
     status: ContentStatus,
     userId: number,
   ): void {
@@ -180,7 +255,45 @@ export class ContentService {
     return role === UserRole.admin || role === UserRole.content_manager;
   }
 
-  private isEnumValue<T extends Record<string, string>>(values: T, value?: string): value is T[keyof T] {
+  private validateStatusTransition(
+    current: ContentStatus,
+    target: ContentStatus,
+    userRole: string,
+  ): void {
+    const isAdmin = userRole === UserRole.admin;
+    const transitions: Record<string, ContentStatus[]> = isAdmin
+      ? {
+          draft: [
+            ContentStatus.review,
+            ContentStatus.published,
+            ContentStatus.archived,
+          ],
+          review: [
+            ContentStatus.published,
+            ContentStatus.archived,
+            ContentStatus.draft,
+          ],
+          published: [ContentStatus.archived],
+          archived: [ContentStatus.draft],
+        }
+      : {
+          draft: [ContentStatus.review],
+          review: [ContentStatus.published, ContentStatus.draft],
+          published: [],
+          archived: [],
+        };
+    const allowed = transitions[current] || [];
+    if (!allowed.includes(target)) {
+      throw new ForbiddenException(
+        `Cannot transition from ${current} to ${target}`,
+      );
+    }
+  }
+
+  private isEnumValue<T extends Record<string, string>>(
+    values: T,
+    value?: string,
+  ): value is T[keyof T] {
     return Boolean(value && Object.values(values).includes(value));
   }
 

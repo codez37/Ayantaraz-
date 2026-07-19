@@ -43,7 +43,7 @@ export class UsersController {
   @Roles(UserRole.admin)
   updateRole(
     @Param('id', ParseIntPipe) id: number,
-    @Body('role') role: string,
+    @Body('role') role: UserRole,
   ) {
     return this.usersService.updateUserRole(id, role);
   }
