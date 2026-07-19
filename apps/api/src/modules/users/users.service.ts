@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { User } from '@prisma/client';
+import { User, UserRole, Prisma } from '@prisma/client';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -12,37 +13,20 @@ export class UsersService {
     this.logger.debug(`Finding user by phone: ${phone}`);
     return this.prisma.user.findUnique({
       where: { phone },
-      include: {
-        sessions: false,
-        refreshTokens: false,
-      },
     });
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: number): Promise<User | null> {
     this.logger.debug(`Finding user by ID: ${id}`);
     return this.prisma.user.findUnique({
       where: { id },
-      include: {
-        sessions: false,
-        refreshTokens: false,
-      },
-    });
-  }
-
-  async findByEmail(email: string): Promise<User | null> {
-    this.logger.debug(`Finding user by email: ${email}`);
-    return this.prisma.user.findUnique({
-      where: { email },
     });
   }
 
   async create(
     phone: string,
-    passwordHash: string,
     firstName?: string,
     lastName?: string,
-    email?: string,
   ): Promise<User> {
     this.logger.log(`Creating new user with phone: ${phone}`);
     const existingUser = await this.findByPhone(phone);
@@ -53,10 +37,8 @@ export class UsersService {
     return this.prisma.user.create({
       data: {
         phone,
-        passwordHash,
         firstName: firstName || '',
         lastName: lastName || '',
-        email: email || null,
         role: 'user',
         isActive: true,
       },
@@ -64,14 +46,12 @@ export class UsersService {
   }
 
   async update(
-    id: string,
+    id: number,
     data: {
       firstName?: string;
       lastName?: string;
-      email?: string;
       phone?: string;
-      passwordHash?: string;
-      role?: string;
+      role?: UserRole;
       isActive?: boolean;
     },
   ): Promise<User> {
@@ -87,23 +67,15 @@ export class UsersService {
     });
   }
 
-  async updatePassword(userId: string, passwordHash: string): Promise<User> {
-    this.logger.log(`Updating password for user ${userId}`);
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash },
-    });
-  }
-
   async list(
     page: number = 1,
     limit: number = 10,
-    role?: string,
+    role?: UserRole,
     isActive?: boolean,
-  ): Promise<{ users: User[]; total: number; page: number; limit: number }> {
+  ): Promise<{ users: Partial<User>[]; total: number; page: number; limit: number }> {
     this.logger.debug(`Listing users - page: ${page}, limit: ${limit}`);
     const skip = (page - 1) * limit;
-    const where: any = {};
+    const where: Prisma.UserWhereInput = {};
     if (role) where.role = role;
     if (isActive !== undefined) where.isActive = isActive;
     const [users, total] = await Promise.all([
@@ -117,9 +89,10 @@ export class UsersService {
           phone: true,
           firstName: true,
           lastName: true,
-          email: true,
           role: true,
           isActive: true,
+          isStaff: true,
+          lastLoginAt: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -127,14 +100,14 @@ export class UsersService {
       this.prisma.user.count({ where }),
     ]);
     return {
-      users: users as any[],
+      users: users as Partial<User>[],
       total,
       page,
       limit,
     };
   }
 
-  async delete(id: string): Promise<User> {
+  async delete(id: number): Promise<User> {
     this.logger.log(`Deleting user ${id}`);
     const user = await this.findById(id);
     if (!user) {
@@ -147,7 +120,7 @@ export class UsersService {
     });
   }
 
-  async hardDelete(id: string): Promise<User> {
+  async hardDelete(id: number): Promise<User> {
     this.logger.warn(`Hard deleting user ${id}`);
     const user = await this.findById(id);
     if (!user) {
@@ -161,7 +134,7 @@ export class UsersService {
     });
   }
 
-  async findAdmins(): Promise<User[]> {
+  async findAdmins(): Promise<Partial<User>[]> {
     this.logger.debug('Finding admin users');
     return this.prisma.user.findMany({
       where: { role: 'admin', isActive: true },
@@ -170,7 +143,6 @@ export class UsersService {
         phone: true,
         firstName: true,
         lastName: true,
-        email: true,
         role: true,
         createdAt: true,
       },
@@ -182,7 +154,7 @@ export class UsersService {
     return user?.role === 'admin' && user.isActive;
   }
 
-  async getProfile(userId: string): Promise<any> {
+  async getProfile(userId: number): Promise<any> {
     this.logger.debug(`Getting profile for user ${userId}`);
     const user = await this.findById(userId);
     if (!user) {
@@ -194,15 +166,74 @@ export class UsersService {
       phone: user.phone,
       firstName: user.firstName,
       lastName: user.lastName,
-      email: user.email,
       role: user.role,
       isActive: user.isActive,
+      isStaff: user.isStaff,
+      lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
   }
 
-  async search(query: string, limit: number = 10): Promise<User[]> {
+  async updateProfile(userId: number, dto: UpdateProfileDto): Promise<User> {
+    this.logger.log(`Updating profile for user ${userId}`);
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+      },
+    });
+  }
+
+  async listUsers(
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ users: Partial<User>[]; total: number; page: number; limit: number }> {
+    return this.list(page, limit);
+  }
+
+  async updateUserRole(id: number, role: UserRole): Promise<User> {
+    this.logger.log(`Updating role for user ${id} to ${role}`);
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return this.prisma.user.update({
+      where: { id },
+      data: { role: role as any },
+    });
+  }
+
+  async blockUser(id: number): Promise<User> {
+    this.logger.log(`Blocking user ${id}`);
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return this.prisma.user.update({
+      where: { id },
+      data: { isActive: false },
+    });
+  }
+
+  async unblockUser(id: number): Promise<User> {
+    this.logger.log(`Unblocking user ${id}`);
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return this.prisma.user.update({
+      where: { id },
+      data: { isActive: true },
+    });
+  }
+
+  async search(query: string, limit: number = 10): Promise<Partial<User>[]> {
     this.logger.debug(`Searching users with query: ${query}`);
     return this.prisma.user.findMany({
       where: {
@@ -210,7 +241,6 @@ export class UsersService {
           { phone: { contains: query } },
           { firstName: { contains: query, mode: 'insensitive' } },
           { lastName: { contains: query, mode: 'insensitive' } },
-          { email: { contains: query, mode: 'insensitive' } },
         ],
         isActive: true,
       },
@@ -220,13 +250,12 @@ export class UsersService {
         phone: true,
         firstName: true,
         lastName: true,
-        email: true,
         role: true,
       },
     });
   }
 
-  async updateLastLogin(userId: string): Promise<User> {
+  async updateLastLogin(userId: number): Promise<User> {
     this.logger.debug(`Updating last login for user ${userId}`);
     return this.prisma.user.update({
       where: { id: userId },

@@ -224,7 +224,11 @@ export class ChatbotService {
   }): string {
     const cleanAnswer = params.answer.trim();
     const confidenceLabel =
-      params.confidence >= 8 ? 'بالا' : params.confidence >= 3 ? 'متوسط' : 'محدود';
+      params.confidence >= 8
+        ? 'بالا'
+        : params.confidence >= 3
+          ? 'متوسط'
+          : 'محدود';
     const riskNotice =
       params.riskLevel === 'medium'
         ? '\n\n⚠️ توجه: این پاسخ عمومی است؛ قبل از اقدام اجرایی، وضعیت پرونده، سال مالی و مستندات باید بررسی شود.'

@@ -73,7 +73,10 @@ export class HealthService {
     let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
     if (checks.database.status === 'down' || checks.cache.status === 'down') {
       status = 'unhealthy';
-    } else if (checks.memory.status === 'critical' || checks.memory.status === 'warning') {
+    } else if (
+      checks.memory.status === 'critical' ||
+      checks.memory.status === 'warning'
+    ) {
       status = 'degraded';
     }
     return {
@@ -99,11 +102,13 @@ export class HealthService {
         responseTime: Date.now() - start,
       };
     } catch (error) {
-      this.logger.error(`Database connection check failed: ${error}`);
+      this.logger.error(
+        `Database connection check failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return {
         connected: false,
         responseTime: 0,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -162,7 +167,8 @@ export class HealthService {
     return {
       name: process.env.npm_package_name || 'ayantaraz-api',
       version: process.env.npm_package_version || '1.0.0',
-      description: process.env.npm_package_description || 'Ayantaraz API Service',
+      description:
+        process.env.npm_package_description || 'Ayantaraz API Service',
       environment: process.env.NODE_ENV || 'development',
       nodeVersion: process.version,
       platform: require('os').platform(),

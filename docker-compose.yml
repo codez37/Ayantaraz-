@@ -7,17 +7,25 @@ services:
       dockerfile: apps/api/Dockerfile
     container_name: ayantaraz-api
     restart: unless-stopped
-    env_file: .env
+    env_file:
+      - ./.env
+    environment:
+      - NODE_ENV=production
     ports:
       - "3001:3001"
     volumes:
       - ./uploads:/app/uploads
       - ./prisma:/app/prisma
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 30s
@@ -27,23 +35,50 @@ services:
     networks:
       - ayantaraz-network
 
-  db:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: ayantaraz-web
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    depends_on:
+      api:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - ayantaraz-network
+
+  # DATABASE LAYER
+  postgres:
     image: postgres:15-alpine
-    container_name: ayantaraz-db
+    container_name: ayantaraz-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ayantaraz
-      POSTGRES_PASSWORD: Ay4nt4r4z2024DbPass
-      POSTGRES_DB: ayantaraz
+      POSTGRES_USER: ${POSTGRES_USER:-ayantaraz}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-ayantaraz}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ayantaraz -d ayantaraz"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-ayantaraz}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - ayantaraz-network
 
@@ -51,16 +86,42 @@ services:
     image: redis:7-alpine
     container_name: ayantaraz-redis
     restart: unless-stopped
-    command: redis-server --requirepass Ay4nt4r4z2024RedisPass
+    command: sh -c "redis-server --requirepass $${REDIS_PASSWORD}"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "Ay4nt4r4z2024RedisPass", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - ayantaraz-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: ayantaraz-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_started
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - ayantaraz-network
 

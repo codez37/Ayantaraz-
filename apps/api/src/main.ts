@@ -22,7 +22,11 @@ async function waitForDatabase(prisma: PrismaService, retries = 10) {
       logger.log('Database connection established', 'Bootstrap');
       return;
     } catch (err) {
-      logger.error(`DB not ready (attempt ${i + 1}/${retries})`, err instanceof Error ? err.stack : undefined, 'Bootstrap');
+      logger.error(
+        `DB not ready (attempt ${i + 1}/${retries})`,
+        err instanceof Error ? err.stack : undefined,
+        'Bootstrap',
+      );
       await sleep(1500 * (i + 1));
     }
   }
@@ -47,38 +51,74 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  app.use(helmet({
-    contentSecurityPolicy: { directives: {
-      defaultSrc: ["'self'"],
-      baseUri: ["'self'"],
-      frameAncestors: ["'none'"],
-      formAction: ["'self'"],
-      imgSrc: ["'self'", 'data:', 'https:', 'http:'],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-    }},
-    hsts: { maxAge: isProduction ? 63072000 : 0, includeSubDomains: true, preload: isProduction },
-    crossOriginEmbedderPolicy: false,
-    crossOriginOpenerPolicy: { policy: 'same-origin' },
-    crossOriginResourcePolicy: { policy: 'same-origin' },
-    xContentTypeOptions: true,
-    xFrameOptions: { action: 'DENY' },
-    xXssProtection: { enabled: true, mode: 'block' },
-  }));
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          baseUri: ["'self'"],
+          frameAncestors: ["'none'"],
+          formAction: ["'self'"],
+          imgSrc: ["'self'", 'data:', 'https:', 'http:'],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+        },
+      },
+      hsts: {
+        maxAge: isProduction ? 63072000 : 0,
+        includeSubDomains: true,
+        preload: isProduction,
+      },
+      crossOriginEmbedderPolicy: false,
+      crossOriginOpenerPolicy: { policy: 'same-origin' },
+      crossOriginResourcePolicy: { policy: 'same-origin' },
+      xContentTypeOptions: true,
+      xFrameOptions: { action: 'deny' },
+      xXssProtection: true,
+    }),
+  );
 
   const allowAllOrigins = process.env.ALLOW_ALL_ORIGINS === 'true';
-  const corsOrigin = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  const corsOrigin = (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void,
+  ) => {
     if (!origin) return callback(null, true);
     if (allowAllOrigins) return callback(null, true);
-    if (/^https?:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+    if (
+      /^https?:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|localhost|127\.0\.0\.1)(:\d+)?$/i.test(
+        origin,
+      )
+    ) {
       return callback(null, true);
     }
     return callback(new Error(`CORS blocked: ${origin}`), false);
   };
 
-  app.enableCors({ origin: corsOrigin, credentials: true, methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-API-Key', 'X-CSRF-Token'], exposedHeaders: ['Content-Type', 'Authorization'], maxAge: 3600 });
+  app.enableCors({
+    origin: corsOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'X-Requested-With',
+      'X-API-Key',
+      'X-CSRF-Token',
+    ],
+    exposedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 3600,
+  });
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true, stopAtFirstError: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+      stopAtFirstError: true,
+    }),
+  );
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new RequestLoggerInterceptor());
   app.setGlobalPrefix('api', { exclude: ['health'] });
@@ -96,9 +136,17 @@ async function bootstrap() {
   const shutdown = async (signal: NodeJS.Signals) => {
     if (isShuttingDown) return;
     isShuttingDown = true;
-    const forceKill = setTimeout(() => { logger.error('Force shutdown', undefined, 'Bootstrap'); process.exit(1); }, 20000);
+    const forceKill = setTimeout(() => {
+      logger.error('Force shutdown', undefined, 'Bootstrap');
+      process.exit(1);
+    }, 20000);
     try {
-      await new Promise<void>((resolve) => server.close(() => { logger.log('HTTP server closed', 'Bootstrap'); resolve(); }));
+      await new Promise<void>((resolve) =>
+        server.close(() => {
+          logger.log('HTTP server closed', 'Bootstrap');
+          resolve();
+        }),
+      );
       await new Promise((resolve) => setTimeout(resolve, 500));
       await app.close();
       await prisma.$disconnect();
@@ -106,15 +154,46 @@ async function bootstrap() {
       process.exit(0);
     } catch (err) {
       clearTimeout(forceKill);
-      logger.error('Shutdown failed', err instanceof Error ? err.stack : undefined, 'Bootstrap');
-      try { await prisma.$disconnect(); } catch {}
+      logger.error(
+        'Shutdown failed',
+        err instanceof Error ? err.stack : undefined,
+        'Bootstrap',
+      );
+      try {
+        await prisma.$disconnect();
+      } catch {}
       process.exit(1);
     }
   };
 
-  ['SIGTERM', 'SIGINT'].forEach((sig) => process.on(sig as NodeJS.Signals, () => void shutdown(sig as NodeJS.Signals)));
-  process.on('unhandledRejection', (reason: any) => logger.error('Unhandled Rejection', reason?.stack || reason?.message || String(reason), 'Bootstrap'));
-  process.on('uncaughtException', (err: Error) => { logger.error('Uncaught Exception', err.stack, 'Bootstrap'); process.exit(1); });
+  ['SIGTERM', 'SIGINT'].forEach((sig) =>
+    process.on(
+      sig as NodeJS.Signals,
+      () => void shutdown(sig as NodeJS.Signals),
+    ),
+  );
+  process.on('unhandledRejection', (reason: any) =>
+    logger.error(
+      'Unhandled Rejection',
+      reason?.stack || reason?.message || String(reason),
+      'Bootstrap',
+    ),
+  );
+  process.on('uncaughtException', (err: Error) => {
+    logger.error('Uncaught Exception', err.stack, 'Bootstrap');
+    process.exit(1);
+  });
 }
 
-void (async () => { try { await bootstrap(); } catch (err) { logger.error('Bootstrap failed', err instanceof Error ? err.stack : undefined, 'Bootstrap'); process.exit(1); } })();
+void (async () => {
+  try {
+    await bootstrap();
+  } catch (err) {
+    logger.error(
+      'Bootstrap failed',
+      err instanceof Error ? err.stack : undefined,
+      'Bootstrap',
+    );
+    process.exit(1);
+  }
+})();

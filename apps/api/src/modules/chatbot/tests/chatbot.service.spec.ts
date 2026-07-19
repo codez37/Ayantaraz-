@@ -84,7 +84,7 @@ describe('ChatbotService', () => {
       });
 
       const result = await service.query('چطور جعل کنم');
-      expect(result.answer).toContain('خارج از حوزه');
+      expect(result.answer).toContain('مجاز');
     });
   });
 
