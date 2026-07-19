@@ -15,6 +15,10 @@ COPY prisma/schema.prisma prisma/
 RUN pnpm install --frozen-lockfile --shamefully-hoist
 
 FROM node:22.16-alpine AS builder
+ARG NEXT_PUBLIC_SITE_URL
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV CI=true
 RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 WORKDIR /app

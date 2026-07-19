@@ -1,1 +1,12 @@
-Could not read this page (the site blocked automated access or returned no readable content). Do not retry; try a different source.
+node_modules/
+.pnpm-store/
+.next/
+dist/
+build/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db

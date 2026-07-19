@@ -25,6 +25,22 @@ services:
         max_attempts: 3
         window: 120s
 
+  web:
+    environment:
+      - NODE_ENV=production
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 768M
+
+  nginx:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+
   db:
     deploy:
       resources:
