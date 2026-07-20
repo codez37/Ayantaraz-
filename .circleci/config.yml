@@ -23,11 +23,15 @@ jobs:
       - checkout
 
       # روش استاندارد فعال‌سازی کورپک برای کاربران غیر روت (Non-root) در CircleCI
+            # تنظیم مسیر محلی برای کورپک و فعال‌سازی استاندارد بدون نیاز به دسترسی ادمین
       - run:
           name: Enable Corepack and Prepare pnpm
           command: |
-            corepack enable
+            export COREPACK_HOME=$HOME/.corepack
+            mkdir -p $COREPACK_HOME
+            corepack enable --to $HOME/.local/bin
             corepack prepare --activate
+            
 
       # بازیابی کش پکیج‌ها براساس ساختار مدرن pnpm
       - restore_cache:
