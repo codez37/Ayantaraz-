@@ -10,6 +10,8 @@ jobs:
         environment:
           NODE_ENV: test
           DATABASE_URL: postgresql://root:password@localhost:5432/mydb?schema=public
+          # اصلاح باگ پنهان: تعریف سراسری PATH برای دسترسی pnpm در تمام مراحل
+          PATH: $HOME/.npm-global/bin:$PATH
 
       - image: cimg/postgres:15.5
         environment:
@@ -23,11 +25,17 @@ jobs:
       - run:
           name: Setup Corepack and pnpm
           command: |
-            npm install -g corepack@latest --prefix \~/.npm-global
-            export PATH="$HOME/.npm-global/bin:$PATH"
-            corepack enable --install-directory \~/.npm-global/bin
-            corepack prepare $(node -p "require('./package.json').packageManager") --activate || true
-            echo "✅ Ready:"
+            # استفاده از $HOME به جای \~ برای جلوگیری از تفسیر تحت‌اللفظی
+            npm install -g corepack@latest --prefix $HOME/.npm-global
+            
+            # فعال‌سازی corepack در مسیر مشخص‌شده‌ی مطلق
+            corepack enable --install-directory $HOME/.npm-global/bin
+            
+            # خوانش دقیق و داینامیک نسخه‌ی packageManager از package.json
+            PKG_MANAGER=$(node -p "require('./package.json').packageManager")
+            corepack prepare $PKG_MANAGER --activate || true
+            
+            echo "✅ Environment Ready:"
             node --version
             pnpm --version
 
@@ -43,7 +51,8 @@ jobs:
       - save_cache:
           key: pnpm-deps-v8-{{ checksum "pnpm-lock.yaml" }}
           paths:
-            - \~/.local/share/pnpm/store
+            # استفاده از مسیر مطلق $HOME برای تضمین پیدا شدن کش توسط CircleCI
+            - $HOME/.local/share/pnpm/store
 
       - run:
           name: Generate Prisma Client
