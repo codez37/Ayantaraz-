@@ -6,7 +6,7 @@ orbs:
 jobs:
   build-and-test:
     docker:
-      - image: cimg/node:22.13.0   # ← Node 22 LTS
+      - image: cimg/node:22.13.0
         environment:
           NODE_ENV: test
           DATABASE_URL: postgresql://root:password@localhost:5432/mydb?schema=public
@@ -20,17 +20,20 @@ jobs:
     steps:
       - checkout
 
-      # === Corepack + pnpm Setup (بهترین روش ۲۰۲۶) ===
+      # === Corepack + pnpm Setup (روش استاندارد و بدون خطای Permission) ===
       - run:
           name: Enable Corepack and Prepare pnpm
           command: |
-            # آپدیت Corepack به آخرین نسخه (حل مشکل verifySignature)
-            npm install -g corepack@latest
+            # نصب corepack در دایرکتوری خانگی کاربر (بدون نیاز به root)
+            npm install -g corepack@latest --prefix \~/.npm-global
+            
+            # اضافه کردن مسیر به PATH
+            export PATH="$HOME/.npm-global/bin:$PATH"
             
             # فعال‌سازی Corepack
-            corepack enable
+            corepack enable --install-directory \~/.npm-global/bin
             
-            # آماده‌سازی pnpm بر اساس package.json
+            # آماده‌سازی pnpm
             corepack prepare $(node -p "require('./package.json').packageManager") --activate
             
             echo "✅ Corepack & pnpm ready:"
@@ -41,8 +44,8 @@ jobs:
       # بازیابی کش
       - restore_cache:
           keys:
-            - pnpm-deps-v1-{{ checksum "pnpm-lock.yaml" }}
-            - pnpm-deps-v1-
+            - pnpm-deps-v2-{{ checksum "pnpm-lock.yaml" }}
+            - pnpm-deps-v2-
 
       # نصب وابستگی‌ها
       - run:
@@ -51,7 +54,7 @@ jobs:
 
       # ذخیره کش
       - save_cache:
-          key: pnpm-deps-v1-{{ checksum "pnpm-lock.yaml" }}
+          key: pnpm-deps-v2-{{ checksum "pnpm-lock.yaml" }}
           paths:
             - \~/.local/share/pnpm/store
 
