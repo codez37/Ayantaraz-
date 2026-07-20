@@ -6,13 +6,13 @@ orbs:
 jobs:
   build-and-test:
     docker:
-      # ایمیج اتمسفر نودجی‌اس مناسب برای نکس‌جی‌اس
-      - image: cimg/node:20.11.0
+      # استفاده از آخرین نسخه پایدار و بلندمدت Node 20 (LTS)
+      - image: cimg/node:20.18.0
         environment:
           NODE_ENV: test
           DATABASE_URL: postgresql://root:password@localhost:5432/mydb?schema=public
 
-      # ایمیج دیتابیس پستگرس برای اجرای تست‌ها و پریسما
+      # دیتابیس پستگرس برای تست‌ها
       - image: cimg/postgres:15.5
         environment:
           POSTGRES_USER: root
@@ -22,35 +22,36 @@ jobs:
     steps:
       - checkout
 
-      # فعال‌سازی و نصب pnpm
+      # روش استاندارد فعال‌سازی کورپک برای کاربران غیر روت (Non-root) در CircleCI
       - run:
-          name: Enforce Corepack and Setup pnpm
+          name: Enable Corepack and Prepare pnpm
           command: |
-            sudo corepack enable
-            sudo corepack prepare pnpm@latest --activate
+            corepack enable
+            corepack prepare --activate
 
-      # کش کردن دایرکتوری pnpm برای بالا رفتن سرعت بیلدهای بعدی
+      # بازیابی کش پکیج‌ها براساس ساختار مدرن pnpm
       - restore_cache:
           keys:
             - pnpm-deps-{{ checksum "pnpm-lock.yaml" }}
             - pnpm-deps-
 
-      # نصب دپندنس‌ی‌ها با pnpm
+      # نصب کاملاً استاندارد و ایزوله دپندنس‌ی‌ها مخصوص محیط‌های CI
       - run:
           name: Install Dependencies
           command: pnpm install --frozen-lockfile
 
+      # ذخیره کش برای بیلدهای بعدی جهت بالا رفتن سرعت
       - save_cache:
           key: pnpm-deps-{{ checksum "pnpm-lock.yaml" }}
           paths:
             - ~/.local/share/pnpm/store
 
-      # تولید کلاینت پریسما (Prisma Client Generation)
+      # تولید کلاینت پریسما
       - run:
           name: Generate Prisma Client
           command: pnpm prisma generate
 
-      # بیلدهای تست Next.js و TypeScript
+      # بیلد نهایی و تست پروژه Next.js
       - run:
           name: Next.js Production Build
           command: pnpm build
