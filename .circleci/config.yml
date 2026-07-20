@@ -6,13 +6,11 @@ orbs:
 jobs:
   build-and-test:
     docker:
-      # استفاده از آخرین نسخه پایدار و بلندمدت Node 20 (LTS)
-      - image: cimg/node:20.18.0
+      - image: cimg/node:22.13.0   # ← Node 22 LTS
         environment:
           NODE_ENV: test
           DATABASE_URL: postgresql://root:password@localhost:5432/mydb?schema=public
 
-      # دیتابیس پستگرس برای تست‌ها
       - image: cimg/postgres:15.5
         environment:
           POSTGRES_USER: root
@@ -22,45 +20,47 @@ jobs:
     steps:
       - checkout
 
-      # روش استاندارد فعال‌سازی کورپک برای کاربران غیر روت (Non-root) در CircleCI
-            # تنظیم مسیر محلی برای کورپک و فعال‌سازی استاندارد بدون نیاز به دسترسی ادمین
-            # تنظیم مسیر محلی و فعال‌سازی کورپک با ساختار دقیق نسخه مستقر
-            # غیرفعال کردن چک کردن امضا و فعال‌سازی استاندارد محلی
+      # === Corepack + pnpm Setup (بهترین روش ۲۰۲۶) ===
       - run:
           name: Enable Corepack and Prepare pnpm
           command: |
-            export COREPACK_HOME=$HOME/.corepack
-            export COREPACK_INTEGRITY_CHECK=0
-            mkdir -p $COREPACK_HOME
-            corepack enable --install-directory $HOME/.local/bin
-            corepack prepare --activate
+            # آپدیت Corepack به آخرین نسخه (حل مشکل verifySignature)
+            npm install -g corepack@latest
             
+            # فعال‌سازی Corepack
+            corepack enable
             
+            # آماده‌سازی pnpm بر اساس package.json
+            corepack prepare $(node -p "require('./package.json').packageManager") --activate
             
+            echo "✅ Corepack & pnpm ready:"
+            corepack --version
+            pnpm --version
+            node --version
 
-      # بازیابی کش پکیج‌ها براساس ساختار مدرن pnpm
+      # بازیابی کش
       - restore_cache:
           keys:
-            - pnpm-deps-{{ checksum "pnpm-lock.yaml" }}
-            - pnpm-deps-
+            - pnpm-deps-v1-{{ checksum "pnpm-lock.yaml" }}
+            - pnpm-deps-v1-
 
-      # نصب کاملاً استاندارد و ایزوله دپندنس‌ی‌ها مخصوص محیط‌های CI
+      # نصب وابستگی‌ها
       - run:
           name: Install Dependencies
-          command: pnpm install --frozen-lockfile
+          command: pnpm install --frozen-lockfile --prefer-offline
 
-      # ذخیره کش برای بیلدهای بعدی جهت بالا رفتن سرعت
+      # ذخیره کش
       - save_cache:
-          key: pnpm-deps-{{ checksum "pnpm-lock.yaml" }}
+          key: pnpm-deps-v1-{{ checksum "pnpm-lock.yaml" }}
           paths:
-            - ~/.local/share/pnpm/store
+            - \~/.local/share/pnpm/store
 
-      # تولید کلاینت پریسما
+      # Prisma
       - run:
           name: Generate Prisma Client
           command: pnpm prisma generate
 
-      # بیلد نهایی و تست پروژه Next.js
+      # بیلد Next.js
       - run:
           name: Next.js Production Build
           command: pnpm build
@@ -69,4 +69,3 @@ workflows:
   build_and_test_workflow:
     jobs:
       - build-and-test
-      
