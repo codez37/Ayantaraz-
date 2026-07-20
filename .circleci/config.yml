@@ -1,0 +1,62 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5.2.0
+
+jobs:
+  build-and-test:
+    docker:
+      # ایمیج اتمسفر نودجی‌اس مناسب برای نکس‌جی‌اس
+      - image: cimg/node:20.11.0
+        environment:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://root:password@localhost:5432/mydb?schema=public
+
+      # ایمیج دیتابیس پستگرس برای اجرای تست‌ها و پریسما
+      - image: cimg/postgres:15.5
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: mydb
+
+    steps:
+      - checkout
+
+      # فعال‌سازی و نصب pnpm
+      - run:
+          name: Enforce Corepack and Setup pnpm
+          command: |
+            corepack enable
+            corepack prepare pnpm@latest --activate
+
+      # کش کردن دایرکتوری pnpm برای بالا رفتن سرعت بیلدهای بعدی
+      - restore_cache:
+          keys:
+            - pnpm-deps-{{ checksum "pnpm-lock.yaml" }}
+            - pnpm-deps-
+
+      # نصب دپندنس‌ی‌ها با pnpm
+      - run:
+          name: Install Dependencies
+          command: pnpm install --frozen-lockfile
+
+      - save_cache:
+          key: pnpm-deps-{{ checksum "pnpm-lock.yaml" }}
+          paths:
+            - ~/.local/share/pnpm/store
+
+      # تولید کلاینت پریسما (Prisma Client Generation)
+      - run:
+          name: Generate Prisma Client
+          command: pnpm prisma generate
+
+      # بیلدهای تست Next.js و TypeScript
+      - run:
+          name: Next.js Production Build
+          command: pnpm build
+
+workflows:
+  build_and_test_workflow:
+    jobs:
+      - build-and-test
+      
