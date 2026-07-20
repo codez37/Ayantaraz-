@@ -26,8 +26,8 @@ jobs:
       - run:
           name: Enforce Corepack and Setup pnpm
           command: |
-            corepack enable
-            corepack prepare pnpm@latest --activate
+            sudo corepack enable
+            sudo corepack prepare pnpm@latest --activate
 
       # کش کردن دایرکتوری pnpm برای بالا رفتن سرعت بیلدهای بعدی
       - restore_cache:
