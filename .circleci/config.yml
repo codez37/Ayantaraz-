@@ -6,7 +6,7 @@ orbs:
 jobs:
   build-and-test:
     docker:
-      - image: cimg/node:22.16.0   # نسخه تست‌شده و موجود
+      - image: cimg/node:22.23.0   # جدیدترین نسخه Node 22
         environment:
           NODE_ENV: test
           DATABASE_URL: postgresql://root:password@localhost:5432/mydb?schema=public
@@ -25,6 +25,7 @@ jobs:
           command: |
             npm install -g corepack@latest --prefix \~/.npm-global
             export PATH="$HOME/.npm-global/bin:$PATH"
+            
             corepack enable --install-directory \~/.npm-global/bin
             
             corepack prepare $(node -p "require('./package.json').packageManager") --activate || true
@@ -36,15 +37,15 @@ jobs:
 
       - restore_cache:
           keys:
-            - pnpm-deps-v5-{{ checksum "pnpm-lock.yaml" }}
-            - pnpm-deps-v5-
+            - pnpm-deps-v6-{{ checksum "pnpm-lock.yaml" }}
+            - pnpm-deps-v6-
 
       - run:
           name: Install Dependencies
           command: pnpm install --frozen-lockfile --prefer-offline
 
       - save_cache:
-          key: pnpm-deps-v5-{{ checksum "pnpm-lock.yaml" }}
+          key: pnpm-deps-v6-{{ checksum "pnpm-lock.yaml" }}
           paths:
             - \~/.local/share/pnpm/store
 
