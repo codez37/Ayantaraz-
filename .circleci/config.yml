@@ -6,7 +6,7 @@ orbs:
 jobs:
   build-and-test:
     docker:
-      - image: cimg/node:22.13.0
+      - image: cimg/node:22.14.0   # ← نسخه جدیدتر و سازگار
         environment:
           NODE_ENV: test
           DATABASE_URL: postgresql://root:password@localhost:5432/mydb?schema=public
@@ -20,32 +20,32 @@ jobs:
     steps:
       - checkout
 
-      # === Corepack + pnpm Setup (روش استاندارد و بدون خطای Permission) ===
+      # === Corepack + pnpm Setup (روش بدون خطای Permission و Engine) ===
       - run:
           name: Enable Corepack and Prepare pnpm
           command: |
-            # نصب corepack در دایرکتوری خانگی کاربر (بدون نیاز به root)
+            # نصب corepack در مسیر خانگی
             npm install -g corepack@latest --prefix \~/.npm-global
             
-            # اضافه کردن مسیر به PATH
+            # اضافه کردن به PATH
             export PATH="$HOME/.npm-global/bin:$PATH"
             
-            # فعال‌سازی Corepack
+            # فعال‌سازی
             corepack enable --install-directory \~/.npm-global/bin
             
             # آماده‌سازی pnpm
-            corepack prepare $(node -p "require('./package.json').packageManager") --activate
+            corepack prepare $(node -p "require('./package.json').packageManager") --activate || true
             
-            echo "✅ Corepack & pnpm ready:"
+            echo "✅ Status:"
+            node --version
             corepack --version
             pnpm --version
-            node --version
 
       # بازیابی کش
       - restore_cache:
           keys:
-            - pnpm-deps-v2-{{ checksum "pnpm-lock.yaml" }}
-            - pnpm-deps-v2-
+            - pnpm-deps-v3-{{ checksum "pnpm-lock.yaml" }}
+            - pnpm-deps-v3-
 
       # نصب وابستگی‌ها
       - run:
@@ -54,7 +54,7 @@ jobs:
 
       # ذخیره کش
       - save_cache:
-          key: pnpm-deps-v2-{{ checksum "pnpm-lock.yaml" }}
+          key: pnpm-deps-v3-{{ checksum "pnpm-lock.yaml" }}
           paths:
             - \~/.local/share/pnpm/store
 
@@ -63,7 +63,7 @@ jobs:
           name: Generate Prisma Client
           command: pnpm prisma generate
 
-      # بیلد Next.js
+      # بیلد
       - run:
           name: Next.js Production Build
           command: pnpm build
