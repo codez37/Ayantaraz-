@@ -1,6 +1,11 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const ADMIN_PHONES = ['09133374162', '09134292329'];
+
+const ADMIN_PHONES = (process.env.ADMIN_PHONE || '09133374162,09134292329')
+  .split(',')
+  .map(s => s.trim())
+  .filter(s => s.length > 0);
+
 async function main() {
   console.log('Seeding admin users...');
   for (const phone of ADMIN_PHONES) {
@@ -18,7 +23,7 @@ async function main() {
         }
       } else {
         await prisma.user.create({
-          data: { phone: phone, role: 'admin', isActive: true, firstName: 'Admin', lastName: 'User', email: phone + '@ayantaraz.ir' }
+          data: { phone: phone, role: 'admin', isActive: true, firstName: 'Admin', lastName: 'User' }
         });
         console.log('Created admin: ' + phone);
       }

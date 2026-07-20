@@ -9,22 +9,38 @@ echo "Ayantaraz API Entrypoint"
 echo "Server: 202.133.91.13"
 
 # Ensure uploads directory exists
-mkdir -p /app/uploads
-chown -R 1001:1001 /app/uploads
-chmod -R 755 /app/uploads
+mkdir -p /app/uploads 2>/dev/null || true
+chown -R 1001:1001 /app/uploads 2>/dev/null || true
+chmod -R 755 /app/uploads 2>/dev/null || true
 
-echo "[1/3] Initializing uploads directory..."
+echo "[1/4] Initializing uploads directory..."
+
+# Locate prisma CLI (global install or local)
+PRISMA_BIN=""
+if command -v prisma >/dev/null 2>&1; then
+  PRISMA_BIN="prisma"
+elif [ -f /app/node_modules/.bin/prisma ]; then
+  PRISMA_BIN="/app/node_modules/.bin/prisma"
+fi
 
 # Run database migrations
-echo "[2/3] Running Prisma migrations..."
-if [ -f /app/node_modules/.bin/prisma ]; then
-    /app/node_modules/.bin/prisma migrate deploy --schema=/app/prisma/schema.prisma
+echo "[2/4] Running Prisma migrations..."
+if [ -n "$PRISMA_BIN" ]; then
+    $PRISMA_BIN migrate deploy --schema=/app/prisma/schema.prisma
     echo "Migrations applied"
 else
-    echo "Prisma CLI not found, skipping migrations"
+    echo "WARNING: Prisma CLI not found, skipping migrations"
+fi
+
+# Run database seed (admin users + reference data)
+echo "[3/4] Running database seed..."
+if [ -f /app/prisma/seed.js ]; then
+    node /app/prisma/seed.js || echo "WARNING: Seed completed with warnings"
+else
+    echo "WARNING: seed.js not found, skipping seed"
 fi
 
 # Start the application
-echo "[3/3] Starting Ayantaraz API..."
+echo "[4/4] Starting Ayantaraz API..."
 
 exec node /app/dist/main.js

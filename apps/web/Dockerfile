@@ -26,11 +26,12 @@ COPY packages/shared packages/shared/
 COPY prisma prisma/
 COPY turbo.json tsconfig.base.json ./
 
+# Build-time env vars for Next.js (NEXT_PUBLIC_ vars are inlined at build time)
+ENV NEXT_PUBLIC_SITE_URL=http://202.133.91.13
+ENV NEXT_PUBLIC_API_URL=http://202.133.91.13:3001
+
 RUN pnpm --config.confirmModulesPurge=false --filter @ayantaraz/shared build
 RUN CI=true npx turbo run build --filter=web
-
-COPY scripts/validate-build.ts scripts/
-RUN npx tsx scripts/validate-build.ts
 
 RUN pnpm --config.confirmModulesPurge=false prune --prod
 

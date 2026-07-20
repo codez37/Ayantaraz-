@@ -69,7 +69,6 @@ async function main() {
     const existing = await prisma.taxArticle.findFirst({
       where: {
         articleNumber: article.articleNumber,
-        chapterTitle: article.chapterTitle,
       },
     });
     if (!existing) {
@@ -83,6 +82,7 @@ async function main() {
           category: article.category,
           validFrom: new Date('2023-01-01'),
           validTo: null,
+          snapshotId: 'initial-seed-v1',
         },
       });
       articleCount++;
