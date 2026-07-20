@@ -57,3 +57,4 @@ prisma/migrations/dev.db*
 tmp/
 temp/
 .turbo/
+.pnpm-store/

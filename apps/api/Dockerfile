@@ -29,16 +29,22 @@ COPY turbo.json tsconfig.base.json ./
 
 RUN npx prisma generate --schema=prisma/schema.prisma
 RUN pnpm --config.confirmModulesPurge=false --filter @ayantaraz/shared build
+RUN pnpm --config.confirmModulesPurge=false --filter api build
 
 COPY scripts/validate-build.ts scripts/
 RUN npx tsx scripts/validate-build.ts
 
-RUN pnpm prune --prod
+# Bundle the Prisma seed (TypeScript) into a standalone JS file for the runner stage
+RUN npm install -g esbuild && esbuild prisma/seed.ts --bundle --platform=node --format=cjs --outfile=prisma/seed.js --external:@prisma/client
+
 
 FROM node:22.16-alpine AS runner
-RUN apk add --no-cache libc6-compat postgresql-client wget dumb-init
+RUN apk add --no-cache libc6-compat postgresql-client wget dumb-init openssl
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
+
+# Install prisma CLI for running migrations in the entrypoint
+RUN npm install -g prisma@5.22.0
 
 WORKDIR /app
 

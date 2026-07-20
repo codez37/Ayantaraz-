@@ -15,6 +15,8 @@ import { SecurityModule } from './modules/security/security.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
 
 import { CombinedAuthGuard } from './common/guards/combined-auth.guard';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 
 @Module({
@@ -48,7 +50,11 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     SecurityModule,
     ChatbotModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: CombinedAuthGuard }],
+  providers: [
+    JwtAuthGuard,
+    RolesGuard,
+    { provide: APP_GUARD, useClass: CombinedAuthGuard },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

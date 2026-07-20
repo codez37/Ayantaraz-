@@ -6,7 +6,9 @@ import {
   CSRF_HEADER_NAME,
   CSRF_COOKIE_MAX_AGE,
 } from '../../modules/auth/auth.constants';
+import { Public } from '../../common/decorators/public.decorator';
 
+@Public()
 @Controller('csrf')
 export class CsrfController {
   private readonly logger = new Logger(CsrfController.name);
