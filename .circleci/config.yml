@@ -6,7 +6,7 @@ orbs:
 jobs:
   build-and-test:
     docker:
-      - image: cimg/node:22.14.0   # ← نسخه جدیدتر و سازگار
+      - image: cimg/node:22   # ← نسخه به‌روز LTS (به‌صورت خودکار جدیدترین 22)
         environment:
           NODE_ENV: test
           DATABASE_URL: postgresql://root:password@localhost:5432/mydb?schema=public
@@ -20,50 +20,42 @@ jobs:
     steps:
       - checkout
 
-      # === Corepack + pnpm Setup (روش بدون خطای Permission و Engine) ===
+      # === Corepack + pnpm Setup ===
       - run:
           name: Enable Corepack and Prepare pnpm
           command: |
-            # نصب corepack در مسیر خانگی
             npm install -g corepack@latest --prefix \~/.npm-global
-            
-            # اضافه کردن به PATH
             export PATH="$HOME/.npm-global/bin:$PATH"
             
-            # فعال‌سازی
             corepack enable --install-directory \~/.npm-global/bin
             
             # آماده‌سازی pnpm
             corepack prepare $(node -p "require('./package.json').packageManager") --activate || true
             
-            echo "✅ Status:"
+            echo "✅ Versions:"
             node --version
             corepack --version
             pnpm --version
 
-      # بازیابی کش
+      # کش پکیج‌ها
       - restore_cache:
           keys:
-            - pnpm-deps-v3-{{ checksum "pnpm-lock.yaml" }}
-            - pnpm-deps-v3-
+            - pnpm-deps-v4-{{ checksum "pnpm-lock.yaml" }}
+            - pnpm-deps-v4-
 
-      # نصب وابستگی‌ها
       - run:
           name: Install Dependencies
           command: pnpm install --frozen-lockfile --prefer-offline
 
-      # ذخیره کش
       - save_cache:
-          key: pnpm-deps-v3-{{ checksum "pnpm-lock.yaml" }}
+          key: pnpm-deps-v4-{{ checksum "pnpm-lock.yaml" }}
           paths:
             - \~/.local/share/pnpm/store
 
-      # Prisma
       - run:
           name: Generate Prisma Client
           command: pnpm prisma generate
 
-      # بیلد
       - run:
           name: Next.js Production Build
           command: pnpm build
