@@ -27,24 +27,29 @@ export class InputSanitizationMiddleware implements NestMiddleware {
     }
   }
 
-  private sanitizeObject(obj: any): void {
+  private sanitizeObject(obj: Record<string, unknown>): void {
     if (!obj || typeof obj !== 'object') return;
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         const value = obj[key];
-        if (typeof value === 'string') obj[key] = this.sanitizeString(value);
-        else if (typeof value === 'object' && value !== null)
-          this.sanitizeObject(value);
-        else if (Array.isArray(value)) this.sanitizeArray(value);
+        if (typeof value === 'string') {
+          (obj as Record<string, unknown>)[key] = this.sanitizeString(value);
+        } else if (typeof value === 'object' && value !== null) {
+          this.sanitizeObject(value as Record<string, unknown>);
+        } else if (Array.isArray(value)) {
+          this.sanitizeArray(value);
+        }
       }
     }
   }
 
-  private sanitizeArray(arr: any[]): void {
+  private sanitizeArray(arr: unknown[]): void {
     for (let i = 0; i < arr.length; i++) {
-      if (typeof arr[i] === 'string') arr[i] = this.sanitizeString(arr[i]);
-      else if (typeof arr[i] === 'object' && arr[i] !== null)
-        this.sanitizeObject(arr[i]);
+      if (typeof arr[i] === 'string') {
+        arr[i] = this.sanitizeString(arr[i] as string);
+      } else if (typeof arr[i] === 'object' && arr[i] !== null) {
+        this.sanitizeObject(arr[i] as Record<string, unknown>);
+      }
     }
   }
 

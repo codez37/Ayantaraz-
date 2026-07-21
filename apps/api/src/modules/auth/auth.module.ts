@@ -5,13 +5,14 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { SessionService } from './session.service';
 import { JwtStrategy } from './jwt.strategy';
+import { JWT_EXPIRATION } from './auth.constants';
 
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: (process.env.JWT_EXPIRATION || '15m') as any },
+      signOptions: { expiresIn: JWT_EXPIRATION },
     }),
   ],
   controllers: [AuthController],

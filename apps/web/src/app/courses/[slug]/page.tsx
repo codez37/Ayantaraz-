@@ -72,7 +72,7 @@ export default function CourseDetailPage() {
           ],
         });
       })
-      .catch(console.error);
+      .catch(() => {});
   }, [slug]);
 
   const handlePurchase = async () => {

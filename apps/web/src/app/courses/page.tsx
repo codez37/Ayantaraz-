@@ -12,7 +12,7 @@ export default function CoursesPage() {
   useEffect(() => {
     api.get<Course[]>('/courses')
       .then(setCourses)
-      .catch(console.error);
+      .catch(() => {});
   }, []);
 
   useEffect(() => {

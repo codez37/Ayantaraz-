@@ -5,7 +5,7 @@ const API_BASE = isBrowser
   : (process.env.INTERNAL_API_URL || 'http://api:3001/api');
 
 const PUBLIC_PATHS = [
-  '/csrf/token',
+  '/csrf',
   '/auth/otp',
   '/auth/verify',
   '/auth/refresh',
