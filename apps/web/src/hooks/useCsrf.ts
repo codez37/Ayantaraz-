@@ -7,7 +7,7 @@ export const useCsrf = () => {
 
   const fetchToken = useCallback(async () => {
     try {
-      const data = await api.get<{ token: string }>('/csrf/token');
+      const data = await api.get<{ token: string }>('/csrf');
       setCsrfToken(data.token);
     } catch (err) {
       setCsrfToken('');
