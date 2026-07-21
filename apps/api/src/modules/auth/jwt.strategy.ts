@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import type { Request } from 'express';
 import {
   TOKEN_ALGORITHM,
   TOKEN_ISSUER,
@@ -13,7 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: any) => {
+        (request: Request) => {
           if (request?.cookies?.accessToken) {
             return request.cookies.accessToken;
           }
@@ -32,7 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: any) {
+  validate(payload: { sub: number; phone: string; role: string; iss?: string; aud?: string }) {
     if (!payload.sub) {
       throw new UnauthorizedException('توکن نامعتبر است');
     }

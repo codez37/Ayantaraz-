@@ -26,7 +26,7 @@ const ARABIC_PERSIAN_DIGITS: Record<string, string> = {
 
 @Injectable()
 export class PhoneNormalizationPipe implements PipeTransform {
-  transform(value: any): any {
+  transform(value: string | { phone: string }): string | { phone: string } {
     const isObject = value !== null && typeof value === 'object';
     let phone = isObject ? value.phone : value;
 

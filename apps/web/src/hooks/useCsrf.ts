@@ -10,7 +10,6 @@ export const useCsrf = () => {
       const data = await api.get<{ token: string }>('/csrf/token');
       setCsrfToken(data.token);
     } catch (err) {
-      console.error('CSRF token fetch error:', err);
       setCsrfToken('');
     } finally {
       setLoading(false);

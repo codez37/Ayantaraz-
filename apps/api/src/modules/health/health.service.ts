@@ -30,45 +30,47 @@ export class HealthService {
     version: string;
   }> {
     this.logger.debug('Running health check');
-    const checks: any = {};
+    let databaseStatus: 'up' | 'down' = 'down';
+    let databaseResponseTime = 0;
+    let cacheStatus: 'up' | 'down' = 'down';
+    let cacheResponseTime = 0;
+    let memoryStatus: 'ok' | 'warning' | 'critical' = 'ok';
+    let memoryUsed = 0;
+    let memoryTotal = 0;
+    let memoryUsagePercent = 0;
+
     try {
       const dbStart = Date.now();
       await this.prisma.$queryRaw`SELECT 1`;
-      checks.database = {
-        status: 'up',
-        responseTime: Date.now() - dbStart,
-      };
+      databaseStatus = 'up';
+      databaseResponseTime = Date.now() - dbStart;
     } catch (error) {
       this.logger.error(`Database health check failed: ${error}`);
-      checks.database = {
-        status: 'down',
-        responseTime: 0,
-      };
+      databaseStatus = 'down';
+      databaseResponseTime = 0;
     }
+
     try {
-      checks.cache = {
-        status: 'up',
-        responseTime: 0,
-      };
+      cacheStatus = 'up';
+      cacheResponseTime = 0;
     } catch (error) {
       this.logger.error(`Cache health check failed: ${error}`);
-      checks.cache = {
-        status: 'down',
-        responseTime: 0,
-      };
+      cacheStatus = 'down';
+      cacheResponseTime = 0;
     }
+
     const memoryUsage = process.memoryUsage();
-    const totalMemory = memoryUsage.heapTotal || 1;
-    const usedMemory = memoryUsage.heapUsed || 0;
-    const usagePercent = (usedMemory / totalMemory) * 100;
-    let memoryStatus: 'ok' | 'warning' | 'critical' = 'ok';
+    memoryTotal = memoryUsage.heapTotal || 1;
+    memoryUsed = memoryUsage.heapUsed || 0;
+    const usagePercent = (memoryUsed / memoryTotal) * 100;
     if (usagePercent > 90) memoryStatus = 'critical';
     else if (usagePercent > 70) memoryStatus = 'warning';
-    checks.memory = {
-      status: memoryStatus,
-      used: usedMemory,
-      total: totalMemory,
-      usagePercent: parseFloat(usagePercent.toFixed(2)),
+    memoryUsagePercent = parseFloat(usagePercent.toFixed(2));
+
+    const checks = {
+      database: { status: databaseStatus, responseTime: databaseResponseTime },
+      cache: { status: cacheStatus, responseTime: cacheResponseTime },
+      memory: { status: memoryStatus, used: memoryUsed, total: memoryTotal, usagePercent: memoryUsagePercent },
     };
     let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
     if (checks.database.status === 'down' || checks.cache.status === 'down') {

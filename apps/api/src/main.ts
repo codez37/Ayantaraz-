@@ -172,13 +172,10 @@ async function bootstrap() {
       () => void shutdown(sig as NodeJS.Signals),
     ),
   );
-  process.on('unhandledRejection', (reason: any) =>
-    logger.error(
-      'Unhandled Rejection',
-      reason?.stack || reason?.message || String(reason),
-      'Bootstrap',
-    ),
-  );
+  process.on('unhandledRejection', (reason: unknown) => {
+    const errorMessage = reason instanceof Error ? reason.stack || reason.message : String(reason);
+    logger.error('Unhandled Rejection', errorMessage, 'Bootstrap');
+  });
   process.on('uncaughtException', (err: Error) => {
     logger.error('Uncaught Exception', err.stack, 'Bootstrap');
     process.exit(1);

@@ -242,9 +242,10 @@ export class AuthService {
         audience: TOKEN_AUDIENCE_REFRESH,
         clockTolerance: REFRESH_CLOCK_TOLERANCE,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorName = err instanceof Error ? err.name : '';
       throw new HttpException(
-        err.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token',
+        errorName === 'TokenExpiredError' ? 'Token expired' : 'Invalid token',
         HttpStatus.UNAUTHORIZED,
       );
     }
@@ -324,7 +325,7 @@ export class AuthService {
     return {
       accessToken: this.jwtService.sign(payload, {
         algorithm: TOKEN_ALGORITHM,
-        expiresIn: JWT_EXPIRATION as any,
+        expiresIn: JWT_EXPIRATION,
         issuer: TOKEN_ISSUER,
         audience: TOKEN_AUDIENCE_ACCESS,
         header: { typ: 'JWT', alg: TOKEN_ALGORITHM },
@@ -332,7 +333,7 @@ export class AuthService {
       refreshToken: this.jwtService.sign(payload, {
         algorithm: TOKEN_ALGORITHM,
         secret: process.env.JWT_REFRESH_SECRET,
-        expiresIn: JWT_REFRESH_EXPIRATION as any,
+        expiresIn: JWT_REFRESH_EXPIRATION,
         issuer: TOKEN_ISSUER,
         audience: TOKEN_AUDIENCE_REFRESH,
         header: { typ: 'JWT', alg: TOKEN_ALGORITHM },

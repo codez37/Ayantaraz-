@@ -5,6 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import type { Request } from 'express';
 import { RateLimiterService } from './rate-limiter.service';
 
 export const RATE_LIMIT_TIER_KEY = 'rateLimitTier';
@@ -50,7 +51,7 @@ export class SecurityGuard implements CanActivate {
     return true;
   }
 
-  private getClientIp(request: any): string {
+  private getClientIp(request: Request): string {
     const forwarded = request.headers['x-forwarded-for'];
     if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
     return request.ip || request.connection?.remoteAddress || 'unknown';
