@@ -1,14 +1,19 @@
 const isBrowser = typeof window !== 'undefined';
 
+// Use runtime environment variables for API base URL
+// In Docker production: api service is available at 'api:3001'
+// In development: proxy to localhost:3001
+// In browser: use relative /api path (handled by nginx proxy)
 const API_BASE = isBrowser
   ? '/api'
-  : (process.env.INTERNAL_API_URL || 'http://api:3001/api');
+  : (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://api:3001/api');
 
 const PUBLIC_PATHS = [
   '/csrf',
   '/auth/otp',
   '/auth/verify',
   '/auth/refresh',
+  '/auth/logout',
   '/health',
 ];
 
@@ -23,7 +28,7 @@ class ApiClient {
     path: string,
     options: ApiRequestOptions = {},
   ): Promise<T> {
-    const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
+    const url = path.startsWith('http') ? path : `${API_BASE}${path.startsWith('/') ? '' : '/'}${path}`;
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -32,25 +37,33 @@ class ApiClient {
 
     const { redirectOnUnauthorized = true, ...fetchOptions } = options;
 
-    const response = await fetch(url, {
-      ...fetchOptions,
-      headers,
-      credentials: 'include',
-    });
+    try {
+      const response = await fetch(url, {
+        ...fetchOptions,
+        headers,
+        credentials: 'include',
+      });
 
-    if (response.status === 401 && !isPublicPath(path)) {
-      if (isBrowser && redirectOnUnauthorized) {
-        window.location.href = '/auth';
+      if (response.status === 401 && !isPublicPath(path)) {
+        if (isBrowser && redirectOnUnauthorized) {
+          window.location.href = '/auth';
+        }
+        throw new Error('Unauthorized');
       }
-      throw new Error('Unauthorized');
-    }
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Request failed' }));
-      throw new Error(Array.isArray(error.message) ? error.message[0] : error.message);
-    }
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Request failed' }));
+        throw new Error(Array.isArray(error.message) ? error.message[0] : error.message);
+      }
 
-    return response.json();
+      return response.json();
+    } catch (error) {
+      // Enhanced error handling for network errors
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید.');
+      }
+      throw error;
+    }
   }
 
   get<T>(path: string, params?: Record<string, string>, extra?: { redirectOnUnauthorized?: boolean }): Promise<T> {
