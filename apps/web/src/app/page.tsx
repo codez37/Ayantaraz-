@@ -46,7 +46,7 @@ export default function HomePage() {
                   href="/consultation"
                   className="
                     bg-[#C9A227] text-[#0B0B0C]
-                    hover:bg-[#A0781E] active:bg-[#7D5A15]
+                    hover:bg-[#A0781E] active:bg-[#FFA000]
                     px-6 py-3 text-center
                     rounded-md
                     shadow-[0_4px_14px_0_rgba(201,162,39,0.39)]

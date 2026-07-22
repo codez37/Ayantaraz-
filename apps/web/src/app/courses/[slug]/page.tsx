@@ -102,7 +102,7 @@ export default function CourseDetailPage() {
     <div className="max-w-3xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-black text-gold-gradient mb-4">{course.title}</h1>
       <p className="text-gray-400 mb-6">{course.description}</p>
-      <p className="text-2xl font-bold text-[#D4A843] mb-6">{course.price.toLocaleString()} ریال</p>
+      <p className="text-2xl font-bold text-[#C9A227] mb-6">{course.price.toLocaleString()} ریال</p>
 
       {/* Video Player */}
       {selectedVideo && (
@@ -131,41 +131,41 @@ export default function CourseDetailPage() {
               onClick={() => setSelectedVideo(video)}
               className={`w-full flex items-center gap-4 p-3 border rounded-lg mb-2 transition text-right ${
                 selectedVideo?.id === video.id
-                  ? 'border-[#D4A843] bg-[#D4A843]/10'
-                  : 'border-[#D4A843]/10 bg-[#1A1A1A] hover:bg-[#1C1C1C]'
+                  ? 'border-[#C9A227] bg-[#C9A227]/10'
+                  : 'border-[#C9A227]/10 bg-[#1A1A1A] hover:bg-[#1C1C1C]'
               }`}
             >
-              <svg className="w-5 h-5 text-[#D4A843] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-[#C9A227] shrink-0" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
               <span className="text-gray-200 flex-1 text-sm">{video.title}</span>
               {video.duration > 0 && (
                 <span className="text-gray-500 text-xs">{formatDuration(video.duration)}</span>
               )}
-              <span className="bg-[#D4A843]/20 text-[#D4A843] text-xs px-2 py-1 rounded">نمونه</span>
+              <span className="bg-[#C9A227]/20 text-[#C9A227] text-xs px-2 py-1 rounded">نمونه</span>
             </button>
           ))}
         </div>
       )}
 
       {/* Course Info Box */}
-      <div className="bg-[#1C1C1C] border border-[#D4A843]/10 rounded-xl p-6 mb-8">
+      <div className="bg-[#1C1C1C] border border-[#C9A227]/10 rounded-xl p-6 mb-8">
         <h3 className="text-lg font-bold text-white mb-3">اطلاعات دوره</h3>
         <ul className="space-y-2 text-sm text-gray-400">
           <li className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             پس از خرید، لایسنس دوره ظرف ۱ تا ۷ ساعت کاری ارسال می‌شود
           </li>
           <li className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             دسترسی به پلتفرم آموزشی با لایسنس اختصاصی
           </li>
           <li className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             پشتیبانی تلفنی و آنلاین

@@ -34,7 +34,7 @@ export default function Button({
   const variantStyles = {
     primary: `
       bg-[#C9A227] text-[#0B0B0C] 
-      hover:bg-[#A0781E] active:bg-[#7D5A15]
+      hover:bg-[#A0781E] active:bg-[#FFA000]
       shadow-[0_2px_8px_0_rgba(201,162,39,0.25)]
       hover:shadow-[0_4px_14px_0_rgba(201,162,39,0.39)]
       hover:-translate-y-px active:translate-y-0
@@ -51,7 +51,7 @@ export default function Button({
     `,
     text: `
       bg-transparent text-[#C9A227]
-      hover:text-[#A0781E] active:text-[#7D5A15]
+      hover:text-[#A0781E] active:text-[#FFA000]
       underline-offset-4 hover:underline
     `,
   };

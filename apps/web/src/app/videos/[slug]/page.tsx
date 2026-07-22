@@ -82,15 +82,15 @@ export default function VideoDetailPage() {
   }, [slug]);
 
   if (loading) return (
-    <div className="min-h-screen bg-[#111111] flex items-center justify-center">
-      <div className="w-10 h-10 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen bg-[#121212] flex items-center justify-center">
+      <div className="w-10 h-10 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   if (!video) return (
-    <div className="min-h-screen bg-[#111111] flex flex-col items-center justify-center gap-4">
+    <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center gap-4">
       <p className="text-gray-400 text-lg">ویدیو یافت نشد.</p>
-      <Link href="/videos" className="text-[#D4A843] hover:underline">بازگشت به ویدیوها</Link>
+      <Link href="/videos" className="text-[#C9A227] hover:underline">بازگشت به ویدیوها</Link>
     </div>
   );
 
@@ -98,9 +98,9 @@ export default function VideoDetailPage() {
   const thumbUrl = video.thumbnailUrl?.startsWith('http') ? video.thumbnailUrl : `${API_BASE}${video.thumbnailUrl}`;
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#111111]">
+    <div dir="rtl" className="min-h-screen bg-[#121212]">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <Link href="/videos" className="inline-flex items-center gap-2 text-gray-500 hover:text-[#D4A843] transition mb-6 text-sm">
+        <Link href="/videos" className="inline-flex items-center gap-2 text-gray-500 hover:text-[#C9A227] transition mb-6 text-sm">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
           </svg>
@@ -116,18 +116,18 @@ export default function VideoDetailPage() {
               poster={video.thumbnailUrl ? thumbUrl : undefined}
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#D4A843]/20 to-[#B8862D]/10 flex items-center justify-center">
-              <svg className="w-20 h-20 text-[#D4A843]/30" fill="currentColor" viewBox="0 0 24 24">
+            <div className="w-full h-full bg-gradient-to-br from-[#C9A227]/20 to-[#FFA000]/10 flex items-center justify-center">
+              <svg className="w-20 h-20 text-[#C9A227]/30" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </div>
           )}
         </div>
 
-        <div className="bg-[#1C1C1C] border border-[#D4A843]/10 rounded-xl p-6">
+        <div className="bg-[#1C1C1C] border border-[#C9A227]/10 rounded-xl p-6">
           <div className="flex flex-wrap items-center gap-3 mb-3">
             {video.categoryName && (
-              <span className="bg-[#D4A843]/20 text-[#F0D68A] text-xs px-2.5 py-1 rounded-full">
+              <span className="bg-[#C9A227]/20 text-[#FFB71A] text-xs px-2.5 py-1 rounded-full">
                 {video.categoryName}
               </span>
             )}

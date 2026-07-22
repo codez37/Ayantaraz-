@@ -26,16 +26,16 @@ export default function AdminUsersPage() {
     } catch {}
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-black text-white">مدیریت کاربران</h1>
-      <div className="bg-[#0A0A0A] border border-[#D4A843]/10 rounded-xl overflow-hidden">
+      <div className="bg-[#0B0B0C] border border-[#C9A227]/10 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#D4A843]/10 text-right">
+              <tr className="border-b border-[#C9A227]/10 text-right">
                 <th className="p-3 text-gray-400 font-bold">تلفن</th>
                 <th className="p-3 text-gray-400 font-bold">نام</th>
                 <th className="p-3 text-gray-400 font-bold">نقش</th>
@@ -46,7 +46,7 @@ export default function AdminUsersPage() {
             </thead>
             <tbody>
               {users.map((u: User) => (
-                <tr key={u.id} className="border-b border-[#D4A843]/5 hover:bg-[#D4A843]/5">
+                <tr key={u.id} className="border-b border-[#C9A227]/5 hover:bg-[#C9A227]/5">
                   <td className="p-3 text-gray-300" dir="ltr">{u.phone}</td>
                   <td className="p-3 text-gray-300">{u.firstName || u.lastName ? `${u.firstName} ${u.lastName}` : '-'}</td>
                   <td className="p-3">

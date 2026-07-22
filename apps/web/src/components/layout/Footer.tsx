@@ -13,10 +13,10 @@ export default function Footer() {
   const brandSection = {
     logo: (
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-8 h-8 bg-gradient-to-br from-[#C9A227] to-[#7D5A15] rounded-lg flex items-center justify-center text-[#0B0B0C] font-black text-sm">
+        <div className="w-8 h-8 bg-gradient-to-br from-[#C9A227] to-[#FFA000] rounded-lg flex items-center justify-center text-[#0B0B0C] font-black text-sm">
           آ
         </div>
-        <span className="text-lg font-black bg-gradient-to-l from-[#C9A227] via-[#A0781E] to-[#7D5A15] bg-clip-text text-transparent">
+        <span className="text-lg font-black bg-gradient-to-l from-[#C9A227] via-[#A0781E] to-[#FFA000] bg-clip-text text-transparent">
           آیان تراز
         </span>
       </div>

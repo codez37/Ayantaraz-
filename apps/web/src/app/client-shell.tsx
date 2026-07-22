@@ -10,7 +10,7 @@ export default function ClientShell({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
       <Header />
-      <main className="min-h-screen bg-[#0A0A0A] text-white">{children}</main>
+      <main className="min-h-screen bg-[#0B0B0C] text-white">{children}</main>
       <Footer />
       <ChatbotWidget />
     </AuthProvider>

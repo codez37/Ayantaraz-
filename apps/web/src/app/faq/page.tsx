@@ -40,10 +40,10 @@ export default function FAQPage() {
       <h1 className="text-3xl font-black text-gold-gradient mb-8">سوالات متداول</h1>
       <div className="space-y-3">
         {faqs.map((faq, i) => (
-          <details key={i} className="border border-[#D4A843]/10 rounded-xl overflow-hidden bg-[#1A1A1A]">
+          <details key={i} className="border border-[#C9A227]/10 rounded-xl overflow-hidden bg-[#1A1A1A]">
             <summary className="w-full text-start p-4 bg-[#1C1C1C] hover:bg-[#1A1A1A] flex justify-between items-center font-bold text-white cursor-pointer">
               <span>{faq.q}</span>
-              <span className="transition-transform text-[#D4A843] details-open:rotate-180">
+              <span className="transition-transform text-[#C9A227] details-open:rotate-180">
                 ▼
               </span>
             </summary>

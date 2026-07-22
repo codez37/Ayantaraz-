@@ -22,7 +22,7 @@ export default function MyCoursesPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="flex items-center gap-4 mb-8">
-        <Link href="/dashboard" className="text-gray-500 hover:text-[#D4A843]">← داشبورد</Link>
+        <Link href="/dashboard" className="text-gray-500 hover:text-[#C9A227]">← داشبورد</Link>
         <h1 className="text-2xl font-black text-gold-gradient">دوره‌های من</h1>
       </div>
 
@@ -31,9 +31,9 @@ export default function MyCoursesPage() {
           {[1,2].map(i => <div key={i} className="h-32 bg-[#1C1C1C] rounded-xl animate-pulse" />)}
         </div>
       ) : courses.length === 0 ? (
-        <div className="text-center py-16 text-gray-500 bg-[#1C1C1C] rounded-xl border border-[#D4A843]/10">
+        <div className="text-center py-16 text-gray-500 bg-[#1C1C1C] rounded-xl border border-[#C9A227]/10">
           <p>در هیچ دوره‌ای ثبت‌نام نکرده‌اید.</p>
-          <Link href="/courses" className="text-[#D4A843] hover:text-[#F0D68A] mt-2 inline-block">مشاهده دوره‌ها</Link>
+          <Link href="/courses" className="text-[#C9A227] hover:text-[#FFB71A] mt-2 inline-block">مشاهده دوره‌ها</Link>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-6">

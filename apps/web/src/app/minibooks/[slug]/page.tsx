@@ -59,7 +59,7 @@ export default function MinibookDetailPage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" /></div>;
 
   if (!minibook) {
     return (
@@ -73,7 +73,7 @@ export default function MinibookDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      <Link href="/minibooks" className="text-[#D4A843] hover:text-[#F0D68A] text-sm mb-6 inline-block">
+      <Link href="/minibooks" className="text-[#C9A227] hover:text-[#FFB71A] text-sm mb-6 inline-block">
         ← بازگشت به مینی‌بوک‌ها
       </Link>
 

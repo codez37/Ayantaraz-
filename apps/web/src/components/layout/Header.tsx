@@ -166,7 +166,7 @@ export default function Header() {
                   href="/auth"
                   className="
                     bg-[#C9A227] text-[#0B0B0C]
-                    hover:bg-[#A0781E] active:bg-[#7D5A15]
+                    hover:bg-[#A0781E] active:bg-[#FFA000]
                     px-5 py-2.5 text-sm font-bold
                     rounded-md
                     shadow-[0_2px_8px_0_rgba(201,162,39,0.25)]

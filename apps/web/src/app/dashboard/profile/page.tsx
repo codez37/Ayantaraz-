@@ -29,14 +29,14 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
       <div className="flex items-center gap-4 mb-8">
-        <Link href="/dashboard" className="text-gray-500 hover:text-[#D4A843]">← داشبورد</Link>
+        <Link href="/dashboard" className="text-gray-500 hover:text-[#C9A227]">← داشبورد</Link>
         <h1 className="text-2xl font-black text-gold-gradient">پروفایل</h1>
       </div>
 
-      <div className="bg-[#1C1C1C] p-6 rounded-xl border border-[#D4A843]/10">
+      <div className="bg-[#1C1C1C] p-6 rounded-xl border border-[#C9A227]/10">
         <div className="mb-4">
           <label className="block text-sm font-bold text-gray-200 mb-1">شماره تلفن</label>
-          <input value={user?.phone || ''} disabled className="input-dark !bg-[#111111] text-gray-500" />
+          <input value={user?.phone || ''} disabled className="input-dark !bg-[#121212] text-gray-500" />
         </div>
         <div className="grid md:grid-cols-2 gap-4 mb-4">
           <div>
