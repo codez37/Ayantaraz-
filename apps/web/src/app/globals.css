@@ -1,29 +1,35 @@
 /* ============================================
-   GLOBAL STYLES - MATTE BLACK & GOLD THEME
-   Ayantaraz Project - Production Ready
+   GLOBAL STYLES - DARK GOLD LUXURY THEME
+   Ayan Taraz - Premium Tax & Accounting Advisory
    Mobile-First, Responsive, RTL
    
-   Brand Colors:
-   - Primary Black: #0B0B0C
-   - Primary Gold: #C9A227
-   - Accent Blue: #2563EB
-   - Accent Purple: #8B5CF6
+   Brand Identity:
+   - Primary Background: #0B0C0E (Deep Space Black)
+   - Secondary Background: #121418 (Dark Charcoal)
+   - Surface Glass: rgba(255, 255, 255, 0.03) (Frosted Glass)
+   - Border Gold: rgba(212, 175, 55, 0.2) (Subtle Gold Glow)
+   - Accent Gold Gradient: linear-gradient(135deg, #D4AF37 0%, #C5A059 100%)
+   - Text Primary: #F5F5F7 (Soft White)
+   - Text Secondary: #9E9E9E (Muted Gray)
+   
+   Typography:
+   - Font Family: IRANSansX, Anjoman, Vazirmatn, sans-serif
+   - Fluid Clamp System for responsive typography
    ============================================ */
 
 :root {
   /* ==========================================
-     COLOR TOKENS - Brand Palette
+     COLOR TOKENS - DARK GOLD LUXURY PALETTE
      ========================================== */
   
-  /* Primary Colors */
-  --color-black-950: #030303;
-  --color-black-900: #0B0B0C;  /* Primary Black */
-  --color-black-800: #121212;
-  --color-black-700: #1A1A1A;
-  --color-black-600: #252525;
-  --color-black-500: #333333;
+  /* Background Colors */
+  --color-background-primary: #0B0C0E;
+  --color-background-secondary: #121418;
+  --color-background-tertiary: #1A1B20;
+  --color-surface: rgba(255, 255, 255, 0.03);
+  --color-surface-elevated: rgba(255, 255, 255, 0.05);
   
-  /* Gold Colors */
+  /* Gold Color Palette */
   --color-gold-50: #FFF9E6;
   --color-gold-100: #FFE8B3;
   --color-gold-200: #FFD780;
@@ -31,13 +37,31 @@
   --color-gold-400: #FFB71A;
   --color-gold-500: #FFA000;
   --color-gold-600: #E68A00;
-  --color-gold-700: #C9A227;  /* Primary Gold */
-  --color-gold-800: #A0781E;
-  --color-gold-900: #7D5A15;
+  --color-gold-700: #D4AF37;  /* Primary Gold */
+  --color-gold-800: #C5A059;  /* Secondary Gold */
+  --color-gold-900: #A0781E;
+  --color-gold-950: #7D5A15;
   
-  /* Accent Colors */
-  --color-blue-500: #2563EB;
-  --color-purple-500: #8B5CF6;
+  /* Gold Gradient */
+  --gradient-gold-primary: linear-gradient(135deg, #D4AF37 0%, #C5A059 100%);
+  --gradient-gold-light: linear-gradient(135deg, #FFB71A 0%, #FFA000 100%);
+  --gradient-gold-dark: linear-gradient(135deg, #C5A059 0%, #A0781E 100%);
+  
+  /* Text Colors */
+  --color-text-primary: #F5F5F7;
+  --color-text-secondary: #9E9E9E;
+  --color-text-tertiary: #6B7280;
+  --color-text-inverse: #0B0C0E;
+  
+  /* Border Colors */
+  --color-border-gold: rgba(212, 175, 55, 0.2);
+  --color-border-gold-hover: rgba(212, 175, 55, 0.35);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+  
+  /* Glass Effect */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-blur: 18px;
   
   /* Semantic Colors */
   --color-success: #10B981;
@@ -47,39 +71,29 @@
   
   /* Neutral Colors */
   --color-white: #FFFFFF;
-  --color-gray-50: #F9FAFB;
-  --color-gray-100: #F3F4F6;
-  --color-gray-200: #E5E7EB;
-  --color-gray-300: #D1D5DB;
-  --color-gray-400: #9CA3AF;
-  --color-gray-500: #6B7280;
-  --color-gray-600: #4B5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1F2937;
-  --color-gray-900: #111827;
+  --color-black: #000000;
   
   /* Legacy Compatibility */
-  --color-background: var(--color-black-900);
-  --color-surface: var(--color-black-800);
-  --color-on-background: var(--color-white);
-  --color-on-surface: var(--color-gray-400);
+  --color-background: var(--color-background-primary);
+  --color-on-background: var(--color-text-primary);
   --color-primary: var(--color-gold-700);
   
   /* ==========================================
      TYPOGRAPHY TOKENS
      ========================================== */
-  --font-primary: "Vazirmatn", "Roboto", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-family: "IRANSansX", "Anjoman", "Vazirmatn", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
   
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
-  --font-size-4xl: 2.25rem;
-  --font-size-5xl: 3rem;
+  /* Fluid Typography Scale - Mobile First */
+  --font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --font-size-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
+  --font-size-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --font-size-lg: clamp(1.125rem, 1rem + 0.625vw, 1.25rem);
+  --font-size-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 1.25rem + 1.25vw, 2rem);
+  --font-size-3xl: clamp(1.875rem, 1.5rem + 1.875vw, 2.5rem);
+  --font-size-4xl: clamp(2.25rem, 1.75rem + 2.5vw, 3rem);
+  --font-size-5xl: clamp(3rem, 2rem + 5vw, 4rem);
   
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -101,6 +115,7 @@
   --spacing-xl: 2rem;
   --spacing-2xl: 3rem;
   --spacing-3xl: 4rem;
+  --spacing-4xl: 6rem;
   
   /* ==========================================
      BORDER RADIUS TOKENS
@@ -114,9 +129,6 @@
   --border-radius-3xl: 2rem;
   --border-radius-full: 9999px;
   
-  /* Legacy Compatibility */
-  --border-radius: var(--border-radius-md);
-  
   /* ==========================================
      SHADOW TOKENS
      ========================================== */
@@ -126,13 +138,11 @@
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   
-  /* Gold Shadows */
-  --shadow-gold-sm: 0 2px 8px 0 rgba(201, 162, 39, 0.25);
-  --shadow-gold-md: 0 4px 14px 0 rgba(201, 162, 39, 0.39);
-  --shadow-gold-lg: 0 8px 24px 0 rgba(201, 162, 39, 0.35);
-  
-  /* Legacy Compatibility */
-  --shadow-gold: var(--shadow-gold-md);
+  /* Gold Shadows - Luxury Glow */
+  --shadow-gold-sm: 0 2px 8px 0 rgba(212, 175, 55, 0.25);
+  --shadow-gold-md: 0 4px 14px 0 rgba(212, 175, 55, 0.35);
+  --shadow-gold-lg: 0 8px 24px 0 rgba(212, 175, 55, 0.3);
+  --shadow-gold-xl: 0 12px 32px 0 rgba(212, 175, 55, 0.25);
   
   /* ==========================================
      TRANSITION TOKENS
@@ -140,7 +150,8 @@
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-gold: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-gold: 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
   
   /* ==========================================
      Z-INDEX TOKENS
@@ -169,59 +180,74 @@
    BASE STYLES
    ============================================ */
 
-* { 
-  box-sizing: border-box; 
-  margin: 0; 
-  padding: 0; 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-html { 
-  font-size: 16px; 
-  direction: rtl; 
-  font-family: var(--font-primary);
+html {
+  font-size: 16px;
+  direction: rtl;
+  font-family: var(--font-family);
   scroll-behavior: smooth;
-  scrollbar-color: rgba(201, 162, 39, 0.55) rgba(11, 11, 12, 0.85);
+  scrollbar-color: rgba(212, 175, 55, 0.55) rgba(11, 12, 14, 0.85);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   min-height: 100vh;
-  background: var(--color-background);
-  color: var(--color-on-background);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
   direction: rtl;
-  font-family: var(--font-primary);
+  font-family: var(--font-family);
   line-height: var(--line-height-normal);
+  font-size: var(--font-size-base);
 }
 
 /* ============================================
    TYPOGRAPHY
    ============================================ */
 
-a { 
-  color: var(--color-primary); 
-  text-decoration: none; 
+a {
+  color: var(--color-gold-400);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-gold-300);
 }
 
 button {
   cursor: pointer;
   border: none;
   background: transparent;
-  font-family: var(--font-primary);
+  font-family: var(--font-family);
   font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
 }
 
 input, textarea, select {
   font: inherit;
   direction: rtl;
-  background: var(--color-surface);
-  border: 1px solid var(--color-gray-700);
-  color: var(--color-on-background);
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
   border-radius: var(--border-radius-md);
   padding: var(--spacing-sm) var(--spacing-md);
+  transition: all var(--transition-fast);
 }
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--color-gold-700);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--color-text-tertiary);
 }
 
 /* ============================================
@@ -265,7 +291,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* ============================================
-   BUTTON STYLES
+   BUTTON STYLES - LUXURY GOLD
    ============================================ */
 
 /* Primary Gold Button */
@@ -277,26 +303,41 @@ input:focus, textarea:focus, select:focus {
   padding: var(--spacing-sm) var(--spacing-xl);
   min-height: 44px;
   min-width: 44px;
-  background: var(--color-gold-700);
-  color: var(--color-black-900);
+  background: var(--gradient-gold-primary);
+  color: var(--color-text-inverse);
   border: none;
   border-radius: var(--border-radius-md);
-  font-family: var(--font-primary);
+  font-family: var(--font-family);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: all var(--transition-gold);
   box-shadow: var(--shadow-gold-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gold::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity var(--transition-gold);
 }
 
 .btn-gold:hover {
-  background: var(--color-gold-600);
-  transform: translateY(-1px);
+  background: var(--gradient-gold-light);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-gold-md);
 }
 
+.btn-gold:hover::before {
+  opacity: 1;
+}
+
 .btn-gold:active {
-  background: var(--color-gold-800);
+  background: var(--gradient-gold-dark);
   transform: translateY(0);
 }
 
@@ -316,50 +357,152 @@ input:focus, textarea:focus, select:focus {
   min-height: 44px;
   min-width: 44px;
   background: transparent;
-  color: var(--color-gold-700);
-  border: 1px solid var(--color-gold-700);
+  color: var(--color-gold-400);
+  border: 1px solid var(--color-border-gold);
   border-radius: var(--border-radius-md);
-  font-family: var(--font-primary);
+  font-family: var(--font-family);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   cursor: pointer;
   transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-outline-gold::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-gold-primary);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
 }
 
 .btn-outline-gold:hover {
-  background: rgba(201, 162, 39, 0.1);
+  background: rgba(212, 175, 55, 0.1);
   border-color: var(--color-gold-600);
+  color: var(--color-gold-300);
+}
+
+.btn-outline-gold:hover::before {
+  opacity: 0.1;
 }
 
 .btn-outline-gold:active {
-  background: rgba(201, 162, 39, 0.2);
+  background: rgba(212, 175, 55, 0.2);
+}
+
+/* Ghost Gold Button */
+.btn-ghost-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-height: 44px;
+  min-width: 44px;
+  background: transparent;
+  color: var(--color-gold-400);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-ghost-gold:hover {
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--color-gold-300);
+}
+
+.btn-ghost-gold:active {
+  background: rgba(212, 175, 55, 0.2);
 }
 
 /* Gold Gradient Text */
 .text-gold-gradient {
-  background: linear-gradient(135deg, var(--color-gold-400) 0%, var(--color-gold-700) 50%, var(--color-gold-900) 100%);
+  background: var(--gradient-gold-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 /* ============================================
-   CARD STYLES
+   CARD STYLES - GLASSMORPHIC
    ============================================ */
 
+/* Glass Card - Primary */
 .glass-card {
-  background: linear-gradient(145deg, rgba(28, 28, 28, 0.84), rgba(11, 11, 12, 0.72));
-  border: 1px solid rgba(201, 162, 39, 0.16);
-  border-radius: var(--border-radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--border-radius-xl);
   padding: var(--spacing-lg);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(var(--glass-blur));
   transition: all var(--transition-normal);
 }
 
 .glass-card:hover {
-  border-color: rgba(201, 162, 39, 0.3);
+  border-color: var(--color-border-gold-hover);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Glass Card - Gold Variant */
+.glass-gold {
+  background: linear-gradient(145deg, rgba(28, 28, 28, 0.84), rgba(11, 12, 14, 0.72));
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-lg);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(var(--glass-blur));
+  transition: all var(--transition-normal);
+}
+
+.glass-gold:hover {
+  border-color: var(--color-border-gold-hover);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Card Dark - Solid Background */
+.card-dark {
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-normal);
+}
+
+.card-dark:hover {
+  border-color: var(--color-border-gold);
+  box-shadow: var(--shadow-gold-sm);
+}
+
+/* ============================================
+   INPUT STYLES
+   ============================================ */
+
+.input-dark {
+  width: 100%;
+  padding: var(--spacing-md);
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+}
+
+.input-dark:focus {
+  outline: none;
+  border-color: var(--color-gold-700);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.input-dark::placeholder {
+  color: var(--color-text-tertiary);
 }
 
 /* ============================================
@@ -373,33 +516,44 @@ body::before {
   pointer-events: none;
   z-index: -1;
   background:
-    radial-gradient(circle at 80% 10%, rgba(201, 162, 39, 0.11), transparent 28rem),
+    radial-gradient(circle at 80% 10%, rgba(212, 175, 55, 0.11), transparent 28rem),
     radial-gradient(circle at 10% 70%, rgba(184, 134, 45, 0.10), transparent 24rem),
-    linear-gradient(180deg, var(--color-black-900) 0%, var(--color-black-800) 48%, var(--color-black-950) 100%);
+    linear-gradient(180deg, var(--color-background-primary) 0%, var(--color-background-secondary) 48%, var(--color-background-primary) 100%);
 }
 
 ::selection {
-  background: rgba(201, 162, 39, 0.35);
+  background: rgba(212, 175, 55, 0.35);
   color: #fff7d1;
 }
 
-::-webkit-scrollbar { 
-  width: 10px; 
-  height: 10px; 
+/* Custom Scrollbar - Dark Luxury */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-::-webkit-scrollbar-track { 
-  background: rgba(11, 11, 12, 0.9); 
+::-webkit-scrollbar-track {
+  background: rgba(11, 12, 14, 0.9);
 }
 
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, rgba(240, 214, 138, 0.75), rgba(184, 134, 45, 0.85));
-  border: 2px solid rgba(11, 11, 12, 0.95);
+  border: 2px solid rgba(11, 12, 14, 0.95);
   border-radius: 999px;
 }
 
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(240, 214, 138, 0.9), rgba(184, 134, 45, 0.95));
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-color: rgba(212, 175, 55, 0.55) rgba(11, 12, 14, 0.85);
+  scrollbar-width: thin;
+}
+
 /* ============================================
-   ANIMATIONS
+   ANIMATIONS - FLUID & LUXURY
    ============================================ */
 
 @keyframes aurora-pan {
@@ -417,12 +571,78 @@ body::before {
   100% { background-position: 200% center; }
 }
 
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Animation Classes */
 .luxury-aurora { animation: aurora-pan 10s ease-in-out infinite; }
 .reveal-up { animation: reveal-up 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .gold-sheen {
   background-size: 200% auto;
   animation: gold-sheen 5s linear infinite;
 }
+.animate-fade-in-up { animation: fade-in-up 400ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+.animate-fade-in { animation: fade-in 300ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+.animate-slide-in-right { animation: slide-in-right 400ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+.animate-scale-in { animation: scale-in 300ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+.animate-pulse-gold { animation: pulse-gold 2s ease-in-out infinite; }
+
+/* Staggered animations */
+.stagger-1 { animation-delay: 100ms; }
+.stagger-2 { animation-delay: 200ms; }
+.stagger-3 { animation-delay: 300ms; }
+.stagger-4 { animation-delay: 400ms; }
+.stagger-5 { animation-delay: 500ms; }
+
+/* Bounce delay utilities for loading dots */
+.bounce-delay-0 { animation-delay: 0ms; }
+.bounce-delay-150 { animation-delay: 150ms; }
+.bounce-delay-300 { animation-delay: 300ms; }
 
 /* ============================================
    SLIDER DOTS
@@ -432,7 +652,7 @@ body::before {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgba(201, 162, 39, 0.3);
+  background: rgba(212, 175, 55, 0.3);
   border: none;
   cursor: pointer;
   transition: all var(--transition-normal);
@@ -441,7 +661,7 @@ body::before {
 }
 
 .slider-dot:hover {
-  background: rgba(201, 162, 39, 0.5);
+  background: rgba(212, 175, 55, 0.5);
 }
 
 .slider-dot.active {
@@ -461,7 +681,7 @@ body::before {
   html { 
     scroll-behavior: auto; 
   }
-  .luxury-aurora, .reveal-up, .gold-sheen { 
+  .luxury-aurora, .reveal-up, .gold-sheen, .animate-fade-in-up, .animate-fade-in, .animate-slide-in-right, .animate-scale-in, .animate-pulse-gold {
     animation: none !important; 
   }
 }
@@ -498,7 +718,7 @@ html, body {
   top: -40px;
   left: 0;
   background: var(--color-gold-700);
-  color: var(--color-black-900);
+  color: var(--color-background-primary);
   padding: var(--spacing-sm) var(--spacing-md);
   z-index: var(--z-index-tooltip);
   transition: top var(--transition-fast);
@@ -575,6 +795,25 @@ body {
   scrollbar-width: thin;
 }
 
+/* Custom scrollbar for containers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(11, 12, 14, 0.9);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.5);
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.7);
+}
+
 /* Utility for hiding on mobile */
 @media (max-width: 767.98px) {
   .hidden-mobile {
@@ -587,4 +826,53 @@ body {
   .hidden-desktop {
     display: none !important;
   }
+}
+
+/* Utility for RTL direction */
+.rtl {
+  direction: rtl;
+}
+
+.ltr {
+  direction: ltr;
+}
+
+/* Gradient backgrounds */
+.bg-gradient-gold {
+  background: var(--gradient-gold-primary);
+}
+
+.bg-gradient-gold-light {
+  background: var(--gradient-gold-light);
+}
+
+.bg-gradient-gold-dark {
+  background: var(--gradient-gold-dark);
+}
+
+/* Text gradients */
+.text-gradient-gold {
+  background: var(--gradient-gold-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Border gradients */
+.border-gradient-gold {
+  border: 1px solid transparent;
+  background: var(--gradient-gold-primary) padding-box, transparent border-box;
+  border-radius: var(--border-radius-lg);
+}
+
+/* Shimmer effect for loading states */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(212, 175, 55, 0.1) 0%,
+    rgba(212, 175, 55, 0.2) 50%,
+    rgba(212, 175, 55, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
