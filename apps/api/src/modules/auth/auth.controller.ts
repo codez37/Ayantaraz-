@@ -13,6 +13,7 @@ import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { PhoneNormalizationPipe } from '../security/phone-normalization.pipe';
+import { RateLimitTier } from '../security/decorators';
 import { RequestOtpDto } from './dto/request-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import type { Request, Response } from 'express';
@@ -26,6 +27,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
+  @RateLimitTier('auth')
   @Post('otp')
   @HttpCode(200)
   @UsePipes(
@@ -37,6 +39,7 @@ export class AuthController {
   }
 
   @Public()
+  @RateLimitTier('auth')
   @Post('verify')
   @HttpCode(200)
   @UsePipes(
@@ -54,6 +57,7 @@ export class AuthController {
   }
 
   @Public()
+  @RateLimitTier('auth')
   @Post('refresh')
   @HttpCode(200)
   async refresh(
@@ -65,7 +69,7 @@ export class AuthController {
       throw new Error('ریفرش توکن یافت نشد');
     }
     const { tokens } = await this.authService.refreshTokens(refreshToken, res);
-    return { message: 'توکن‌ها به‌روزرسانی شدند' };
+    return { message: 'توکن‌ها به‌روزرسانی شدند', accessToken: tokens.accessToken };
   }
 
   @Post('logout')

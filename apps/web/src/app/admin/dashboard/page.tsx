@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
+import { useState } from 'react';
+import { useDashboardStats } from '@/lib/hooks/useApi';
+import { DashboardStatsSkeleton, PageLoadingSkeleton } from '@/components/ui/Skeleton';
 
 interface DashboardStats {
   totalUsers?: number;
@@ -22,48 +23,40 @@ interface AuditLog {
   createdAt: string;
 }
 
+// Format Persian numbers
+function formatPersianNumber(num: number | undefined): string {
+  if (num === undefined) return '۰';
+  return num.toLocaleString('fa-IR');
+}
+
+// Format date for Persian locale
+function formatPersianDate(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fa-IR');
+  } catch {
+    return dateString;
+  }
+}
+
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState<DashboardStats>({});
-  const [recentAudits, setRecentAudits] = useState<AuditLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, isLoading, error, isFetching } = useDashboardStats();
+  const [showAudits, setShowAudits] = useState(true);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Fetch dashboard stats from API
-        const dashboardData = await api.get<{ stats: DashboardStats; recentAudits: AuditLog[] }>('/admin/dashboard');
-        setStats(dashboardData.stats || {});
-        setRecentAudits(dashboardData.recentAudits || []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'خطا در دریافت اطلاعات');
-        console.error('Failed to fetch dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#C9A227] border-t-transparent" />
-      </div>
-    );
+  if (isLoading && !isFetching) {
+    return <DashboardStatsSkeleton />;
   }
 
   if (error) {
     return (
       <div className="bg-[#C9A227]/10 border border-[#C9A227]/30 text-[#C9A227] p-4 rounded-lg">
-        {error}
+        خطا در دریافت اطلاعات: {error.message}
       </div>
     );
   }
+
+  const stats = data?.stats || {};
+  const recentAudits = data?.recentAudits || [];
 
   const statCards = [
     { title: 'کاربران', value: stats.totalUsers ?? 0, color: '#C9A227' },
@@ -83,42 +76,64 @@ export default function AdminDashboardPage() {
         <p className="text-sm text-gray-500">نمای کلی سیستم</p>
       </div>
       
+      {isFetching && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-[#121212] border border-[#C9A227]/20 rounded-lg px-4 py-2">
+            <span className="text-sm text-[#C9A227]">در حال به‌روزرسانی...</span>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
         {statCards.map((stat, index) => (
-          <div key={index} className="bg-[#121212] p-4 rounded-xl border border-[#1A1A1A] hover:border-[#C9A227]/20 transition-colors">
+          <div key={index} className="bg-[#121212] p-4 rounded-xl border border-[#1A1A1A] hover:border-[#C9A227]/20 transition-colors group">
             <div className="text-xs text-gray-500 mb-1">{stat.title}</div>
             <div className="text-xl font-bold" style={{ color: stat.color }}>
-              {stat.value.toLocaleString('fa-IR')}
+              {formatPersianNumber(stat.value)}
             </div>
           </div>
         ))}
       </div>
 
-      {recentAudits.length > 0 && (
+      {showAudits && recentAudits.length > 0 && (
         <div className="bg-[#121212] rounded-xl border border-[#1A1A1A] p-6">
-          <h2 className="text-lg font-bold text-white mb-4">آخرین فعالیت‌ها</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-white">آخرین فعالیت‌ها</h2>
+            <button
+              onClick={() => setShowAudits(false)}
+              className="text-xs text-gray-400 hover:text-[#C9A227] transition-colors"
+            >
+              مخفی کردن
+            </button>
+          </div>
           <div className="space-y-3">
             {recentAudits.slice(0, 5).map((audit) => (
-              <div key={audit.id} className="flex items-center gap-3 p-3 bg-[#0B0B0C]/50 rounded-lg border border-[#C9A227]/10">
-                <div className="w-8 h-8 rounded-full bg-[#C9A227]/10 flex items-center justify-center text-[#C9A227] text-sm">
-                  {audit.action.slice(0, 1)}
+              <div key={audit.id} className="flex items-center gap-3 p-3 bg-[#0B0B0C]/50 rounded-lg border border-[#C9A227]/10 hover:bg-[#0B0B0C]/80 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-[#C9A227]/10 flex items-center justify-center text-[#C9A227] text-sm font-bold">
+                  {audit.action.slice(0, 1).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-white truncate">
                     {audit.action}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {audit.entityType} • {new Date(audit.createdAt).toLocaleDateString('fa-IR')}
+                    {audit.entityType} • {formatPersianDate(audit.createdAt)}
                   </div>
                 </div>
                 {audit.actor && (
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-gray-400 whitespace-nowrap">
                     {audit.actor.firstName || audit.actor.phone?.slice(-4)}
                   </div>
                 )}
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {showAudits && recentAudits.length === 0 && (
+        <div className="bg-[#121212] rounded-xl border border-[#1A1A1A] p-6 text-center text-gray-500">
+          هیچ فعالیت اخیری یافت نشد
         </div>
       )}
     </div>
