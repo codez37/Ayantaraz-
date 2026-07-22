@@ -47,9 +47,9 @@ export default function HeroSlider() {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   }, []);
 
-  // Auto-play every 7 seconds
+  // Auto-play every 10 seconds
   useEffect(() => {
-    const timer = setInterval(nextSlide, 7000);
+    const timer = setInterval(nextSlide, 10000);
     return () => clearInterval(timer);
   }, [nextSlide]);
 
