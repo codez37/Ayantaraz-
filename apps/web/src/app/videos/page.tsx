@@ -44,7 +44,7 @@ export default function VideosPage() {
   const filtered = videos.filter(v => v.title.toLowerCase().includes(search.trim().toLowerCase()));
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#111111]">
+    <div dir="rtl" className="min-h-screen bg-[#121212]">
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold text-gold-gradient mb-3">ویدیوهای آموزشی</h1>
@@ -64,13 +64,13 @@ export default function VideosPage() {
             placeholder="جستجوی عنوان ویدیو..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="input-dark w-full pr-12 pl-4 py-3 rounded-xl bg-[#1A1A1A] border border-[#D4A843]/10 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-[#D4A843]/40 transition"
+            className="input-dark w-full pr-12 pl-4 py-3 rounded-xl bg-[#1A1A1A] border border-[#C9A227]/10 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-[#C9A227]/40 transition"
           />
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
@@ -82,13 +82,13 @@ export default function VideosPage() {
               <Link
                 key={video.id}
                 href={`/videos/${video.slug}`}
-                className="bg-[#1C1C1C] border border-[#D4A843]/10 rounded-xl overflow-hidden hover:border-[#D4A843]/30 transition group block"
+                className="bg-[#1C1C1C] border border-[#C9A227]/10 rounded-xl overflow-hidden hover:border-[#C9A227]/30 transition group block"
               >
-                <div className="relative aspect-video bg-gradient-to-br from-[#D4A843]/30 to-[#B8862D]/10 flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-300 overflow-hidden">
+                <div className="relative aspect-video bg-gradient-to-br from-[#C9A227]/30 to-[#FFA000]/10 flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-300 overflow-hidden">
                   {video.thumbnailUrl ? (
                     <img src={video.thumbnailUrl.startsWith('http') ? video.thumbnailUrl : `${API_BASE}${video.thumbnailUrl}`} alt={video.title} className="w-full h-full object-cover absolute inset-0" />
                   ) : null}
-                  <svg className="w-16 h-16 text-[#D4A843]/50 relative z-10" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-16 h-16 text-[#C9A227]/50 relative z-10" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z" />
                   </svg>
                   {video.duration > 0 && (
@@ -97,13 +97,13 @@ export default function VideosPage() {
                     </span>
                   )}
                   {video.categoryName && (
-                    <span className="absolute top-3 right-3 bg-[#D4A843]/20 text-[#F0D68A] text-xs px-2.5 py-1 rounded-full z-10">
+                    <span className="absolute top-3 right-3 bg-[#C9A227]/20 text-[#FFB71A] text-xs px-2.5 py-1 rounded-full z-10">
                       {video.categoryName}
                     </span>
                   )}
                 </div>
                 <div className="p-4">
-                  <h2 className="font-bold text-gray-200 mb-1.5 line-clamp-2 hover:text-[#D4A843] transition leading-snug">
+                  <h2 className="font-bold text-gray-200 mb-1.5 line-clamp-2 hover:text-[#C9A227] transition leading-snug">
                     {video.title}
                   </h2>
                   <p className="text-sm text-gray-500 mb-3 line-clamp-2 leading-relaxed">

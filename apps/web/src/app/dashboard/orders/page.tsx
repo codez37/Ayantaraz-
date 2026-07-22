@@ -6,8 +6,8 @@ import { api } from '@/lib/api';
 import type { Order } from '@/types';
 
 const statusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: 'در انتظار', color: 'text-[#D4A843] bg-[#D4A843]/10' },
-  waiting_for_call: { label: 'منتظر تماس', color: 'text-[#D4A843] bg-[#D4A843]/10' },
+  pending: { label: 'در انتظار', color: 'text-[#C9A227] bg-[#C9A227]/10' },
+  waiting_for_call: { label: 'منتظر تماس', color: 'text-[#C9A227] bg-[#C9A227]/10' },
   waiting_for_payment: { label: 'منتظر پرداخت', color: 'text-orange-400 bg-orange-900/20' },
   confirmed: { label: 'تایید شده', color: 'text-green-400 bg-green-900/20' },
   rejected: { label: 'رد شده', color: 'text-red-400 bg-red-900/20' },
@@ -28,19 +28,19 @@ export default function OrdersPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="flex items-center gap-4 mb-8">
-        <Link href="/dashboard" className="text-gray-500 hover:text-[#D4A843]">← داشبورد</Link>
+        <Link href="/dashboard" className="text-gray-500 hover:text-[#C9A227]">← داشبورد</Link>
         <h1 className="text-2xl font-black text-gold-gradient">سفارش‌های من</h1>
       </div>
 
       {loading ? (
         <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 bg-[#1C1C1C] rounded-xl animate-pulse" />)}</div>
       ) : orders.length === 0 ? (
-        <div className="text-center py-16 text-gray-500 bg-[#1C1C1C] rounded-xl border border-[#D4A843]/10">
+        <div className="text-center py-16 text-gray-500 bg-[#1C1C1C] rounded-xl border border-[#C9A227]/10">
           <p>هنوز سفارشی ثبت نکرده‌اید.</p>
-          <Link href="/courses" className="text-[#D4A843] hover:text-[#F0D68A] mt-2 inline-block">مشاهده دوره‌ها</Link>
+          <Link href="/courses" className="text-[#C9A227] hover:text-[#FFB71A] mt-2 inline-block">مشاهده دوره‌ها</Link>
         </div>
       ) : (
-        <div className="bg-[#1C1C1C] rounded-xl border border-[#D4A843]/10 overflow-hidden">
+        <div className="bg-[#1C1C1C] rounded-xl border border-[#C9A227]/10 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-[#1A1A1A]">
@@ -53,7 +53,7 @@ export default function OrdersPage() {
               </thead>
               <tbody>
                 {orders.map(order => (
-                  <tr key={order.id} className="border-t border-[#D4A843]/10 hover:bg-[#1A1A1A]">
+                  <tr key={order.id} className="border-t border-[#C9A227]/10 hover:bg-[#1A1A1A]">
                     <td className="p-4 text-gray-200">{order.itemType === 'course' ? 'دوره آموزشی' : 'مشاوره'}</td>
                     <td className="p-4 text-gray-300">{order.amount.toLocaleString()} ریال</td>
                     <td className="p-4">

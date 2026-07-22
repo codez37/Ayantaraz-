@@ -74,7 +74,7 @@ export default function ServicesPage() {
         ))}
       </div>
 
-      <div className="bg-[#1A1A1A] border border-[#D4A843]/10 rounded-xl p-8 mt-12 text-center">
+      <div className="bg-[#1A1A1A] border border-[#C9A227]/10 rounded-xl p-8 mt-12 text-center">
         <h2 className="text-2xl font-black text-gold-gradient mb-3">نیاز به مشاوره دارید؟</h2>
         <p className="text-gray-400 mb-6">کارشناسان ما آماده پاسخگویی به سوالات شما هستند</p>
         <Link

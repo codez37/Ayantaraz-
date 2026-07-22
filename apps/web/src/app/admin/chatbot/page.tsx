@@ -57,7 +57,7 @@ export default function AdminChatbotPage() {
     setShowForm(true);
   };
 
-  if (loading && !showForm) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading && !showForm) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-4">
@@ -70,7 +70,7 @@ export default function AdminChatbotPage() {
       </div>
 
       {showForm && (
-        <div className="bg-[#0A0A0A] border border-[#D4A843]/10 rounded-xl p-5 space-y-3">
+        <div className="bg-[#0B0B0C] border border-[#C9A227]/10 rounded-xl p-5 space-y-3">
           <input placeholder="سوال" value={form.question} onChange={e => setForm(f => ({...f, question: e.target.value}))} className="input-dark text-sm" />
           <textarea placeholder="پاسخ" value={form.answer} onChange={e => setForm(f => ({...f, answer: e.target.value}))} className="input-dark text-sm" rows={4} />
           <div className="grid grid-cols-2 gap-3">
@@ -90,11 +90,11 @@ export default function AdminChatbotPage() {
         </div>
       )}
 
-      <div className="bg-[#0A0A0A] border border-[#D4A843]/10 rounded-xl overflow-hidden">
+      <div className="bg-[#0B0B0C] border border-[#C9A227]/10 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#D4A843]/10 text-right">
+              <tr className="border-b border-[#C9A227]/10 text-right">
                 <th className="p-3 text-gray-400 font-bold">سوال</th>
                 <th className="p-3 text-gray-400 font-bold">دسته</th>
                 <th className="p-3 text-gray-400 font-bold">سطح ریسک</th>
@@ -104,7 +104,7 @@ export default function AdminChatbotPage() {
             </thead>
             <tbody>
               {entries.map((e: KnowledgeEntry) => (
-                <tr key={e.id} className="border-b border-[#D4A843]/5 hover:bg-[#D4A843]/5">
+                <tr key={e.id} className="border-b border-[#C9A227]/5 hover:bg-[#C9A227]/5">
                   <td className="p-3 text-gray-300 max-w-[300px] truncate">{e.question}</td>
                   <td className="p-3 text-gray-400">{e.category}</td>
                   <td className="p-3">

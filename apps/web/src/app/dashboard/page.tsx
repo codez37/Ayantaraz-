@@ -8,8 +8,8 @@ import { useAuth } from '@/lib/auth';
 import type { Order, ConsultationRequest } from '@/types';
 
 const statusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: 'در انتظار', color: 'text-[#D4A843] bg-[#D4A843]/10' },
-  waiting_for_call: { label: 'منتظر تماس', color: 'text-[#D4A843] bg-[#D4A843]/10' },
+  pending: { label: 'در انتظار', color: 'text-[#C9A227] bg-[#C9A227]/10' },
+  waiting_for_call: { label: 'منتظر تماس', color: 'text-[#C9A227] bg-[#C9A227]/10' },
   waiting_for_payment: { label: 'منتظر پرداخت', color: 'text-orange-400 bg-orange-900/20' },
   confirmed: { label: 'تایید شده', color: 'text-green-400 bg-green-900/20' },
   rejected: { label: 'رد شده', color: 'text-red-400 bg-red-900/20' },
@@ -41,7 +41,7 @@ export default function DashboardPage() {
       .finally(() => setConsultLoading(false));
   }, []);
 
-  if (authLoading) return <div className="text-center py-16"><div className="animate-spin h-8 w-8 border-4 border-[#D4A843] border-t-transparent rounded-full mx-auto" /></div>;
+  if (authLoading) return <div className="text-center py-16"><div className="animate-spin h-8 w-8 border-4 border-[#C9A227] border-t-transparent rounded-full mx-auto" /></div>;
   if (!user) return null;
 
   return (
@@ -50,39 +50,39 @@ export default function DashboardPage() {
 
       <div className="grid md:grid-cols-4 gap-4 mb-8">
         <Link href="/dashboard/orders" className="card-dark p-4">
-          <div className="text-2xl font-bold text-[#D4A843]">{orders.length}</div>
+          <div className="text-2xl font-bold text-[#C9A227]">{orders.length}</div>
           <div className="text-sm text-gray-400">سفارش‌ها</div>
         </Link>
         <Link href="/dashboard/consultations" className="card-dark p-4">
-          <div className="text-2xl font-bold text-[#D4A843]">{consultations.length}</div>
+          <div className="text-2xl font-bold text-[#C9A227]">{consultations.length}</div>
           <div className="text-sm text-gray-400">مشاوره‌ها</div>
         </Link>
         <Link href="/dashboard/courses" className="card-dark p-4">
-          <div className="text-2xl font-bold text-[#D4A843]">-</div>
+          <div className="text-2xl font-bold text-[#C9A227]">-</div>
           <div className="text-sm text-gray-400">دوره‌ها</div>
         </Link>
         <Link href="/dashboard/profile" className="card-dark p-4">
-          <div className="text-2xl font-bold text-[#D4A843]">{user.firstName || '---'}</div>
+          <div className="text-2xl font-bold text-[#C9A227]">{user.firstName || '---'}</div>
           <div className="text-sm text-gray-400">پروفایل</div>
         </Link>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
-        <div className="bg-[#1C1C1C] p-6 rounded-xl border border-[#D4A843]/10">
+        <div className="bg-[#1C1C1C] p-6 rounded-xl border border-[#C9A227]/10">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-white">سفارش‌های اخیر</h2>
-            <Link href="/dashboard/orders" className="text-sm text-[#D4A843] hover:text-[#F0D68A]">مشاهده همه</Link>
+            <Link href="/dashboard/orders" className="text-sm text-[#C9A227] hover:text-[#FFB71A]">مشاهده همه</Link>
           </div>
           {ordersLoading ? (
             <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-12 bg-[#1A1A1A] rounded animate-pulse" />)}</div>
           ) : orders.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <p>هنوز سفارشی ثبت نکرده‌اید.</p>
-              <Link href="/courses" className="text-[#D4A843] text-sm hover:text-[#F0D68A]">مشاهده دوره‌ها</Link>
+              <Link href="/courses" className="text-[#C9A227] text-sm hover:text-[#FFB71A]">مشاهده دوره‌ها</Link>
             </div>
           ) : (
             orders.slice(0, 5).map(order => (
-              <div key={order.id} className="flex justify-between items-center py-3 border-b border-[#D4A843]/10 last:border-0">
+              <div key={order.id} className="flex justify-between items-center py-3 border-b border-[#C9A227]/10 last:border-0">
                 <div>
                   <span className="text-sm text-gray-200">{order.itemType === 'course' ? 'دوره آموزشی' : 'مشاوره'}</span>
                   <span className="text-xs text-gray-500 mr-2">{order.amount.toLocaleString()} ریال</span>
@@ -95,21 +95,21 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="bg-[#1C1C1C] p-6 rounded-xl border border-[#D4A843]/10">
+        <div className="bg-[#1C1C1C] p-6 rounded-xl border border-[#C9A227]/10">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-white">درخواست‌های مشاوره</h2>
-            <Link href="/dashboard/consultations" className="text-sm text-[#D4A843] hover:text-[#F0D68A]">مشاهده همه</Link>
+            <Link href="/dashboard/consultations" className="text-sm text-[#C9A227] hover:text-[#FFB71A]">مشاهده همه</Link>
           </div>
           {consultLoading ? (
             <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-12 bg-[#1A1A1A] rounded animate-pulse" />)}</div>
           ) : consultations.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <p>هنوز درخواست مشاوره‌ای ثبت نکرده‌اید.</p>
-              <Link href="/consultation" className="text-[#D4A843] text-sm hover:text-[#F0D68A]">درخواست مشاوره</Link>
+              <Link href="/consultation" className="text-[#C9A227] text-sm hover:text-[#FFB71A]">درخواست مشاوره</Link>
             </div>
           ) : (
             consultations.slice(0, 5).map(c => (
-              <div key={c.id} className="flex justify-between items-center py-3 border-b border-[#D4A843]/10 last:border-0">
+              <div key={c.id} className="flex justify-between items-center py-3 border-b border-[#C9A227]/10 last:border-0">
                 <span className="text-sm text-gray-200">
                   {c.requestType === 'tax' ? 'مالیاتی' : c.requestType === 'accounting' ? 'حسابداری' : 'عمومی'}
                 </span>

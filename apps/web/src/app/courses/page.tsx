@@ -65,7 +65,7 @@ export default function CoursesPage() {
           <Link key={course.id} href={`/courses/${course.slug}`} className="card-dark p-6">
             <h2 className="text-xl font-bold text-white mb-2">{course.title}</h2>
             <p className="text-gray-400 mb-4">{course.description}</p>
-            <p className="text-[#D4A843] font-bold">{course.price.toLocaleString()} ریال</p>
+            <p className="text-[#C9A227] font-bold">{course.price.toLocaleString()} ریال</p>
           </Link>
         ))}
       </div>

@@ -165,7 +165,7 @@ export default function AuthPage() {
     const colors = {
       error: 'text-red-400 bg-red-900/20 border-red-800/30',
       success: 'text-green-400 bg-green-900/20 border-green-800/30',
-      info: 'text-[#D4A843] bg-[#D4A843]/10 border-[#D4A843]/20',
+      info: 'text-[#C9A227] bg-[#C9A227]/10 border-[#C9A227]/20',
     };
     return (
       <div className={`mt-4 p-3 rounded-lg text-center text-sm border ${colors[messageType]}`}>
@@ -227,7 +227,7 @@ export default function AuthPage() {
                     value={digit}
                     onChange={(e) => handleCodeChange(i, e.target.value)}
                     onKeyDown={(e) => handleCodeKeyDown(i, e)}
-                    className={`w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold bg-[#1A1A1A] border border-[#D4A843]/20 rounded-lg focus:ring-2 focus:ring-[#D4A843] focus:border-[#D4A843] outline-none text-white ${digit ? 'border-[#D4A843]' : ''}`}
+                    className={`w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold bg-[#1A1A1A] border border-[#C9A227]/20 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none text-white ${digit ? 'border-[#C9A227]' : ''}`}
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     disabled={isLoading}
@@ -241,7 +241,7 @@ export default function AuthPage() {
                 <button
                   onClick={handleResend}
                   disabled={timer > 0 || resendCount >= 3 || isLoading}
-                  className="text-[#D4A843] hover:text-[#F0D68A] disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
+                  className="text-[#C9A227] hover:text-[#FFB71A] disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
                 >
                   ارسال مجدد ({3 - resendCount})
                 </button>

@@ -66,10 +66,10 @@ export default function CheckoutPage() {
           {['اطلاعات', 'پرداخت', 'تأیید'].map((label, i) => (
             <div key={label} className="flex items-center gap-2">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                step === ['info','payment','done'][i] ? 'bg-[#D4A843] text-[#111111]' : 'bg-[#111111] text-gray-500'
+                step === ['info','payment','done'][i] ? 'bg-[#C9A227] text-[#121212]' : 'bg-[#121212] text-gray-500'
               }`}>{i + 1}</div>
               <span className="text-sm text-gray-400">{label}</span>
-              {i < 2 && <div className="w-8 h-0.5 bg-[#111111]" />}
+              {i < 2 && <div className="w-8 h-0.5 bg-[#121212]" />}
             </div>
           ))}
         </div>
@@ -119,8 +119,8 @@ export default function CheckoutPage() {
             <p className="text-gray-400 text-sm">
               مبلغ {form.amount.toLocaleString()} تومان را به شماره حساب زیر واریز کنید
             </p>
-            <div className="bg-[#111111] p-4 rounded-xl space-y-2">
-              <p className="text-[#D4A843] font-bold">شماره حساب: ۵۸۵۹-۸۷۶۵-۳۲۱۰-۶۰۳۷</p>
+            <div className="bg-[#121212] p-4 rounded-xl space-y-2">
+              <p className="text-[#C9A227] font-bold">شماره حساب: ۵۸۵۹-۸۷۶۵-۳۲۱۰-۶۰۳۷</p>
               <p className="text-gray-500 text-sm">به نام: آیان تراز</p>
             </div>
             <div>

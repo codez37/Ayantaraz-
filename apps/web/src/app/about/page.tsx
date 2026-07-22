@@ -36,7 +36,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-[#1C1C1C] to-[#111111] py-16 md:py-24">
+      <section className="bg-gradient-to-br from-[#1C1C1C] to-[#121212] py-16 md:py-24">
         <div className="container-mobile text-center">
           <h1 className="text-3xl md:text-5xl font-black text-white mb-4">
             درباره <span className="text-gold-gradient">آیان تراز</span>
@@ -77,11 +77,11 @@ export default function AboutPage() {
               تا بتوانند با اطمینان و آگاهی بیشتری مسیر رشد خود را طی کنند.
             </p>
             <div className="mt-6 grid grid-cols-2 gap-4">
-              <div className="bg-[#111111] p-4 rounded-xl">
+              <div className="bg-[#121212] p-4 rounded-xl">
                 <div className="text-2xl font-black text-gold-gradient">۱۵+</div>
                 <div className="text-xs text-gray-500">سال تجربه</div>
               </div>
-              <div className="bg-[#111111] p-4 rounded-xl">
+              <div className="bg-[#121212] p-4 rounded-xl">
                 <div className="text-2xl font-black text-gold-gradient">۵۰۰+</div>
                 <div className="text-xs text-gray-500">مشتری</div>
               </div>
@@ -91,7 +91,7 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="bg-[#0A0A0A] py-16">
+      <section className="bg-[#0B0B0C] py-16">
         <div className="container-mobile">
           <h2 className="text-2xl md:text-3xl font-black text-gold-gradient text-center mb-12">
             ارزش‌های ما
@@ -121,11 +121,11 @@ export default function AboutPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {team.map(m => (
             <div key={m.name} className="card-dark p-5 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#D4A843] to-[#B8862D] rounded-full mx-auto mb-3 flex items-center justify-center text-white font-black text-xl">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#C9A227] to-[#FFA000] rounded-full mx-auto mb-3 flex items-center justify-center text-white font-black text-xl">
                 {m.name[0]}
               </div>
               <h3 className="text-white font-bold text-sm">{m.name}</h3>
-              <p className="text-[#D4A843] text-xs font-bold mt-1">{m.role}</p>
+              <p className="text-[#C9A227] text-xs font-bold mt-1">{m.role}</p>
               <p className="text-gray-500 text-xs mt-2">{m.desc}</p>
             </div>
           ))}
@@ -133,7 +133,7 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-gradient-to-br from-[#1C1C1C] to-[#111111] py-16 text-center">
+      <section className="bg-gradient-to-br from-[#1C1C1C] to-[#121212] py-16 text-center">
         <div className="container-mobile">
           <h2 className="text-2xl md:text-3xl font-black text-white mb-4">
             آماده همکاری با ما هستید؟

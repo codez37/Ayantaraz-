@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import type { ConsultationRequest } from '@/types';
 
 const statusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: 'در انتظار بررسی', color: 'text-[#D4A843] bg-[#D4A843]/10' },
+  pending: { label: 'در انتظار بررسی', color: 'text-[#C9A227] bg-[#C9A227]/10' },
   contacted: { label: 'تماس گرفته شده', color: 'text-blue-400 bg-blue-900/20' },
   scheduled: { label: 'زمان‌بندی شده', color: 'text-purple-400 bg-purple-900/20' },
   completed: { label: 'انجام شده', color: 'text-green-400 bg-green-900/20' },
@@ -28,21 +28,21 @@ export default function ConsultationsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="flex items-center gap-4 mb-8">
-        <Link href="/dashboard" className="text-gray-500 hover:text-[#D4A843]">← داشبورد</Link>
+        <Link href="/dashboard" className="text-gray-500 hover:text-[#C9A227]">← داشبورد</Link>
         <h1 className="text-2xl font-black text-gold-gradient">درخواست‌های مشاوره</h1>
       </div>
 
       {loading ? (
         <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 bg-[#1C1C1C] rounded-xl animate-pulse" />)}</div>
       ) : consultations.length === 0 ? (
-        <div className="text-center py-16 text-gray-500 bg-[#1C1C1C] rounded-xl border border-[#D4A843]/10">
+        <div className="text-center py-16 text-gray-500 bg-[#1C1C1C] rounded-xl border border-[#C9A227]/10">
           <p>هنوز درخواست مشاوره‌ای ثبت نکرده‌اید.</p>
-          <Link href="/consultation" className="text-[#D4A843] hover:text-[#F0D68A] mt-2 inline-block">درخواست مشاوره</Link>
+          <Link href="/consultation" className="text-[#C9A227] hover:text-[#FFB71A] mt-2 inline-block">درخواست مشاوره</Link>
         </div>
       ) : (
         <div className="space-y-3">
           {consultations.map(c => (
-            <div key={c.id} className="bg-[#1C1C1C] rounded-xl border border-[#D4A843]/10 overflow-hidden">
+            <div key={c.id} className="bg-[#1C1C1C] rounded-xl border border-[#C9A227]/10 overflow-hidden">
               <button
                 onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}
                 className="w-full text-right p-4 hover:bg-[#1A1A1A] flex justify-between items-center transition-colors"
@@ -58,7 +58,7 @@ export default function ConsultationsPage() {
                 <span className="text-gray-500 text-sm">{new Date(c.createdAt).toLocaleDateString('fa-IR')}</span>
               </button>
               {expandedId === c.id && (
-                <div className="px-4 pb-4 border-t border-[#D4A843]/10 pt-3 text-sm text-gray-400">
+                <div className="px-4 pb-4 border-t border-[#C9A227]/10 pt-3 text-sm text-gray-400">
                   <p>{c.description}</p>
                   {c.preferredTime && <p className="mt-2 text-gray-500">زمان پیشنهادی: {c.preferredTime}</p>}
                 </div>

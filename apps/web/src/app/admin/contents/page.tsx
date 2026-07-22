@@ -111,7 +111,7 @@ export default function AdminContentsPage() {
 
   const totalUploading = uploading !== null;
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-4">
@@ -135,7 +135,7 @@ export default function AdminContentsPage() {
       </div>
 
       {showForm && (
-        <div className="bg-[#0A0A0A] border border-[#D4A843]/10 rounded-xl p-5 space-y-3">
+        <div className="bg-[#0B0B0C] border border-[#C9A227]/10 rounded-xl p-5 space-y-3">
           <div className="grid md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
               <label className="text-xs text-gray-400 mb-1 block">عنوان</label>
@@ -229,11 +229,11 @@ export default function AdminContentsPage() {
         </div>
       )}
 
-      <div className="bg-[#0A0A0A] border border-[#D4A843]/10 rounded-xl overflow-hidden">
+      <div className="bg-[#0B0B0C] border border-[#C9A227]/10 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#D4A843]/10 text-right">
+              <tr className="border-b border-[#C9A227]/10 text-right">
                 <th className="p-3 text-gray-400 font-bold">عنوان</th>
                 <th className="p-3 text-gray-400 font-bold">نوع</th>
                 <th className="p-3 text-gray-400 font-bold">وضعیت</th>
@@ -244,7 +244,7 @@ export default function AdminContentsPage() {
             </thead>
             <tbody>
               {contents.map((c: Content) => (
-                <tr key={c.id} className="border-b border-[#D4A843]/5 hover:bg-[#D4A843]/5">
+                <tr key={c.id} className="border-b border-[#C9A227]/5 hover:bg-[#C9A227]/5">
                   <td className="p-3 text-gray-300 max-w-[200px] truncate" title={c.title}>{c.title}</td>
                   <td className="p-3 text-gray-400">{contentTypeLabels[c.contentType] || c.contentType}</td>
                   <td className="p-3">
@@ -258,7 +258,7 @@ export default function AdminContentsPage() {
                   <td className="p-3 text-gray-400">{c.visibility === 'public' ? 'عمومی' : c.visibility === 'authenticated' ? 'کاربران' : 'مدیران'}</td>
                   <td className="p-3">
                     {c.mediaUrl ? (
-                      <a href={c.mediaUrl} target="_blank" rel="noopener noreferrer" className="text-[#D4A843] hover:underline text-xs">
+                      <a href={c.mediaUrl} target="_blank" rel="noopener noreferrer" className="text-[#C9A227] hover:underline text-xs">
                         مشاهده
                       </a>
                     ) : <span className="text-gray-600 text-xs">ندارد</span>}

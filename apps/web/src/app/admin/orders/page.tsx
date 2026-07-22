@@ -39,16 +39,16 @@ export default function AdminOrdersPage() {
     } catch {}
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-black text-white">مدیریت سفارش‌ها</h1>
-      <div className="bg-[#0A0A0A] border border-[#D4A843]/10 rounded-xl overflow-hidden">
+      <div className="bg-[#0B0B0C] border border-[#C9A227]/10 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#D4A843]/10 text-right">
+              <tr className="border-b border-[#C9A227]/10 text-right">
                 <th className="p-3 text-gray-400 font-bold">شناسه</th>
                 <th className="p-3 text-gray-400 font-bold">کاربر</th>
                 <th className="p-3 text-gray-400 font-bold">مبلغ</th>
@@ -59,10 +59,10 @@ export default function AdminOrdersPage() {
             </thead>
             <tbody>
               {orders.map((o: AdminOrder) => (
-                <tr key={o.id} className="border-b border-[#D4A843]/5 hover:bg-[#D4A843]/5">
+                <tr key={o.id} className="border-b border-[#C9A227]/5 hover:bg-[#C9A227]/5">
                   <td className="p-3 text-gray-300">{o.id}</td>
                   <td className="p-3 text-gray-300">{o.user?.phone || '-'}</td>
-                  <td className="p-3 text-[#D4A843]">{o.amount?.toLocaleString()}</td>
+                  <td className="p-3 text-[#C9A227]">{o.amount?.toLocaleString()}</td>
                   <td className="p-3">
                     <span className={`px-2 py-0.5 rounded text-xs ${
                       o.status === 'confirmed' ? 'bg-green-900/50 text-green-400' :

@@ -74,15 +74,15 @@ export default function ProfilePage() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
-        <div className="bg-[#1C1C1C] p-6 rounded-xl border border-[#D4A843]/10">
+        <div className="bg-[#1C1C1C] p-6 rounded-xl border border-[#C9A227]/10">
           <h2 className="text-xl font-bold text-white mb-4">سفارش‌ها</h2>
           {orders.length === 0 ? (
             <p className="text-gray-500">سفارشی ثبت نشده</p>
           ) : (
             orders.map(order => (
-              <div key={order.id} className="flex justify-between items-center py-2 border-b border-[#D4A843]/10 last:border-0">
+              <div key={order.id} className="flex justify-between items-center py-2 border-b border-[#C9A227]/10 last:border-0">
                 <span className="text-gray-200">{order.itemType === 'course' ? 'دوره' : 'مشاوره'}</span>
-                <span className={order.status === 'confirmed' ? 'text-green-400' : 'text-[#D4A843]'}>
+                <span className={order.status === 'confirmed' ? 'text-green-400' : 'text-[#C9A227]'}>
                   {statusMap[order.status] || order.status}
                 </span>
               </div>
@@ -90,19 +90,19 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="bg-[#1C1C1C] p-6 rounded-xl border border-[#D4A843]/10">
+        <div className="bg-[#1C1C1C] p-6 rounded-xl border border-[#C9A227]/10">
           <h2 className="text-xl font-bold text-white mb-4">درخواست‌های مشاوره</h2>
           {consultations.length === 0 ? (
             <p className="text-gray-500">درخواستی ثبت نشده</p>
           ) : (
             consultations.map(c => (
-              <div key={c.id} className="flex justify-between items-center py-2 border-b border-[#D4A843]/10 last:border-0">
+              <div key={c.id} className="flex justify-between items-center py-2 border-b border-[#C9A227]/10 last:border-0">
                 <span className="text-gray-200">
                   {c.requestType === 'tax' ? 'مالیاتی' : c.requestType === 'accounting' ? 'حسابداری' : 'عمومی'}
                 </span>
                 <span className={
                   c.status === 'completed' ? 'text-green-400' :
-                  c.status === 'canceled' ? 'text-red-400' : 'text-[#D4A843]'
+                  c.status === 'canceled' ? 'text-red-400' : 'text-[#C9A227]'
                 }>
                   {statusMap[c.status] || c.status}
                 </span>
