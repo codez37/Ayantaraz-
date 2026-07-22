@@ -4,15 +4,23 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/auth';
+import { useGlassmorphicTheme } from '@/providers/GlassmorphicThemeProvider';
 
 // ============================================
-// Header Component - Mobile-First Refactor
+// Header Component - Luxury Mobile-First Refactor
 // ============================================
 
 export default function Header() {
+  const { theme } = useGlassmorphicTheme();
   const { user, isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Theme-based styling
+  const isDark = theme === 'dark';
+  const headerBg = isDark ? 'bg-background-primary/95' : 'bg-background-primary/90';
+  const headerBorder = isDark ? 'border-border-gold/20' : 'border-border-gold/30';
+  const shadowColor = isDark ? 'rgba(212, 175, 55, 0.15)' : 'rgba(212, 175, 55, 0.2)';
 
   // ==========================================
   // NAVIGATION ITEMS
@@ -69,12 +77,7 @@ export default function Header() {
   // ==========================================
   return (
     <header
-      className={`
-        bg-[#0B0B0C]/95 backdrop-blur-md sticky top-0 z-[200]
-        border-b border-[#C9A227]/20
-        ${isScrolled ? 'shadow-[0_4px_14px_0_rgba(201,162,39,0.15)]' : ''}
-        transition-all duration-250 ease-in-out
-      `}
+      className={`${headerBg} backdrop-blur-md sticky top-0 z-[200] border-b ${headerBorder} ${isScrolled ? `shadow-[0_4px_14px_0_${shadowColor}]` : ''} transition-all duration-250 ease-in-out`}
     >
       <div className="container-mobile">
         {/* Main Header Row */}
@@ -107,12 +110,7 @@ export default function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="
-                    px-3 py-2 text-sm text-gray-400
-                    hover:text-[#C9A227] hover:bg-[#C9A227]/10
-                    transition-colors duration-200
-                    rounded-lg
-                  "
+                  className="px-3 py-2 text-sm text-text-secondary hover:text-gold-400 hover:bg-gold-900/10 transition-colors duration-200 rounded-lg"
                 >
                   {item.label}
                 </Link>
@@ -128,35 +126,21 @@ export default function Header() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="
-                      text-sm text-gray-400 hover:text-[#C9A227]
-                      transition-colors duration-200
-                      px-3 py-2 rounded-lg hover:bg-[#C9A227]/10
-                    "
+                    className="text-sm text-text-secondary hover:text-gold-400 transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-gold-900/10"
                   >
                     {user?.firstName || user?.phone}
                   </Link>
                   {user?.role === 'admin' && (
                     <Link
                       href="/admin"
-                      className="
-                        text-sm text-[#C9A227] hover:text-[#A0781E]
-                        border border-[#C9A227]/30
-                        px-3 py-1.5 rounded-lg
-                        transition-colors duration-200
-                      "
+                      className="text-sm text-gold-400 hover:text-gold-300 border border-gold-400/30 px-3 py-1.5 rounded-lg transition-colors duration-200"
                     >
                       پنل مدیریت
                     </Link>
                   )}
                   <button
                     onClick={() => logout()}
-                    className="
-                      text-sm text-red-400 hover:text-red-300
-                      px-3 py-2 rounded-lg
-                      hover:bg-red-900/20
-                      transition-colors duration-200
-                    "
+                    className="text-sm text-red-400 hover:text-red-300 px-3 py-2 rounded-lg hover:bg-red-900/20 transition-colors duration-200"
                   >
                     خروج
                   </button>
@@ -164,16 +148,7 @@ export default function Header() {
               ) : (
                 <Link
                   href="/auth"
-                  className="
-                    bg-[#C9A227] text-[#0B0B0C]
-                    hover:bg-[#A0781E] active:bg-[#FFA000]
-                    px-5 py-2.5 text-sm font-bold
-                    rounded-md
-                    shadow-[0_2px_8px_0_rgba(201,162,39,0.25)]
-                    hover:shadow-[0_4px_14px_0_rgba(201,162,39,0.39)]
-                    transition-all duration-250 ease-in-out
-                    min-h-[44px]
-                  "
+                  className="btn-gold text-sm"
                 >
                   ورود / ثبت‌نام
                 </Link>
@@ -182,7 +157,7 @@ export default function Header() {
 
             {/* Mobile Hamburger */}
             <button
-              className="md:hidden p-2.5 text-[#C9A227] hover:bg-[#C9A227]/10 rounded-lg transition-colors"
+              className="md:hidden p-2.5 text-gold-400 hover:bg-gold-900/10 rounded-lg transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="منو"
               aria-expanded={menuOpen}
@@ -201,10 +176,7 @@ export default function Header() {
         {/* Mobile Navigation Menu */}
         {menuOpen && (
           <div
-            className="
-              md:hidden fixed inset-0 bg-[#0B0B0C]/98 backdrop-blur-md z-[199]
-              animate-in fade-in slide-in-from-top-4 duration-200
-            "
+            className="md:hidden fixed inset-0 bg-background-primary/98 backdrop-blur-md z-[199] animate-in fade-in slide-in-from-top-4 duration-200"
             role="dialog"
             aria-modal="true"
             aria-label="منوی اصلی"
@@ -217,12 +189,7 @@ export default function Header() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="
-                        block px-4 py-3 text-base text-gray-300
-                        hover:text-[#C9A227] hover:bg-[#C9A227]/10
-                        rounded-lg transition-colors duration-200
-                        border border-transparent hover:border-[#C9A227]/20
-                      "
+                      className="block px-4 py-3 text-base text-text-secondary hover:text-gold-400 hover:bg-gold-900/10 rounded-lg transition-colors duration-200 border border-transparent hover:border-border-gold/20"
                       onClick={() => setMenuOpen(false)}
                     >
                       {item.label}
@@ -232,31 +199,23 @@ export default function Header() {
               </nav>
 
               {/* Mobile Auth Controls */}
-              <div className="border-t border-[#C9A227]/10 p-4 space-y-2">
+              <div className="border-t border-border-gold/20 p-4 space-y-2">
                 {isAuthenticated ? (
                   <>
                     <Link
                       href="/dashboard"
-                      className="
-                        block px-4 py-3 text-base text-gray-300
-                        hover:text-[#C9A227] hover:bg-[#C9A227]/10
-                        rounded-lg transition-colors duration-200
-                      "
+                      className="block px-4 py-3 text-base text-text-secondary hover:text-gold-400 hover:bg-gold-900/10 rounded-lg transition-colors duration-200"
                       onClick={() => setMenuOpen(false)}
                     >
                       پنل کاربری
-                      <span className="text-sm text-gray-500 block">
+                      <span className="text-sm text-text-tertiary block">
                         {user?.firstName || user?.phone}
                       </span>
                     </Link>
                     {user?.role === 'admin' && (
                       <Link
                         href="/admin"
-                        className="
-                          block px-4 py-3 text-base text-[#C9A227]
-                          hover:bg-[#C9A227]/10
-                          rounded-lg transition-colors duration-200
-                        "
+                        className="block px-4 py-3 text-base text-gold-400 hover:bg-gold-900/10 rounded-lg transition-colors duration-200"
                         onClick={() => setMenuOpen(false)}
                       >
                         پنل مدیریت
@@ -264,11 +223,7 @@ export default function Header() {
                     )}
                     <button
                       onClick={() => { logout(); setMenuOpen(false); }}
-                      className="
-                        block w-full text-right px-4 py-3 text-base text-red-400
-                        hover:text-red-300 hover:bg-red-900/20
-                        rounded-lg transition-colors duration-200
-                      "
+                      className="block w-full text-right px-4 py-3 text-base text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-colors duration-200"
                     >
                       خروج
                     </button>
@@ -276,12 +231,7 @@ export default function Header() {
                 ) : (
                   <Link
                     href="/auth"
-                    className="
-                      block px-4 py-3 text-base text-[#C9A227] text-center
-                      bg-[#C9A227]/10 hover:bg-[#C9A227]/20
-                      rounded-lg transition-colors duration-200
-                      font-bold
-                    "
+                    className="block px-4 py-3 text-base text-gold-400 text-center bg-gold-900/10 hover:bg-gold-900/20 rounded-lg transition-colors duration-200 font-bold"
                     onClick={() => setMenuOpen(false)}
                   >
                     ورود / ثبت‌نام

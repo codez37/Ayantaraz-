@@ -5,8 +5,10 @@ import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useCsrf } from '@/hooks/useCsrf';
+import { useGlassmorphicTheme } from '@/providers/GlassmorphicThemeProvider';
 
 export default function AuthPage() {
+  const { theme } = useGlassmorphicTheme();
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [step, setStep] = useState<'phone' | 'otp' | 'profile'>('phone');
@@ -160,34 +162,51 @@ export default function AuthPage() {
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
+  // Theme-based styling
+  const isDark = theme === 'dark';
+  const cardBg = isDark ? 'bg-background-secondary/80 backdrop-blur-xl' : 'bg-background-primary/90';
+  const cardBorder = isDark ? 'border-border-gold' : 'border-border-gold/50';
+  const inputBg = isDark ? 'bg-background-tertiary' : 'bg-surface/60';
+  const inputBorder = isDark ? 'border-border-gold/30' : 'border-border-gold/40';
+  const textColor = isDark ? 'text-text-primary' : 'text-text-primary';
+  const textMuted = isDark ? 'text-text-secondary' : 'text-text-tertiary';
+
   const showMessage = () => {
     if (!message) return null;
     const colors = {
       error: 'text-red-400 bg-red-900/20 border-red-800/30',
       success: 'text-green-400 bg-green-900/20 border-green-800/30',
-      info: 'text-[#C9A227] bg-[#C9A227]/10 border-[#C9A227]/20',
+      info: 'text-gold-400 bg-gold-900/10 border-gold-800/20',
     };
     return (
-      <div className={`mt-4 p-3 rounded-lg text-center text-sm border ${colors[messageType]}`}>
+      <div className={`mt-4 p-3 rounded-lg text-center text-sm border ${colors[messageType]} animate-fade-in`}>
         {message}
       </div>
     );
   };
 
   return (
-    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-12">
+    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-12 bg-background-primary">
       <div className="w-full max-w-md">
-        <div className="card-dark p-8">
-          <h1 className="text-2xl font-black text-gold-gradient text-center mb-2">
-            {step === 'phone' ? 'ورود / ثبت‌نام' :
-             step === 'otp' ? 'تایید کد' : 'تکمیل پروفایل'}
-          </h1>
-          <p className="text-gray-400 text-center text-sm mb-6">
-            {step === 'phone' ? 'شماره تلفن خود را وارد کنید. کد تایید پیامک می‌شود.' :
-             step === 'otp' ? `کد ۶ رقمی ارسال شده به ${normalizePhone(phone).slice(0, 4)}***${normalizePhone(phone).slice(7)} را وارد کنید` :
-             'نام خود را وارد کنید'}
-          </p>
+        {/* Auth Card with Glassmorphic Effect */}
+        <div className={`glass-card ${cardBg} ${cardBorder} p-8 rounded-3xl shadow-gold-lg animate-reveal-up`}>
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 mb-4 shadow-gold-md">
+              <span className="text-3xl font-black text-background-primary">آ</span>
+            </div>
+            <h1 className="text-2xl font-black text-gradient-gold mb-2">
+              {step === 'phone' ? 'ورود / ثبت‌نام' :
+               step === 'otp' ? 'تایید کد' : 'تکمیل پروفایل'}
+            </h1>
+            <p className={`text-sm ${textMuted}`}>
+              {step === 'phone' ? 'شماره تلفن خود را وارد کنید. کد تایید پیامک می‌شود.' :
+               step === 'otp' ? `کد ۶ رقمی ارسال شده به ${normalizePhone(phone).slice(0, 4)}***${normalizePhone(phone).slice(7)} را وارد کنید` :
+               'نام خود را وارد کنید'}
+            </p>
+          </div>
 
+          {/* Phone Step */}
           {step === 'phone' && (
             <>
               <input
@@ -196,25 +215,35 @@ export default function AuthPage() {
                 placeholder="شماره تلفن (مثال: 09123456789)"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="input-dark mb-4 text-left tracking-wide"
+                className={`w-full ${inputBg} ${inputBorder} ${textColor} p-4 rounded-xl text-left tracking-wide mb-4 focus:outline-none focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 transition-all`}
                 dir="ltr"
                 onKeyDown={(e) => e.key === 'Enter' && handleRequestOtp()}
                 autoFocus
               />
-              <p className="text-xs text-gray-500 mb-4 text-center">
+              <p className={`text-xs ${textMuted} mb-6 text-center`}>
                 کد تایید به این شماره ارسال می‌شود
               </p>
               <button
                 onClick={handleRequestOtp}
                 disabled={isLoading}
-                className="btn-gold w-full"
+                className="w-full bg-gradient-to-l from-gold-400 to-gold-500 text-background-primary py-4 rounded-xl font-bold text-lg hover:shadow-gold-md active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
-                {isLoading ? 'در حال ارسال...' : 'دریافت کد تایید'}
+                {isLoading ? (
+                  <>
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce bounce-delay-0" />
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce bounce-delay-150" />
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce bounce-delay-300" />
+                    </div>
+                    در حال ارسال...
+                  </>
+                ) : 'دریافت کد تایید'}
               </button>
               {showMessage()}
             </>
           )}
 
+          {/* OTP Step */}
           {step === 'otp' && (
             <>
               <div className="flex justify-center gap-2 mb-6" dir="ltr">
@@ -227,21 +256,21 @@ export default function AuthPage() {
                     value={digit}
                     onChange={(e) => handleCodeChange(i, e.target.value)}
                     onKeyDown={(e) => handleCodeKeyDown(i, e)}
-                    className={`w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold bg-[#1A1A1A] border border-[#C9A227]/20 rounded-lg focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] outline-none text-white ${digit ? 'border-[#C9A227]' : ''}`}
+                    className={`w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold ${inputBg} border ${digit ? 'border-gold-400' : inputBorder} rounded-xl focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none ${textColor} transition-all`}
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     disabled={isLoading}
                   />
                 ))}
               </div>
-              <div className="flex justify-between items-center mb-4 text-sm">
-                <span className={timer > 60 ? 'text-gray-400' : 'text-red-400'}>
+              <div className="flex justify-between items-center mb-6 text-sm">
+                <span className={timer > 60 ? textMuted : 'text-red-400'}>
                   {timer > 0 ? formatTime(timer) : 'منقضی شده'}
                 </span>
                 <button
                   onClick={handleResend}
                   disabled={timer > 0 || resendCount >= 3 || isLoading}
-                  className="text-[#C9A227] hover:text-[#FFB71A] disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
+                  className="text-gold-400 hover:text-gold-300 disabled:text-text-tertiary disabled:cursor-not-allowed transition-colors"
                 >
                   ارسال مجدد ({3 - resendCount})
                 </button>
@@ -249,13 +278,22 @@ export default function AuthPage() {
               <button
                 onClick={() => handleVerify()}
                 disabled={isLoading || code.join('').length !== 6}
-                className="btn-gold w-full"
+                className="w-full bg-gradient-to-l from-gold-400 to-gold-500 text-background-primary py-4 rounded-xl font-bold text-lg hover:shadow-gold-md active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
-                {isLoading ? 'در حال بررسی...' : 'تایید'}
+                {isLoading ? (
+                  <>
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce bounce-delay-0" />
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce bounce-delay-150" />
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce bounce-delay-300" />
+                    </div>
+                    در حال بررسی...
+                  </>
+                ) : 'تایید'}
               </button>
               <button
                 onClick={() => { setStep('phone'); setCode(['', '', '', '', '', '']); setMessage(''); setTimer(300); }}
-                className="w-full text-gray-400 p-2 mt-2 hover:text-gray-200 text-sm"
+                className="w-full text-text-secondary p-3 mt-3 hover:text-text-primary text-sm transition-colors"
                 disabled={isLoading}
               >
                 تغییر شماره
@@ -264,13 +302,14 @@ export default function AuthPage() {
             </>
           )}
 
+          {/* Profile Step */}
           {step === 'profile' && (
             <>
               <input
                 placeholder="نام"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="input-dark mb-3"
+                className={`w-full ${inputBg} ${inputBorder} ${textColor} p-4 rounded-xl mb-3 focus:outline-none focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 transition-all`}
                 autoFocus
                 disabled={isLoading}
               />
@@ -278,16 +317,25 @@ export default function AuthPage() {
                 placeholder="نام خانوادگی (اختیاری)"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="input-dark mb-4"
+                className={`w-full ${inputBg} ${inputBorder} ${textColor} p-4 rounded-xl mb-4 focus:outline-none focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 transition-all`}
                 disabled={isLoading}
               />
-              <p className="text-xs text-gray-500 mb-4">این اطلاعات برای ارتباط بهتر با شماست</p>
+              <p className={`text-xs ${textMuted} mb-6`}>این اطلاعات برای ارتباط بهتر با شماست</p>
               <button
                 onClick={handleProfileComplete}
                 disabled={isLoading}
-                className="btn-gold w-full"
+                className="w-full bg-gradient-to-l from-gold-400 to-gold-500 text-background-primary py-4 rounded-xl font-bold text-lg hover:shadow-gold-md active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
-                {isLoading ? 'در حال ثبت...' : 'ورود به پنل'}
+                {isLoading ? (
+                  <>
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce bounce-delay-0" />
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce bounce-delay-150" />
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce bounce-delay-300" />
+                    </div>
+                    در حال ثبت...
+                  </>
+                ) : 'ورود به پنل'}
               </button>
               {showMessage()}
             </>

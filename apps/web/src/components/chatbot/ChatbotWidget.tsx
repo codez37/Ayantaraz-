@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import { useGlassmorphicTheme } from '@/providers/GlassmorphicThemeProvider';
 
 interface Message {
   id: string;
@@ -35,6 +36,7 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 export default function ChatbotWidget() {
+  const { theme } = useGlassmorphicTheme();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -162,14 +164,28 @@ export default function ChatbotWidget() {
     e.stopPropagation();
   };
 
+  // Luxury color scheme based on theme
+  const isDark = theme === 'dark';
+  const chatHeaderBg = isDark 
+    ? 'bg-gradient-to-l from-gold-400 to-gold-500' 
+    : 'bg-gradient-to-l from-gold-600 to-gold-700';
+  const chatHeaderText = isDark ? 'text-background-primary' : 'text-white';
+  const chatBg = isDark ? 'bg-background-secondary' : 'bg-background-primary';
+  const chatInputBg = isDark ? 'bg-background-tertiary' : 'bg-surface/80';
+  const messageUserBg = isDark ? 'bg-background-tertiary' : 'bg-surface/60';
+  const messageBotBg = isDark 
+    ? 'bg-gold-900/10 border-gold-800/20' 
+    : 'bg-gold-700/10 border-gold-700/20';
+
   return (
     <>
+      {/* Floating Chat Button */}
       <button
         onClick={() => {
           setOpen(!open);
           if (!open) setShowSuggestions(true);
         }}
-        className="fixed bottom-6 left-6 z-[60] flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#FFB71A] to-[#FFA000] text-2xl text-[#0B0B0C] shadow-lg shadow-[#C9A227]/20 transition-all duration-300 hover:scale-105 hover:shadow-[#C9A227]/40 active:scale-95"
+        className="fixed bottom-6 left-6 z-[60] flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-gold-400 to-gold-500 text-2xl text-background-primary shadow-lg shadow-gold-400/20 transition-all duration-300 hover:scale-105 hover:shadow-gold-400/40 active:scale-95"
         aria-label="چت‌بات مالیاتی"
         title="پرسش و پاسخ مالیاتی"
       >
@@ -183,27 +199,29 @@ export default function ChatbotWidget() {
           </svg>
         )}
         {messages.length > 1 && !open && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#C9A227] text-[#0B0B0C] text-xs font-bold rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-gold-400 text-background-primary text-xs font-bold rounded-full flex items-center justify-center animate-pulse-gold">
             {messages.filter(m => m.role === 'user').length}
           </span>
         )}
       </button>
 
+      {/* Chat Panel */}
       {open && (
         <div
           onClick={handleChatClick}
-          className="glass-gold fixed bottom-24 left-6 z-[60] flex h-[560px] max-h-[calc(100vh-200px)] w-[380px] max-w-[calc(100vw-48px)] flex-col overflow-hidden rounded-3xl safe-area-bottom"
+          className="glass-card fixed bottom-24 left-6 z-[60] flex h-[560px] max-h-[calc(100vh-200px)] w-[380px] max-w-[calc(100vw-48px)] flex-col overflow-hidden rounded-3xl safe-area-bottom border-border-gold"
         >
-          <div className="bg-gradient-to-l from-[#FFB71A] to-[#FFA000] p-4 flex items-center justify-between flex-shrink-0">
+          {/* Header */}
+          <div className={`${chatHeaderBg} p-4 flex items-center justify-between flex-shrink-0`}>
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-lg backdrop-blur-sm">
                 ⚖️
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-[#0B0B0C] text-sm truncate">
+                <h3 className={`font-bold ${chatHeaderText} text-sm truncate`}>
                   پرسش و پاسخ مالیاتی
                 </h3>
-                <p className="text-[#0B0B0C]/70 text-xs truncate">
+                <p className={`text-xs truncate ${chatHeaderText}/70`}>
                   پاسخگویی بر اساس دانشنامه تخصصی
                 </p>
               </div>
@@ -211,7 +229,7 @@ export default function ChatbotWidget() {
             <div className="flex items-center gap-1">
               <button
                 onClick={handleClearChat}
-                className="text-[#0B0B0C]/60 hover:text-[#0B0B0C] transition-colors p-1.5 rounded-lg hover:bg-white/20"
+                className={`text-background-primary/60 hover:text-background-primary transition-colors p-1.5 rounded-lg hover:bg-white/20`}
                 title="پاک کردن گفتگو"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,7 +238,7 @@ export default function ChatbotWidget() {
               </button>
               <button
                 onClick={() => setOpen(false)}
-                className="text-[#0B0B0C]/60 hover:text-[#0B0B0C] transition-colors p-1.5 rounded-lg hover:bg-white/20"
+                className={`text-background-primary/60 hover:text-background-primary transition-colors p-1.5 rounded-lg hover:bg-white/20`}
                 title="بستن"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,16 +248,21 @@ export default function ChatbotWidget() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#1A1A1A] custom-scrollbar" onClick={(e) => e.stopPropagation()}>
+          {/* Messages Area */}
+          <div className={`flex-1 overflow-y-auto p-4 space-y-3 ${chatBg} custom-scrollbar`} onClick={(e) => e.stopPropagation()}>
             {error && (
-              <div className="bg-[#C9A227]/10 border border-[#C9A227]/30 text-[#C9A227] p-3 rounded-xl text-sm text-center">
+              <div className="bg-gold-700/10 border border-gold-700/30 text-gold-400 p-3 rounded-xl text-sm text-center animate-fade-in">
                 {error}
               </div>
             )}
 
             {messages.map((msg, i) => (
-              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}` + (i > 0 ? ' animate-fade-in-up' : '')} style={{ animationDelay: `${i * 100}ms` }}>
-                <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed relative ${msg.role === 'user' ? 'bg-[#0B0B0C] text-gray-200 rounded-br-md border border-[#C9A227]/10' : 'bg-[#C9A227]/10 border border-[#C9A227]/20 text-gray-200 rounded-bl-md'}`}>
+              <div 
+                key={msg.id} 
+                className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'} animate-fade-in-up`}
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
+                <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed relative ${msg.role === 'user' ? `${messageUserBg} text-text-primary rounded-br-md border border-border-gold/30` : `${messageBotBg} text-text-primary rounded-bl-md border`}`}>
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                   <span className={`absolute bottom-1 text-[10px] opacity-50 ${msg.role === 'user' ? 'left-3' : 'right-3'}`}>
                     {formatTime(msg.timestamp)}
@@ -250,22 +273,26 @@ export default function ChatbotWidget() {
 
             {loading && (
               <div className="flex justify-end">
-                <div className="bg-[#C9A227]/10 border border-[#C9A227]/20 p-3 rounded-2xl rounded-bl-md">
+                <div className={`${messageBotBg} p-3 rounded-2xl rounded-bl-md border`}>
                   <div className="flex gap-1.5">
-                    <div className="w-2 h-2 bg-[#C9A227] rounded-full animate-bounce bounce-delay-0" />
-                    <div className="w-2 h-2 bg-[#C9A227] rounded-full animate-bounce bounce-delay-150" />
-                    <div className="w-2 h-2 bg-[#C9A227] rounded-full animate-bounce bounce-delay-300" />
+                    <div className="w-2 h-2 bg-gold-400 rounded-full animate-bounce bounce-delay-0" />
+                    <div className="w-2 h-2 bg-gold-400 rounded-full animate-bounce bounce-delay-150" />
+                    <div className="w-2 h-2 bg-gold-400 rounded-full animate-bounce bounce-delay-300" />
                   </div>
                 </div>
               </div>
             )}
 
             {showSuggestions && messages.length <= 2 && (
-              <div className="space-y-2 pt-2">
-                <p className="text-[11px] text-gray-500 text-center">پیشنهادهای ما:</p>
+              <div className="space-y-2 pt-2 animate-fade-in">
+                <p className="text-[11px] text-text-secondary text-center">پیشنهادهای ما:</p>
                 <div className="grid grid-cols-1 gap-2">
                   {SUGGESTED_QUESTIONS.slice(0, 3).map((q, i) => (
-                    <button key={i} onClick={() => handleSuggestedClick(q)} className="w-full text-left bg-[#0B0B0C]/50 border border-[#C9A227]/10 text-gray-400 p-2.5 rounded-xl text-xs hover:bg-[#0B0B0C]/80 hover:border-[#C9A227]/20 hover:text-gray-300 transition-all truncate">
+                    <button 
+                      key={i} 
+                      onClick={() => handleSuggestedClick(q)} 
+                      className="w-full text-left bg-background-tertiary/50 border border-border-gold/20 text-text-secondary p-2.5 rounded-xl text-xs hover:bg-background-tertiary/80 hover:border-border-gold/40 hover:text-text-primary transition-all truncate"
+                    >
                       {q}
                     </button>
                   ))}
@@ -276,7 +303,8 @@ export default function ChatbotWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="border-t border-[#C9A227]/10 p-3 bg-[#121212] flex gap-2 flex-shrink-0">
+          {/* Input Area */}
+          <div className="border-t border-border-gold/30 p-3 bg-background-secondary flex gap-2 flex-shrink-0">
             <input
               ref={inputRef}
               value={input}
@@ -288,13 +316,13 @@ export default function ChatbotWidget() {
                 }
               }}
               placeholder="سوال خود را درباره مالیات، حسابداری یا قوانین بپرسید..."
-              className="flex-1 bg-[#1A1A1A] border border-[#C9A227]/20 text-gray-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/20 placeholder-gray-600 transition-all"
+              className={`flex-1 ${chatInputBg} border border-border-gold/40 text-text-primary p-2.5 rounded-xl text-sm focus:outline-none focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 placeholder:text-text-tertiary transition-all`}
               disabled={loading}
             />
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="bg-gradient-to-l from-[#FFB71A] to-[#FFA000] text-[#0B0B0C] px-4 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-[#C9A227]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex-shrink-0"
+              className="bg-gradient-to-l from-gold-400 to-gold-500 text-background-primary px-4 py-2.5 rounded-xl text-sm font-bold hover:shadow-gold-md disabled:opacity-50 disabled:cursor-not-allowed transition-all flex-shrink-0"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V5m0 0l-7 7m7-7l7 7" />
@@ -302,12 +330,13 @@ export default function ChatbotWidget() {
             </button>
           </div>
 
-          <div className="text-center py-2 text-[10px] text-gray-600 bg-[#0B0B0C]/50">
+          <div className="text-center py-2 text-[10px] text-text-tertiary bg-background-secondary/50">
             سامانه هوشمند پاسخگویی آیان تراز
           </div>
         </div>
       )}
 
+      {/* Backdrop Overlay */}
       {open && (
         <div className="fixed inset-0 z-[55] bg-black/30 backdrop-blur-sm transition-opacity duration-300" onClick={() => setOpen(false)} aria-hidden="true" />
       )}
