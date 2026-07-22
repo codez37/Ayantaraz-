@@ -1,7 +1,16 @@
 {
   "required_status_checks": {
     "strict": true,
-    "contexts": ["lint", "typecheck", "test", "build", "schema"]
+    "contexts": [
+      "lint",
+      "typecheck",
+      "format-check",
+      "schema-validate",
+      "build-validate",
+      "test",
+      "Docker Build and Push",
+      "Quality Checks"
+    ]
   },
   "enforce_admins": true,
   "required_pull_request_reviews": {
@@ -13,5 +22,8 @@
   "required_linear_history": true,
   "allow_force_pushes": false,
   "allow_deletions": false,
-  "block_creations": false
+  "block_creations": false,
+  "required_conversation_resolution": true,
+  "required_signatures": false,
+  "require_signed_commits": false
 }
