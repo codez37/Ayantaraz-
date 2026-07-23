@@ -2,22 +2,22 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'درباره آیان تراز | تیم متخصص حسابداری و مالیات',
-  description: 'آیان تراز با تیمی از متخصصان حسابداری و مالیات با بیش از ۱۵ سال تجربه، خدمات حرفه‌ای مالی و مالیاتی ارائه می‌دهد.',
+  title: '\u062f\u0631\u0628\u0627\u0631\u0647 \u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632 | \u062a\u06cc\u0645 \u0645\u062a\u062e\u0635\u0635 \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u0648 \u0645\u0627\u0644\u06cc\u0627\u062a',
+  description: '\u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632 \u0628\u0627 \u062a\u06cc\u0645\u06cc \u0627\u0632 \u0645\u062a\u062e\u0635\u0635\u0627\u0646 \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u0648 \u0645\u0627\u0644\u06cc\u0627\u062a \u0628\u0627 \u0628\u06cc\u0634 \u0627\u0632 \u06f1\u06f5 \u0633\u0627\u0644 \u062a\u062c\u0631\u0628\u0647\u060c \u062e\u062f\u0645\u0627\u062a \u062d\u0641\u0641\u0647\u060c\u0627\u06cc \u0645\u0627\u0644\u06cc \u0648 \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc \u0627\u0631\u0626\u0647 \u0645\u06cc\u060c\u062f\u0647\u062f.',
   alternates: {
     canonical: 'https://ayantaraz.ir/about',
   },
   openGraph: {
-    title: 'درباره آیان تراز | تیم متخصص حسابداری و مالیات',
-    description: 'آیان تراز با تیمی از متخصصان حسابداری و مالیات با بیش از ۱۵ سال تجربه، خدمات حرفه‌ای مالی و مالیاتی ارائه می‌دهد.',
+    title: '\u062f\u0631\u0628\u0627\u0631\u0647 \u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632 | \u062a\u06cc\u0645 \u0645\u062a\u062e\u0635\u0635 \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u0648 \u0645\u0627\u0644\u06cc\u0627\u062a',
+    description: '\u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632 \u0628\u0627 \u062a\u06cc\u0645\u06cc \u0627\u0632 \u0645\u062a\u062e\u0635\u0635\u0627\u0646 \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u0648 \u0645\u0627\u0644\u06cc\u0627\u062a \u0628\u0627 \u0628\u06cc\u0634 \u0627\u0632 \u06f1\u06f5 \u0633\u0627\u0644 \u062a\u062c\u0631\u0628\u0647\u060c \u062e\u062f\u0645\u0627\u062a \u062d\u0641\u0641\u0647\u060c\u0627\u06cc \u0645\u0627\u0644\u06cc \u0648 \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc \u0627\u0631\u0626\u0647 \u0645\u06cc\u060c\u062f\u0647\u062f.',
     url: 'https://ayantaraz.ir/about',
-    siteName: 'آیان تراز',
+    siteName: '\u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632',
     images: [
       {
         url: 'https://ayantaraz.ir/og-image-about.png',
         width: 1200,
         height: 630,
-        alt: 'آیان تراز - درباره ما',
+        alt: '\u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632 - \u062f\u0631\u0628\u0627\u0631\u0647 \u0645\u0627',
       },
     ],
     locale: 'fa_IR',
@@ -26,23 +26,23 @@ export const metadata: Metadata = {
 };
 
 const team = [
-  { name: 'دکتر محمد رضایی', role: 'مدیر عامل', desc: 'دکترای حسابداری با ۲۰ سال سابقه' },
-  { name: 'مهندس سارا احمدی', role: 'مدیر مالیاتی', desc: 'کارشناس ارشد مالیات با ۱۵ سال تجربه' },
-  { name: 'دکتر علی کریمی', role: 'مشاور ارشد', desc: 'دکترای مدیریت مالی از دانشگاه تهران' },
-  { name: 'مریم حسینی', role: 'مدیر آموزش', desc: 'کارشناس ارشد حسابداری و مدرس دانشگاه' },
+  { name: '\u062f\u06a9\u062a\u0631 \u0645\u062d\u0645\u062f \u0631\u0636\u0627\u06cc\u06cc', role: '\u0645\u062f\u06cc\u0631 \u0639\u0627\u0645\u0644', desc: '\u062f\u06a9\u062a\u0631\u0627\u06cc \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u0628\u0627 \u06f2\u06f0 \u0633\u0627\u0644 \u0633\u0627\u0628\u0642\u0647' },
+  { name: '\u0645\u0647\u0646\u062f\u0633 \u0633\u0627\u0631\u0627 \u0627\u062d\u0645\u062f\u06cc', role: '\u0645\u062f\u06cc\u0631 \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc', desc: '\u06a9\u0627\u0631\u0634\u0646\u0627\u0633 \u0627\u0631\u0634\u062f \u0645\u0627\u0644\u06cc\u0627\u062a \u0628\u0627 \u06f1\u06f5 \u0633\u0627\u0644 \u062a\u062c\u0631\u0628\u0647' },
+  { name: '\u062f\u06a9\u062a\u0631 \u0639\u0644\u06cc \u06a9\u0631\u06cc\u0645\u06cc', role: '\u0645\u0634\u0627\u0648\u0631 \u0627\u0631\u0634\u062f', desc: '\u062f\u06a9\u062a\u0631\u0627\u06cc \u0645\u062f\u06cc\u0631\u06cc\u062a \u0645\u0627\u0644\u06cc\u0627\u062a \u0627\u0632 \u062f\u0627\u0646\u0634\u06af\u0627\u0646 \u062a\u0647\u0631\u0627\u0646' },
+  { name: '\u0645\u0631\u06cc\u0645 \u062d\u0633\u06cc\u0646\u06cc', role: '\u0645\u062f\u06cc\u0631 \u0622\u0645\u0648\u0632\u0634', desc: '\u06a9\u0627\u0631\u0634\u0646\u0627\u0633 \u0627\u0631\u0634\u062f \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u0648 \u0645\u062f\u0631\u0644 \u062f\u0627\u0646\u0634\u06af\u0627\u0646' },
 ];
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-[#1C1C1C] to-[#121212] py-16 md:py-24">
+      <section className="bg-gradient-to-br from-background-secondary to-background-primary py-16 md:py-24">
         <div className="container-mobile text-center">
           <h1 className="text-3xl md:text-5xl font-black text-white mb-4">
-            درباره <span className="text-gold-gradient">آیان تراز</span>
+            \u062f\u0631\u0628\u0627\u0631\u0647 <span className="text-gold-gradient">\u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632</span>
           </h1>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto leading-relaxed">
-            تیمی از متخصصان حسابداری و مالیات با بیش از ۱۵ سال تجربه در کنار شما
+          <p className="text-text-secondary text-lg max-w-2xl mx-auto leading-relaxed">
+            \u062a\u06cc\u0645\u06cc \u0627\u0632 \u0645\u062a\u062e\u0635\u0635\u0627\u0646 \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u0648 \u0645\u0627\u0644\u06cc\u0627\u062a \u0628\u0627 \u0628\u06cc\u0634 \u0627\u0632 \u06f1\u06f5 \u0633\u0627\u0644 \u062a\u062c\u0631\u0628\u0647 \u0634\u0645\u0627
           </p>
         </div>
       </section>
@@ -52,38 +52,38 @@ export default function AboutPage() {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-2xl md:text-3xl font-black text-white mb-6">
-              داستان <span className="text-gold-gradient">ما</span>
+              \u062f\u0627\u0633\u062a\u0627\u0646 <span className="text-gold-gradient">\u0645\u0627</span>
             </h2>
-            <div className="space-y-4 text-gray-400 leading-relaxed">
+            <div className="space-y-4 text-text-secondary leading-relaxed">
               <p>
-                آیان تراز در سال ۱۳۸۸ با هدف ارائه خدمات حرفه‌ای حسابداری و مشاوره مالیاتی آغاز به کار کرد. 
-                ما معتقدیم شفافیت مالی و رعایت قوانین مالیاتی کلید موفقیت هر کسب‌وکاری است.
+                \u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632 \u062f\u0631 \u0633\u0627\u0644 \u06f1\u06f3\u06f8\u06f8 \u0628\u0627 \u0647\u062f\u0641 \u0627\u0631\u0626\u0647 \u062e\u062f\u0645\u0627\u062a \u062d\u0641\u0641\u0647\u060c\u0627\u06cc \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u0648 \u0645\u0634\u0627\u0648\u0631\u0647 \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc \u0622\u063a\u0627\u0632 \u0628\u0647 \u06a9\u0627\u0631 \u06a9\u0646\u062f. 
+                \u0645\u0627 \u0645\u0639\u062a\u0642\u062f\u06cc\u0645 \u0634\u0641\u0627\u0641\u06cc\u062a \u0645\u0627\u0644\u06cc \u0648 \u0631\u0639\u0627\u06cc\u062a \u0642\u0648\u0627\u0646\u06cc\u0646 \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc \u06a9\u0644\u06cc\u062f \u0645\u0648\u0641\u0642\u06cc\u062a \u0647\u0631 \u06a9\u0645\u0628\u0640\u0627\u0646 \u0627\u0633\u062a\u0641\u0647 \u0634\u062f.
               </p>
               <p>
-                تیم ما متشکل از حسابداران رسمی، مشاوران مالیاتی و اساتید دانشگاه است که با 
-                به‌روزترین دانش و تجربه در کنار شما هستند.
+                \u062a\u06cc\u0645 \u0645\u0627 \u0645\u062a\u0634\u06a9\u0644 \u0627\u0632 \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc\u0627\u0646 \u0631\u0633\u0645\u0640\u060c \u0645\u0634\u0627\u0648\u0631\u0627\u0646 \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc \u0648 \u0627\u0633\u062a\u0645\u06cc\u062f \u062f\u0627\u0646\u0634\u06af\u0627\u0646 \u0627\u0633\u062a 
+                \u0628\u0647\u200c\u0631\u0648\u0632\u062a\u0631\u06cc\u0646 \u062f\u0627\u0646 \u0634 \u0648 \u062a\u062c\u0631\u0628\u0647 \u062f\u0631 \u06a9\u0646\u0627\u0631 \u0634\u0645\u0627 \u0647\u0633\u062a\u0646\u062f.
               </p>
               <p>
-                امروز آیان تراز به یکی از معتبرترین برندهای مشاوره مالی و حسابداری در ایران تبدیل شده 
-                و به بیش از ۵۰۰ کسب‌وکار در سراسر کشور خدمات ارائه می‌دهد.
+                \u0627\u0645\u0631\u0648\u0632 \u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632 \u0628\u0647 \u06cc\u06a9\u06cc \u0627\u0632 \u0645\u0639\u062a\u0628\u0631\u062a\u0631\u06cc\u0646 \u0628\u0631\u0646\u062f\u0647\u0627\u06cc \u0645\u0634\u0627\u0648\u0631\u0647 \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc \u062f\u0631 \u06cc\u06a9\u0627\u0646 \u062a\u0628\u062f\u0627\u0644 \u0634\u062f\u0647 
+                \u0648 \u0628\u0647 \u0628\u06cc\u0634 \u0627\u0632 \u06f5\u06f0\u06f0 \u06a9\u0633\u0628\u200c\u0648\u06a9\u0627\u0631 \u062f\u0631 \u0633\u0631\u0627\u0646 \u0634\u0648\u06cc\u062f \u062e\u062f\u0645\u0627\u062a \u0627\u0631\u0626\u0647 \u0645\u06cc\u200c\u062f\u0647\u062f.
               </p>
             </div>
           </div>
           <div className="card-dark p-8 text-center">
-            <div className="text-6xl mb-4">🎯</div>
-            <h3 className="text-xl font-bold text-white mb-3">مأموریت ما</h3>
-            <p className="text-gray-400 leading-relaxed">
-              توانمندسازی کسب‌وکارها با ارائه خدمات حرفه‌ای مالی و مالیاتی، 
-              تا بتوانند با اطمینان و آگاهی بیشتری مسیر رشد خود را طی کنند.
+            <div className="text-6xl mb-4">\ud83c\udfaf</div>
+            <h3 className="text-xl font-bold text-white mb-3">\u0645\u0622\u0645\u0648\u0631\u06cc\u062a \u0645\u0627</h3>
+            <p className="text-text-secondary leading-relaxed">
+              \u062a\u0648\u0627\u0646\u0645\u0646\u062f\u0633\u0627\u0632\u06cc \u06a9\u0633\u0628\u200c\u0648\u06a9\u0627\u0631\u0647\u0627 \u0628\u0627 \u0627\u0631\u0626\u0647 \u062e\u062f\u0645\u0627\u062a \u062d\u0641\u0641\u0647\u060c\u0627\u06cc \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc\u060c 
+              \u062a\u0627 \u0628\u062a\u0648\u0627\u0646\u0646\u062f \u0628\u0627 \u0627\u0637\u0645\u06cc\u0646\u0627\u062a \u0648 \u0622\u06af\u0627\u0647\u06cc \u0628\u06cc\u0634\u062a\u0631\u06cc \u0645\u0644\u0641 \u0632\u0645\u0627\u0646\u06cc \u0631\u06cc\u0633 \u06a9\u0646\u0646\u062f.
             </p>
             <div className="mt-6 grid grid-cols-2 gap-4">
-              <div className="bg-[#121212] p-4 rounded-xl">
-                <div className="text-2xl font-black text-gold-gradient">۱۵+</div>
-                <div className="text-xs text-gray-500">سال تجربه</div>
+              <div className="bg-background-tertiary p-4 rounded-xl">
+                <div className="text-2xl font-black text-gold-gradient">\u06f1\u06f5+</div>
+                <div className="text-xs text-text-tertiary">\u0633\u0627\u0644 \u062a\u062c\u0631\u0628\u0647</div>
               </div>
-              <div className="bg-[#121212] p-4 rounded-xl">
-                <div className="text-2xl font-black text-gold-gradient">۵۰۰+</div>
-                <div className="text-xs text-gray-500">مشتری</div>
+              <div className="bg-background-tertiary p-4 rounded-xl">
+                <div className="text-2xl font-black text-gold-gradient">\u06f5\u06f0\u06f0+</div>
+                <div className="text-xs text-text-tertiary">\u0645\u0634\u062a\u0631\u06cc</div>
               </div>
             </div>
           </div>
@@ -91,22 +91,22 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="bg-[#0B0B0C] py-16">
+      <section className="bg-background-primary py-16">
         <div className="container-mobile">
           <h2 className="text-2xl md:text-3xl font-black text-gold-gradient text-center mb-12">
-            ارزش‌های ما
+            \u0627\u0631\u0632\u0634\u060c\u0647\u0627\u06cc \u0645\u0627
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: '🎯', title: 'دقت', desc: 'بالاترین استانداردهای دقت در خدمات' },
-              { icon: '🔒', title: 'امنیت', desc: 'حفظ محرمانگی اطلاعات مالی شما' },
-              { icon: '⚡', title: 'سرعت', desc: 'پاسخگویی سریع به نیازهای شما' },
-              { icon: '🤝', title: 'اعتماد', desc: 'رابطه صادقانه و شفاف با مشتریان' },
+              { icon: '\ud83c\udfaf', title: '\u062f\u0642\u062a', desc: '\u0628\u0627\u0644\u0627\u062a\u0631\u06cc\u0646 \u0627\u0633\u062a\u0627\u0646\u062f\u0627\u0631\u06cc \u062f\u0642\u062a \u062f\u0631 \u062e\u062f\u0645\u0627\u062a' },
+              { icon: '\ud83d\udd12', title: '\u0627\u0645\u0646\u06cc\u062a', desc: '\u062d\u0641\u0638 \u0645\u062d\u0641\u0645\u0627\u0646\u06af\u06cc \u0627\u0637\u0644\u0627\u0639\u0627\u062a \u0645\u0627\u0644\u06cc \u0634\u0645\u0627' },
+              { icon: '\u26a1', title: '\u0633\u0631\u0639\u062a', desc: '\u067e\u0627\u0633\u062e\u0648\u06cc\u06cc \u0633\u0631\u06cc\u0639 \u0628\u0647 \u0646\u06cc\u0627\u0632\u0647\u0627\u06cc \u0634\u0645\u0627' },
+              { icon: '\ud83e\udd1d', title: '\u0627\u0639\u062a\u0645\u0627\u062f', desc: '\u0631\u0627\u0628\u0637\u0647 \u0635\u0627\u062f\u0642\u0627\u0646\u0647 \u0648 \u0633\u0641\u0627\u0641 \u0628\u0627 \u0645\u0634\u062a\u0631\u06cc\u0627\u0646' },
             ].map(v => (
               <div key={v.title} className="card-dark p-5 text-center">
                 <div className="text-3xl mb-3">{v.icon}</div>
                 <h3 className="text-white font-bold mb-1">{v.title}</h3>
-                <p className="text-gray-500 text-xs">{v.desc}</p>
+                <p className="text-text-tertiary text-xs">{v.desc}</p>
               </div>
             ))}
           </div>
@@ -116,32 +116,32 @@ export default function AboutPage() {
       {/* Team */}
       <section className="container-mobile py-16">
         <h2 className="text-2xl md:text-3xl font-black text-gold-gradient text-center mb-12">
-          تیم ما
+          \u062a\u06cc\u0645 \u0645\u0627
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {team.map(m => (
             <div key={m.name} className="card-dark p-5 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#C9A227] to-[#FFA000] rounded-full mx-auto mb-3 flex items-center justify-center text-white font-black text-xl">
+              <div className="w-16 h-16 bg-gradient-to-br from-gold-primary to-gold-500 rounded-full mx-auto mb-3 flex items-center justify-center text-white font-black text-xl">
                 {m.name[0]}
               </div>
               <h3 className="text-white font-bold text-sm">{m.name}</h3>
-              <p className="text-[#C9A227] text-xs font-bold mt-1">{m.role}</p>
-              <p className="text-gray-500 text-xs mt-2">{m.desc}</p>
+              <p className="text-gold-primary text-xs font-bold mt-1">{m.role}</p>
+              <p className="text-text-tertiary text-xs mt-2">{m.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* CTA */}
-      <section className="bg-gradient-to-br from-[#1C1C1C] to-[#121212] py-16 text-center">
+      <section className="bg-gradient-to-br from-background-secondary to-background-primary py-16 text-center">
         <div className="container-mobile">
           <h2 className="text-2xl md:text-3xl font-black text-white mb-4">
-            آماده همکاری با ما هستید؟
+            \u0622\u0645\u0627\u062f\u0647 \u0647\u0645\u06a9\u0627\u0631\u06cc \u0628\u0627 \u0645\u0627 \u0647\u0633\u062a\u06cc\u062f\u061f
           </h2>
-          <p className="text-gray-300 mb-8">با تیم ما تماس بگیرید یا درخواست مشاوره ثبت کنید</p>
+          <p className="text-text-secondary mb-8">\u0628\u0627 \u062a\u06cc\u0645 \u0645\u0627 \u062a\u0645\u0627\u0633 \u0628\u06af\u06cc\u0631\u06cc\u062f \u06cc\u0627 \u062f\u0631\u062e\u0648\u0627\u0633\u062a \u0645\u0634\u0627\u0648\u0631\u0647 \u062b\u0628\u062a \u06a9\u0646\u06cc\u062f</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/consultation" className="btn-gold">ثبت درخواست مشاوره</Link>
-            <Link href="/contact" className="btn-outline-gold">تماس با ما</Link>
+            <Link href="/consultation" className="btn-gold">\u062b\u0628\u062a \u062f\u0631\u062e\u0648\u0627\u0633\u062a \u0645\u0634\u0627\u0648\u0631\u0647</Link>
+            <Link href="/contact" className="btn-outline-gold">\u062a\u0645\u0627\u0633 \u0628\u0627 \u0645\u0627</Link>
           </div>
         </div>
       </section>

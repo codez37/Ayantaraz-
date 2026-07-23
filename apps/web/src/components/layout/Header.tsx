@@ -7,7 +7,8 @@ import { useAuth } from '@/lib/auth';
 import { useGlassmorphicTheme } from '@/providers/GlassmorphicThemeProvider';
 
 // ============================================
-// Header Component - Luxury Mobile-First Refactor
+// Header Component - Modern Black Gold Professional
+// Mobile-First, Accessible, Touch-Friendly
 // ============================================
 
 export default function Header() {
@@ -16,24 +17,24 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Theme-based styling
+  // Theme-based styling - Updated to Modern Black Gold
   const isDark = theme === 'dark';
   const headerBg = isDark ? 'bg-background-primary/95' : 'bg-background-primary/90';
   const headerBorder = isDark ? 'border-border-gold/20' : 'border-border-gold/30';
-  const shadowColor = isDark ? 'rgba(212, 175, 55, 0.15)' : 'rgba(212, 175, 55, 0.2)';
+  const shadowColor = isDark ? 'rgba(201, 162, 39, 0.15)' : 'rgba(201, 162, 39, 0.2)';
 
   // ==========================================
   // NAVIGATION ITEMS
   // ==========================================
   const navItems = [
-    { href: '/services', label: 'خدمات' },
-    { href: '/articles', label: 'مقالات' },
-    { href: '/videos', label: 'ویدیوها' },
-    { href: '/minibooks', label: 'مینی‌بوک‌ها' },
-    { href: '/courses', label: 'دوره‌ها' },
-    { href: '/tax-consultant', label: 'دستیار هوشمند' },
-    { href: '/about', label: 'درباره ما' },
-    { href: '/contact', label: 'تماس' },
+    { href: '/services', label: '\u062e\u062f\u0645\u0627\u062a' },
+    { href: '/articles', label: '\u0645\u0642\u0627\u0644\u0627\u062a' },
+    { href: '/videos', label: '\u0648\u06cc\u062f\u06cc\u0648\u0647\u0627' },
+    { href: '/minibooks', label: '\u0645\u06cc\u0646\u06cc\u060c\u0628\u0648\u06a9\u060c\u0647\u0627' },
+    { href: '/courses', label: '\u062f\u0648\u0631\u0647\u060c\u0647\u0627' },
+    { href: '/tax-consultant', label: '\u062f\u0633\u062a\u06cc\u0627\u0631 \u0647\u0648\u0634\u0645\u0646\u062f' },
+    { href: '/about', label: '\u062f\u0631\u0628\u0627\u0631\u0647 \u0645\u0627' },
+    { href: '/contact', label: '\u062a\u0645\u0627\u0633' },
   ];
 
   // ==========================================
@@ -88,7 +89,7 @@ export default function Header() {
             <Link href="/" className="flex items-center flex-shrink-0">
               <Image
                 src="/logo.webp"
-                alt="آیان تراز"
+                alt="\u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632"
                 width={160}
                 height={120}
                 className="hidden md:block h-10 w-auto"
@@ -96,7 +97,7 @@ export default function Header() {
               />
               <Image
                 src="/logo-mobile.webp"
-                alt="آیان تراز"
+                alt="\u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632"
                 width={90}
                 height={68}
                 className="md:hidden h-8 w-auto"
@@ -110,7 +111,7 @@ export default function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="px-3 py-2 text-sm text-text-secondary hover:text-gold-400 hover:bg-gold-900/10 transition-colors duration-200 rounded-lg"
+                  className="px-3 py-2 text-sm text-text-secondary hover:text-gold-primary hover:bg-gold-900/10 transition-colors duration-200 rounded-lg"
                 >
                   {item.label}
                 </Link>
@@ -126,23 +127,23 @@ export default function Header() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="text-sm text-text-secondary hover:text-gold-400 transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-gold-900/10"
+                    className="text-sm text-text-secondary hover:text-gold-primary transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-gold-900/10"
                   >
                     {user?.firstName || user?.phone}
                   </Link>
                   {user?.role === 'admin' && (
                     <Link
                       href="/admin"
-                      className="text-sm text-gold-400 hover:text-gold-300 border border-gold-400/30 px-3 py-1.5 rounded-lg transition-colors duration-200"
+                      className="text-sm text-gold-primary hover:text-gold-400 border border-gold-primary/30 px-3 py-1.5 rounded-lg transition-colors duration-200"
                     >
-                      پنل مدیریت
+                      \u067e\u0646\u0644 \u0645\u062f\u06cc\u0631\u06cc\u062a
                     </Link>
                   )}
                   <button
                     onClick={() => logout()}
                     className="text-sm text-red-400 hover:text-red-300 px-3 py-2 rounded-lg hover:bg-red-900/20 transition-colors duration-200"
                   >
-                    خروج
+                    \u062e\u0631\u0648\u062c
                   </button>
                 </>
               ) : (
@@ -150,16 +151,16 @@ export default function Header() {
                   href="/auth"
                   className="btn-gold text-sm"
                 >
-                  ورود / ثبت‌نام
+                  \u0648\u0631\u0648\u062f / \u062b\u0628\u062a\u060c\u0646\u0627\u0645
                 </Link>
               )}
             </div>
 
             {/* Mobile Hamburger */}
             <button
-              className="md:hidden p-2.5 text-gold-400 hover:bg-gold-900/10 rounded-lg transition-colors"
+              className="md:hidden p-2.5 text-gold-primary hover:bg-gold-900/10 rounded-lg transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="منو"
+              aria-label="\u0645\u0646\u0648"
               aria-expanded={menuOpen}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,7 +180,7 @@ export default function Header() {
             className="md:hidden fixed inset-0 bg-background-primary/98 backdrop-blur-md z-[199] animate-in fade-in slide-in-from-top-4 duration-200"
             role="dialog"
             aria-modal="true"
-            aria-label="منوی اصلی"
+            aria-label="\u0645\u0646\u0648\u06cc \u0627\u0635\u0644\u06cc"
           >
             <div className="flex flex-col h-full">
               {/* Mobile Nav Items */}
@@ -189,7 +190,7 @@ export default function Header() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="block px-4 py-3 text-base text-text-secondary hover:text-gold-400 hover:bg-gold-900/10 rounded-lg transition-colors duration-200 border border-transparent hover:border-border-gold/20"
+                      className="block px-4 py-3 text-base text-text-secondary hover:text-gold-primary hover:bg-gold-900/10 rounded-lg transition-colors duration-200 border border-transparent hover:border-border-gold/20"
                       onClick={() => setMenuOpen(false)}
                     >
                       {item.label}
@@ -204,10 +205,10 @@ export default function Header() {
                   <>
                     <Link
                       href="/dashboard"
-                      className="block px-4 py-3 text-base text-text-secondary hover:text-gold-400 hover:bg-gold-900/10 rounded-lg transition-colors duration-200"
+                      className="block px-4 py-3 text-base text-text-secondary hover:text-gold-primary hover:bg-gold-900/10 rounded-lg transition-colors duration-200"
                       onClick={() => setMenuOpen(false)}
                     >
-                      پنل کاربری
+                      \u067e\u0646\u0644 \u06a9\u0627\u0631\u0628\u0631\u06cc
                       <span className="text-sm text-text-tertiary block">
                         {user?.firstName || user?.phone}
                       </span>
@@ -215,26 +216,26 @@ export default function Header() {
                     {user?.role === 'admin' && (
                       <Link
                         href="/admin"
-                        className="block px-4 py-3 text-base text-gold-400 hover:bg-gold-900/10 rounded-lg transition-colors duration-200"
+                        className="block px-4 py-3 text-base text-gold-primary hover:bg-gold-900/10 rounded-lg transition-colors duration-200"
                         onClick={() => setMenuOpen(false)}
                       >
-                        پنل مدیریت
+                        \u067e\u0646\u0644 \u0645\u062f\u06cc\u0631\u06cc\u062a
                       </Link>
                     )}
                     <button
                       onClick={() => { logout(); setMenuOpen(false); }}
                       className="block w-full text-right px-4 py-3 text-base text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-colors duration-200"
                     >
-                      خروج
+                      \u062e\u0631\u0648\u062c
                     </button>
                   </>
                 ) : (
                   <Link
                     href="/auth"
-                    className="block px-4 py-3 text-base text-gold-400 text-center bg-gold-900/10 hover:bg-gold-900/20 rounded-lg transition-colors duration-200 font-bold"
+                    className="block px-4 py-3 text-base text-gold-primary text-center bg-gold-900/10 hover:bg-gold-900/20 rounded-lg transition-colors duration-200 font-bold"
                     onClick={() => setMenuOpen(false)}
                   >
-                    ورود / ثبت‌نام
+                    \u0648\u0631\u0648\u062f / \u062b\u0628\u062a\u060c\u0646\u0627\u0645
                   </Link>
                 )}
               </div>
