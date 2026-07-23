@@ -13,7 +13,9 @@ concurrency:
 env:
   NODE_VERSION: 22
   PNPM_VERSION: 11.9.0
-  DOCKER_COMPOSE_VERSION: v2.24.5
+  REGISTRY: ghcr.io
+  IMAGE_NAME_API: codez37/ayantaraz/api
+  IMAGE_NAME_WEB: codez37/ayantaraz/web
 
 jobs:
   # =============================================================================
@@ -176,41 +178,59 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
+      - name: Extract metadata for API
+        id: meta-api
         uses: docker/metadata-action@v5
         with:
-          images: |
-            ghcr.io/${{ github.repository }}/api
-            ghcr.io/${{ github.repository }}/web
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}
           tags: |
             type=ref,event=branch
             type=ref,event=tag
-            type=sha
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Extract metadata for Web
+        id: meta-web
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_WEB }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push API image
+        id: build-api
         uses: docker/build-push-action@v5
         with:
           context: .
           file: apps/api/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/${{ github.repository }}/api:latest,ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
 
       - name: Build and push Web image
+        id: build-web
         uses: docker/build-push-action@v5
         with:
           context: .
           file: apps/web/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/${{ github.repository }}/web:latest,ghcr.io/${{ github.repository }}/web:${{ github.sha }}
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
 
   # =============================================================================
   # Job 4: Deploy to Production
@@ -235,58 +255,42 @@ jobs:
       - name: Deploy via SSH
         env:
           SSH_USER: ${{ secrets.SSH_USER || 'root' }}
-          SERVER_IP: 202.133.91.13
+          SERVER_HOST: ${{ secrets.SERVER_HOST }} # استفاده از Secret به جای IP هاردکد شده
         run: |
-          ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} "
+          ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_HOST} "
             cd /opt/Ayantaraz- || exit 1
             git fetch origin main
             git checkout main
             git pull origin main
             
-            # Make sure scripts are executable
             chmod +x deploy-production.sh validate-production.sh
             
-            # Stop existing containers
             docker compose -f docker-compose.yml -f docker-compose.production.yml down || true
-            
-            # Pull latest images
             docker compose -f docker-compose.yml -f docker-compose.production.yml pull
-            
-            # Start containers
             docker compose -f docker-compose.yml -f docker-compose.production.yml up -d --build
             
-            # Wait for services
             sleep 30
-            
-            # Run migrations
             docker compose -f docker-compose.yml -f docker-compose.production.yml exec api npx prisma migrate deploy --schema=/app/prisma/schema.prisma
-            
-            # Seed database
             docker compose -f docker-compose.yml -f docker-compose.production.yml exec api node /app/prisma/seed.js
           "
 
       - name: Verify deployment
         env:
-          SSH_USER: ${{ secrets.SSH_USER || 'root' }}
-          SERVER_IP: 202.133.91.13
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
         run: |
-          # Wait a bit for everything to start
           sleep 10
-          
-          # Check health endpoint
-          HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${SERVER_IP}:3001/health)
+          # استفاده از دامنه یا متغیر به جای IP مستقیم (در صورت داشتن دامنه روی سکرت قابل تنظیم است)
+          HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${SERVER_HOST}:3001/health)
           if [ "$HEALTH_STATUS" != "200" ]; then
             echo "Health check failed with status: $HEALTH_STATUS"
             exit 1
           fi
           
-          # Check web endpoint
-          WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${SERVER_IP}:3000)
+          WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${SERVER_HOST}:3000)
           if [ "$WEB_STATUS" != "200" ]; then
             echo "Web check failed with status: $WEB_STATUS"
             exit 1
           fi
-          
           echo "Deployment verified successfully!"
 
   # =============================================================================
@@ -333,17 +337,14 @@ jobs:
         run: sleep 60
 
       - name: Check API response time
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
         run: |
-          SERVER_IP=202.133.91.13
-          
-          # Test health endpoint response time
           START=$(date +%s%N)
-          curl -s http://${SERVER_IP}:3001/health > /dev/null
+          curl -s http://${SERVER_HOST}:3001/health > /dev/null
           END=$(date +%s%N)
           DURATION=$((($END - $START) / 1000000))
-          
           echo "Health endpoint response time: ${DURATION}ms"
-          
           if [ $DURATION -gt 1000 ]; then
             echo "Warning: Response time exceeds 1 second"
           fi
@@ -363,24 +364,21 @@ jobs:
           echo "Deployment Status Report"
           echo "======================="
           echo ""
-          
           if [ ${{ needs.deploy-production.result }} == 'success' ]; then
             echo "✅ Deployment: SUCCESS"
           else
             echo "❌ Deployment: FAILED"
           fi
-          
           if [ ${{ needs.security-scan.result }} == 'success' ]; then
             echo "✅ Security Scan: PASSED"
           else
             echo "❌ Security Scan: FAILED"
           fi
-          
           if [ ${{ needs.performance-check.result }} == 'success' ]; then
             echo "✅ Performance Check: PASSED"
           else
             echo "❌ Performance Check: FAILED"
           fi
-          
           echo ""
-          echo "Access your deployment at: http://202.133.91.13"
+          echo "Deployment pipeline executed successfully."
+          
