@@ -36,12 +36,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
 
-      - name: Enable Corepack and pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
         run: |
@@ -125,12 +128,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
 
-      - name: Enable Corepack and pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
         run: |
@@ -255,7 +261,7 @@ jobs:
       - name: Deploy via SSH
         env:
           SSH_USER: ${{ secrets.SSH_USER || 'root' }}
-          SERVER_HOST: ${{ secrets.SERVER_HOST }} # استفاده از Secret به جای IP هاردکد شده
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
         run: |
           ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_HOST} "
             cd /opt/Ayantaraz- || exit 1
@@ -279,7 +285,6 @@ jobs:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
         run: |
           sleep 10
-          # استفاده از دامنه یا متغیر به جای IP مستقیم (در صورت داشتن دامنه روی سکرت قابل تنظیم است)
           HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${SERVER_HOST}:3001/health)
           if [ "$HEALTH_STATUS" != "200" ]; then
             echo "Health check failed with status: $HEALTH_STATUS"
