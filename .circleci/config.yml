@@ -23,12 +23,14 @@ jobs:
       - run:
           name: Setup Corepack and pnpm
           command: |
-            # Use $HOME everywhere — never bare ~ or \~
             COREPACK_DIR="$HOME/.npm-global"
             mkdir -p "$COREPACK_DIR/bin"
             
             npm install -g corepack@latest --prefix "$COREPACK_DIR"
-            export PATH="$COREPACK_DIR/bin:$PATH"
+            
+            # اضافه کردن دائمی مسیر به محیط CircleCI برای تمام استپ‌ها
+            echo "export PATH=\"$COREPACK_DIR/bin:\$PATH\"" >> $BASH_ENV
+            source $BASH_ENV
             
             corepack enable --install-directory "$COREPACK_DIR/bin"
             corepack prepare pnpm@11.9.0 --activate
@@ -63,3 +65,4 @@ workflows:
   build_and_test_workflow:
     jobs:
       - build-and-test
+      
