@@ -13,8 +13,8 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME_API: ${{ github.repository }}/api
-  IMAGE_NAME_WEB: ${{ github.repository }}/web
+  IMAGE_NAME_API: codez37/ayantaraz/api
+  IMAGE_NAME_WEB: codez37/ayantaraz/web
 
 jobs:
   build-and-push:
@@ -34,7 +34,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # این بخش به صورت موقت نام ریپازیتوری شما را برای داکر کوچک می‌کند
       - name: Lowercase Repository Name for Docker
         id: repo-name
         run: |
@@ -55,7 +54,6 @@ jobs:
         id: meta-api
         uses: docker/metadata-action@v5
         with:
-          # اینجا از نسخه تبدیل‌شده استفاده می‌شود تا داکر ایراد نگیرد
           images: ${{ env.REGISTRY }}/${{ env.LOW_REPO }}/api
           tags: |
             type=ref,event=branch
@@ -68,7 +66,6 @@ jobs:
         id: meta-web
         uses: docker/metadata-action@v5
         with:
-          # اینجا از نسخه تبدیل‌شده استفاده می‌شود تا داکر ایراد نگیرد
           images: ${{ env.REGISTRY }}/${{ env.LOW_REPO }}/web
           tags: |
             type=ref,event=branch

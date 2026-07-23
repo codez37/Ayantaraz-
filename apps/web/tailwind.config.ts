@@ -9,17 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // DARK GOLD LUXURY Palette
+        // MODERN BLACK GOLD PROFESSIONAL Palette
         background: {
-          primary: '#0B0C0E',
-          secondary: '#121418',
-          tertiary: '#1A1B20',
+          primary: '#08090B',
+          secondary: '#111318',
+          tertiary: '#17191F',
         },
         surface: {
           DEFAULT: 'rgba(255, 255, 255, 0.03)',
           elevated: 'rgba(255, 255, 255, 0.05)',
         },
         gold: {
+          primary: '#C9A227',
+          soft: '#A88632',
           50: '#FFF9E6',
           100: '#FFE8B3',
           200: '#FFD780',
@@ -27,20 +29,20 @@ const config: Config = {
           400: '#FFB71A',
           500: '#FFA000',
           600: '#E68A00',
-          700: '#D4AF37',  // Primary Gold
-          800: '#C5A059',  // Secondary Gold
+          700: '#D4AF37',
+          800: '#C5A059',
           900: '#A0781E',
           950: '#7D5A15',
         },
         text: {
-          primary: '#F5F5F7',
-          secondary: '#9E9E9E',
+          primary: '#F5F5F0',
+          secondary: '#A7A7A7',
           tertiary: '#6B7280',
-          inverse: '#0B0C0E',
+          inverse: '#08090B',
         },
         border: {
-          gold: 'rgba(212, 175, 55, 0.2)',
-          'gold-hover': 'rgba(212, 175, 55, 0.35)',
+          gold: 'rgba(201, 162, 39, 0.2)',
+          'gold-hover': 'rgba(201, 162, 39, 0.35)',
           subtle: 'rgba(255, 255, 255, 0.05)',
         },
       },
@@ -64,10 +66,10 @@ const config: Config = {
         '5xl': '2.5rem',
       },
       boxShadow: {
-        'gold-sm': '0 2px 8px 0 rgba(212, 175, 55, 0.25)',
-        'gold-md': '0 4px 14px 0 rgba(212, 175, 55, 0.35)',
-        'gold-lg': '0 8px 24px 0 rgba(212, 175, 55, 0.3)',
-        'gold-xl': '0 12px 32px 0 rgba(212, 175, 55, 0.25)',
+        'gold-sm': '0 2px 8px 0 rgba(201, 162, 39, 0.15)',
+        'gold-md': '0 4px 14px 0 rgba(201, 162, 39, 0.2)',
+        'gold-lg': '0 8px 24px 0 rgba(201, 162, 39, 0.15)',
+        'gold-xl': '0 12px 32px 0 rgba(201, 162, 39, 0.1)',
       },
       backdropBlur: {
         xs: '2px',
@@ -77,10 +79,10 @@ const config: Config = {
         xl: '18px',
       },
       backgroundImage: {
-        'gradient-gold-primary': 'linear-gradient(135deg, #D4AF37 0%, #C5A059 100%)',
+        'gradient-gold-primary': 'linear-gradient(135deg, #C9A227 0%, #A88632 100%)',
         'gradient-gold-light': 'linear-gradient(135deg, #FFB71A 0%, #FFA000 100%)',
-        'gradient-gold-dark': 'linear-gradient(135deg, #C5A059 0%, #A0781E 100%)',
-        'aurora-dark': 'radial-gradient(circle at 80% 10%, rgba(212, 175, 55, 0.11), transparent 28rem), radial-gradient(circle at 10% 70%, rgba(184, 134, 45, 0.10), transparent 24rem), linear-gradient(180deg, #0B0C0E 0%, #121418 48%, #0B0C0E 100%)',
+        'gradient-gold-dark': 'linear-gradient(135deg, #A88632 0%, #7D5A15 100%)',
+        'aurora-dark': 'radial-gradient(circle at 80% 10%, rgba(201, 162, 39, 0.08), transparent 28rem), radial-gradient(circle at 10% 70%, rgba(168, 134, 50, 0.06), transparent 24rem), linear-gradient(180deg, #08090B 0%, #111318 48%, #08090B 100%)',
       },
       animation: {
         'aurora-pan': 'aurora-pan 10s ease-in-out infinite',
@@ -123,8 +125,8 @@ const config: Config = {
           to: { opacity: '1', transform: 'scale(1)' },
         },
         'pulse-gold': {
-          '0%, 100%': { boxShadow: '0 0 0 0 rgba(212, 175, 55, 0.4)' },
-          '50%': { boxShadow: '0 0 0 10px rgba(212, 175, 55, 0)' },
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(201, 162, 39, 0.4)' },
+          '50%': { boxShadow: '0 0 0 10px rgba(201, 162, 39, 0)' },
         },
         'shimmer': {
           '0%': { backgroundPosition: '-200% 0' },
@@ -138,6 +140,14 @@ const config: Config = {
       transitionTimingFunction: {
         'gold': 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+      },
+      screens: {
+        'xs': '320px',
+        'sm': '375px',
+        'md': '430px',
+        'lg': '768px',
+        'xl': '1024px',
+        '2xl': '1440px',
       },
     },
   },

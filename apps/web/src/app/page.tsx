@@ -6,23 +6,23 @@ import HeroSlider from '@/components/home/HeroSlider';
 import { useGlassmorphicTheme } from '@/providers/GlassmorphicThemeProvider';
 
 const stats = [
-  { label: 'مسیر مشاوره بدون پرداخت آنلاین', value: '۱۰۰٪ انسانی' },
-  { label: 'محتوای آموزشی و مینی‌بوک', value: 'رایگان/کنترل‌شده' },
-  { label: 'پرسش و پاسخ هوشمند', value: 'فعال' },
+  { label: '\u0645\u0633\u06cc\u0631 \u0645\u0634\u0627\u0648\u0631\u0647 \u0628\u062f\u0648\u0646 \u067e\u0631\u062f\u0627\u062e\u062a \u0622\u0646\u0644\u0627\u06cc\u0646', value: '\u06f1\u06f0\u06f0\u066a \u0627\u0646\u0633\u0627\u0646\u06cc' },
+  { label: '\u0645\u062d\u062a\u0648\u0627\u06cc \u0622\u0645\u0648\u0632\u0634\u06cc \u0648 \u0645\u06cc\u0646\u06cc\u060c\u0628\u0648\u06a9', value: '\u0631\u0627\u06cc\u06af\u0627\u0646/\u06a9\u0646\u062a\u0631\u0644\u060c\u0634\u062f\u0647' },
+  { label: '\u067e\u0631\u0633\u0634 \u0648 \u067e\u0627\u0633\u062e \u0647\u0648\u0634\u0645\u0646\u062f', value: '\u0641\u0639\u0627\u0644' },
 ];
 
 const quickActions = [
-  { href: '/consultation', title: 'ثبت وقت مشاوره', desc: 'بدون درگاه پرداخت؛ ثبت درخواست و تماس کارشناس', icon: '📅' },
-  { href: '/minibooks', title: 'دانلود مینی‌بوک', desc: 'دریافت فایل‌های آموزشی حسابداری و مالیات', icon: '📚' },
-  { href: '/tax-consultant', title: 'دستیار هوشمند', desc: 'پرسش و پاسخ تخصصی مالیاتی و حسابداری', icon: '🤖' },
-  { href: '/auth', title: 'ورود / ثبت‌نام', desc: 'ورود امن با کد یکبارمصرف پیامکی', icon: '🔐' },
+  { href: '/consultation', title: '\u062b\u0628\u062a \u0648\u0642\u062a \u0645\u0634\u0627\u0648\u0631\u0647', desc: '\u0628\u062f\u0648\u0646 \u062f\u0631\u06af\u0627\u0647 \u067e\u0631\u062f\u0627\u062e\u062a\u060c \u062b\u0628\u062a \u062f\u0631\u062e\u0648\u0627\u0633\u062a \u0648 \u0625\u0645\u0627\u0631 \u06a9\u0627\u0631\u0646\u0627\u0633', icon: '\ud83d\udcc5' },
+  { href: '/minibooks', title: '\u062f\u0627\u0646\u0644\u0648\u062f \u0645\u06cc\u0646\u06cc\u060c\u0628\u0648\u06a9', desc: '\u062f\u0631\u06cc\u0627\u0641\u062a \u0641\u0627\u06cc\u0644\u060c\u0647\u0627\u06cc \u0622\u0645\u0648\u0632\u0634\u06cc \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u0648 \u0645\u0627\u0644\u06cc\u0627\u062a', icon: '\ud83d\udcda' },
+  { href: '/tax-consultant', title: '\u062f\u0633\u062a\u06cc\u0627\u0631 \u0647\u0648\u0634\u0645\u0646\u062f', desc: '\u067e\u0631\u0633\u0634 \u0648 \u067e\u0627\u0633\u062e \u062a\u062e\u0635\u0635\u06cc \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc \u0648 \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc', icon: '\ud83e\udd16' },
+  { href: '/auth', title: '\u0648\u0631\u0648\u062f / \u062b\u0628\u062a\u060c\u0646\u0627\u0645', desc: '\u0648\u0631\u0648\u062f \u0627\u0645\u0646 \u0628\u0627 \u06a9\u062f \u06cc\u06a9\u0628\u0627\u0631\u0645\u0645\u0631 \u067e\u06cc\u0627\u0645\u0636\u06cc', icon: '\ud83d\udd10' },
 ];
 
 const services = [
-  { title: 'مشاوره مالیاتی', desc: 'مشاوره تخصصی در زمینه مالیات بر ارزش افزوده، مالیات بر درآمد و مالیات‌های مستقیم', icon: '⚖️' },
-  { title: 'حسابداری حرفه‌ای', desc: 'خدمات حسابداری کامل از ثبت اسناد تا تهیه گزارشات مالی و مالیاتی', icon: '📊' },
-  { title: 'تنظیم اظهارنامه', desc: 'تهیه و ارسال اظهارنامه‌های مالیاتی با دقت و سرعت بالا', icon: '📝' },
-  { title: 'آموزش تخصصی', desc: 'دوره‌ها و کارگاه‌های آموزشی در زمینه مالیات و حسابداری', icon: '🎓' },
+  { title: '\u0645\u0634\u0627\u0648\u0631\u0647 \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc', desc: '\u0645\u0634\u0627\u0648\u0631\u0647 \u062a\u062e\u0635\u0635\u06cc \u062f\u0631 \u0632\u0645\u06cc\u0646\u0647 \u0645\u0627\u0644\u06cc\u0627\u062a \u0628\u0631 \u0627\u0631\u0632\u0634 \u0627\u0641\u0632\u0648\u062f\u0647\u060c \u0645\u0627\u0644\u06cc\u0627\u062a \u0628\u0631 \u062f\u0631\u0622\u0645\u0641 \u0648 \u0645\u0627\u0644\u06cc\u0627\u062a\u060c\u0647\u0627\u06cc \u0635\u0633\u062a\u0642\u06cc\u0645', icon: '\u2696\ufe0f' },
+  { title: '\u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u062d\u0641\u0647\u060c\u0627\u06cc', desc: '\u062e\u062f\u0645\u0627\u062a \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u06a9\u0627\u0645\u0644 \u0627\u0632 \u062b\u0628\u062a \u0627\u0633\u0646\u0627\u062f \u062a\u0627 \u062a\u0647\u06cc\u0647 \u06af\u0632\u0627\u0631\u0646\u0627\u0633\u0648\u0646\u0627\u062a \u0645\u0627\u0644\u06cc \u0648 \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc', icon: '\ud83d\udcca' },
+  { title: '\u062a\u0646\u0638\u06cc\u0645 \u0627\u0638\u0647\u0627\u0631\u0646\u0627\u0645\u0647', desc: '\u062a\u0647\u06cc\u0647 \u0648 \u0627\u0631\u0633\u0627\u0644 \u0627\u0638\u0647\u0627\u0631\u0646\u0627\u0645\u060c\u0647\u0627\u06cc \u0645\u0627\u0644\u06cc\u0627\u062a \u0628\u0627 \u062f\u0642\u062a \u0648 \u0633\u0631\u0639\u062a \u0628\u0627\u0644\u0627', icon: '\ud83d\udcdd' },
+  { title: '\u0622\u0645\u0648\u0632\u0634 \u062a\u062e\u0635\u0635\u06cc', desc: '\u062f\u0648\u0631\u0647\u060c\u0647\u0627 \u0648 \u0645\u0642\u0627\u0644\u0627\u062a \u0622\u0645\u0648\u0632\u0634\u06cc \u062f\u0631 \u0632\u0645\u06cc\u0646\u0647 \u0645\u0627\u0644\u06cc\u0627\u062a \u0648 \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc', icon: '\ud83c\udf93' },
 ];
 
 // ============================================
@@ -38,64 +38,64 @@ function TaxCalculatorTeaser() {
   const netAmount = amount - calculatedTax;
   
   const formatCurrency = (value: number) => {
-    return value.toLocaleString('fa-IR') + ' تومان';
+    return value.toLocaleString('fa-IR') + ' \u062a\u0648\u0645\u0627\u0646';
   };
 
   return (
     <div className="glass-gold rounded-2xl p-6 animate-reveal-up stagger-2">
       <div className="flex items-center gap-3 mb-4">
-        <div className="text-2xl">💰</div>
+        <div className="text-2xl">\ud83d\udcb0</div>
         <div>
-          <h3 className="text-lg font-bold text-white">محاسبه سریع مالیات</h3>
-          <p className="text-sm text-text-secondary">مبلغ تخمینی مالیات خود را محاسبه کنید</p>
+          <h3 className="text-lg font-bold text-white">\u0645\u062d\u0627\u0633\u0628\u0647 \u0633\u0631\u06cc\u0639 \u0645\u0627\u0644\u06cc\u0627\u062a</h3>
+          <p className="text-sm text-text-secondary">\u0645\u0628\u0644\u063a \u062a\u062e\u0635\u06cc\u0646\u06cc \u0645\u0627\u0644\u06cc\u0627\u062a \u062e\u0648\u062f \u0631\u0627 \u0645\u062d\u0627\u0633\u0628\u0647 \u06a9\u0646\u06cc\u062f</p>
         </div>
       </div>
       
       <div className="space-y-4">
         <div>
-          <label className="block text-xs text-text-secondary mb-1">مبلغ معامله</label>
+          <label className="block text-xs text-text-secondary mb-1">\u0645\u0628\u0644\u063a \u0645\u0639\u0627\u0645\u0644\u0647</label>
           <input
             type="number"
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value) || 0)}
-            className="w-full bg-background-tertiary border border-border-gold/30 rounded-xl p-3 text-white text-left dir='ltr' focus:outline-none focus:border-gold-400 transition-all"
-            placeholder="مبلغ به تومان"
+            className="w-full bg-background-tertiary border border-border-gold/30 rounded-xl p-3 text-white text-left dir='ltr' focus:outline-none focus:border-gold-primary transition-all"
+            placeholder="\u0645\u0628\u0644\u063a \u0628\u0647 \u062a\u0648\u0645\u0627\u0646"
           />
         </div>
         
         <div>
-          <label className="block text-xs text-text-secondary mb-1">نرخ مالیات (%)</label>
+          <label className="block text-xs text-text-secondary mb-1">\u0646\u0631\u062e \u0645\u0627\u0644\u06cc\u0627\u062a (%)</label>
           <input
             type="range"
             min="5"
             max="35"
             value={taxRate}
             onChange={(e) => setTaxRate(Number(e.target.value))}
-            className="w-full h-2 bg-background-tertiary rounded-lg appearance-none cursor-pointer accent-gold-400"
+            className="w-full h-2 bg-background-tertiary rounded-lg appearance-none cursor-pointer accent-gold-primary"
           />
           <div className="flex justify-between text-xs text-text-secondary mt-1">
-            <span>۵%</span>
-            <span className="font-bold text-gold-400">{taxRate}%</span>
-            <span>۳۵%</span>
+            <span>\u06f5%</span>
+            <span className="font-bold text-gold-primary">{taxRate}%</span>
+            <span>\u06f3\u06f5%</span>
           </div>
         </div>
         
         <div className="grid grid-cols-2 gap-3 pt-2">
           <div className="bg-background-secondary/50 rounded-xl p-3 text-center">
-            <div className="text-xs text-text-secondary">مالیات تخمینی</div>
-            <div className="text-lg font-bold text-gold-400">{formatCurrency(calculatedTax)}</div>
+            <div className="text-xs text-text-secondary">\u0645\u0627\u0644\u06cc\u0627\u062a \u062a\u062e\u0635\u06cc\u0646\u06cc</div>
+            <div className="text-lg font-bold text-gold-primary">{formatCurrency(calculatedTax)}</div>
           </div>
           <div className="bg-background-secondary/50 rounded-xl p-3 text-center">
-            <div className="text-xs text-text-secondary">خالص دریافتنی</div>
+            <div className="text-xs text-text-secondary">\u062e\u0627\u0644\u0635 \u062f\u0631\u06cc\u0627\u0641\u062a\u0646\u06cc</div>
             <div className="text-lg font-bold text-white">{formatCurrency(netAmount)}</div>
           </div>
         </div>
         
         <Link
           href="/consultation"
-          className="block w-full text-center bg-gradient-to-l from-gold-400 to-gold-500 text-background-primary py-3 rounded-xl font-bold hover:shadow-gold-md transition-all"
+          className="block w-full text-center bg-gradient-to-l from-gold-primary to-gold-500 text-background-primary py-3 rounded-xl font-bold hover:shadow-gold-md transition-all"
         >
-          مشاوره دقیق‌تر
+          \u0645\u0634\u0627\u0648\u0631\u0647 \u062f\u0642\u06cc\u0642\u062a\u0631
         </Link>
       </div>
     </div>
@@ -103,7 +103,8 @@ function TaxCalculatorTeaser() {
 }
 
 // ============================================
-// HomePage - Luxury Mobile-First Refactor
+// HomePage - Modern Black Gold Professional
+// Mobile-First, Premium Financial Institution
 // ============================================
 
 export default function HomePage() {
@@ -114,7 +115,7 @@ export default function HomePage() {
 
   return (
     <div className="bg-background-primary text-text-primary">
-      {/* Hero Section with Slider */}
+      {/* Hero Section with Slider - 10 second auto-play */}
       <HeroSlider />
 
       {/* Stats Section */}
@@ -124,28 +125,28 @@ export default function HomePage() {
           <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
             {/* Main Content */}
             <div className="reveal-up text-center lg:text-right">
-              <span className="inline-flex rounded-full border border-border-gold/40 bg-gold-900/10 px-4 py-2 text-xs font-bold text-gold-400 animate-fade-in">
-                آیان تراز؛ مشاوره، آموزش و عملیات مالیاتی
+              <span className="inline-flex rounded-full border border-border-gold/40 bg-gold-900/10 px-4 py-2 text-xs font-bold text-gold-primary animate-fade-in">
+                \u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632\u061b \u0645\u0634\u0627\u0648\u0631\u0647\u060c \u0622\u0645\u0648\u0632\u0634 \u0648 \u0639\u0645\u0644\u0648\u0645\u06cc\u0627\u062a \u0645\u0627\u0644\u06cc\u0627\u062a\u06cc
               </span>
               <h1 className="gold-sheen mt-6 text-3xl sm:text-4xl md:text-5xl font-black leading-tight lg:text-6xl">
-                مسیر حرفه‌ای مالیات و حسابداری
-                <span className="block md:inline">، آماده برای موبایل و دیپلوی پایدار</span>
+                \u0645\u0633\u06cc\u0631 \u062d\u0641\u0647\u060c\u0627\u06cc \u0645\u0627\u0644\u06cc\u0627\u062a \u0648 \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc
+                <span className="block md:inline">\u060c \u0622\u0645\u0627\u062f\u0647 \u0628\u0631\u0627\u06cc \u0645\u0648\u0628\u0627\u06cc\u0644 \u0648 \u062f\u06cc\u067e\u0644\u0648\u06cc \u067e\u0627\u06cc\u062f\u0627\u0631</span>
               </h1>
               <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-text-secondary lg:mx-0">
-                ثبت درخواست مشاوره بدون درگاه پرداخت، دانلود مینی‌بوک، محتوای آموزشی و چت‌بات پرسش و پاسخ در یک تجربه مشکی ـ طلایی مدرن و فارسی.
+                \u062b\u0628\u062a \u062f\u0631\u062e\u0648\u0627\u0633\u062a \u0645\u0634\u0627\u0648\u0631\u0647 \u0628\u062f\u0648\u0646 \u062f\u0631\u06af\u0627\u0647 \u067e\u0631\u062f\u0627\u062e\u062a\u060c \u062f\u0627\u0646\u0644\u0648\u0641 \u0645\u06cc\u0646\u06cc\u060c\u0628\u0648\u06a9\u060c \u062d\u0633\u0627\u0628\u062f\u0627\u0631\u06cc \u0648 \u0686\u062a\u060c\u0628\u0627\u062a \u067e\u0631\u0633\u0634 \u0648 \u067e\u0627\u0633\u062e \u062f\u0631 \u06cc\u06a9 \u062a\u062c\u0631\u0628\u0647 \u0645\u0634\u06a9\u06cc \u0640 \u0637\u0644\u0627\u06cc\u06cc \u0645\u062f\u0631\u0646 \u0648 \u0641\u0627\u0631\u0633\u06cc.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
                 <Link
                   href="/consultation"
                   className="btn-gold"
                 >
-                  شروع ثبت وقت مشاوره
+                  \u0634\u0631\u0648\u0639 \u062b\u0628\u062a \u0648\u0642\u062a \u0645\u0634\u0627\u0648\u0631\u0647
                 </Link>
                 <Link
                   href="/minibooks"
                   className="btn-outline-gold"
                 >
-                  دانلود مینی‌بوک‌ها
+                  \u062f\u0627\u0646\u0644\u0648\u062f \u0645\u06cc\u0646\u06cc\u060c\u0628\u0648\u06a9\u060c\u0647\u0627
                 </Link>
               </div>
             </div>
@@ -159,7 +160,7 @@ export default function HomePage() {
                     className="rounded-xl border border-border-gold/20 bg-background-secondary/50 p-4 md:p-5 transition-all duration-300 hover:border-border-gold/40 animate-fade-in-up"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <p className="text-xl md:text-2xl font-black text-gold-400">{item.value}</p>
+                    <p className="text-xl md:text-2xl font-black text-gold-primary">{item.value}</p>
                     <p className="mt-2 text-sm text-text-secondary">{item.label}</p>
                   </div>
                 ))}
@@ -178,14 +179,14 @@ export default function HomePage() {
       <section className="container-mobile py-10 md:py-12">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black text-white">خدمات تخصصی ما</h2>
-            <p className="mt-2 text-sm text-text-secondary">راهکارهای حرفه‌ای برای کسب‌وکار شما</p>
+            <h2 className="text-2xl font-black text-white">\u062e\u062f\u0645\u0627\u062a \u062a\u062e\u0635\u0635\u06cc \u0645\u0627</h2>
+            <p className="mt-2 text-sm text-text-secondary">\u0631\u0627\u0647\u06a9\u0627\u0631\u0647\u0627\u06cc \u062d\u0641\u0647\u060c\u0627\u06cc \u0628\u0631\u0627\u06cc \u06a9\u0633\u0628\u060c\u0648\u06a9\u0627\u0631 \u0634\u0645\u0627</p>
           </div>
           <Link 
             href="/services" 
-            className="hidden text-sm font-bold text-gold-400 hover:text-gold-300 transition-colors sm:block"
+            className="hidden text-sm font-bold text-gold-primary hover:text-gold-400 transition-colors sm:block"
           >
-            مشاهده همه خدمات
+            \u0645\u0634\u0627\u0647\u062f\u0647 \u0647\u0645\u0647 \u062e\u062f\u0645\u0627\u062a
           </Link>
         </div>
         
@@ -202,10 +203,10 @@ export default function HomePage() {
               <p className="text-sm text-text-secondary leading-relaxed">{service.desc}</p>
               <Link
                 href="/consultation"
-                className="inline-flex items-center gap-1 mt-4 text-gold-400 hover:text-gold-300 text-sm font-medium transition-colors"
+                className="inline-flex items-center gap-1 mt-4 text-gold-primary hover:text-gold-400 text-sm font-medium transition-colors"
               >
-                بیشتر بدانید
-                <span>→</span>
+                \u0628\u06cc\u0634\u062a\u0631 \u0628\u062f\u0627\u0646\u06cc\u062f
+                <span>\u2192</span>
               </Link>
             </div>
           ))}
@@ -216,14 +217,14 @@ export default function HomePage() {
       <section className="container-mobile py-10 md:py-12">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black text-white">دسترسی سریع عملیاتی</h2>
-            <p className="mt-2 text-sm text-text-secondary">تمام مسیرهای اصلی محصول از صفحه اول قابل دسترس هستند.</p>
+            <h2 className="text-2xl font-black text-white">\u062f\u0633\u062a\u0631\u0633\u06cc \u0633\u0631\u06cc\u0639 \u0639\u0644\u0644\u06cc\u0627\u062a\u06cc</h2>
+            <p className="mt-2 text-sm text-text-secondary">\u062a\u0645\u0627\u0645 \u0633\u0631\u06cc\u0639\u0647\u0627\u06cc \u0627\u0635\u0644\u06cc \u0645\u062d\u0635\u0648\u0644 \u0627\u0632 \u0635\u0641\u062d\u0647 \u0627\u0648\u0644 \u0642\u0627\u0628\u0644 \u062f\u0633\u062a\u0644\u0644 \u0647\u0633\u062a\u0646\u062f.</p>
           </div>
           <Link 
             href="/services" 
-            className="hidden text-sm font-bold text-gold-400 hover:text-gold-300 transition-colors sm:block"
+            className="hidden text-sm font-bold text-gold-primary hover:text-gold-400 transition-colors sm:block"
           >
-            مشاهده خدمات
+            \u0645\u0634\u0627\u0647\u062f\u0647 \u062e\u062f\u0645\u0627\u062a
           </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -235,10 +236,10 @@ export default function HomePage() {
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="text-2xl mb-2">{item.icon}</div>
-              <h3 className="text-lg font-black text-white group-hover:text-gold-400 transition-colors">{item.title}</h3>
+              <h3 className="text-lg font-black text-white group-hover:text-gold-primary transition-colors">{item.title}</h3>
               <p className="mt-3 text-sm leading-7 text-text-secondary flex-1">{item.desc}</p>
-              <span className="mt-4 inline-block text-gold-400 text-xl transform group-hover:translate-x-1 transition-transform duration-200">
-                →
+              <span className="mt-4 inline-block text-gold-primary text-xl transform group-hover:translate-x-1 transition-transform duration-200">
+                \u2192
               </span>
             </Link>
           ))}
@@ -249,23 +250,23 @@ export default function HomePage() {
       <section className="container-mobile pb-16 md:pb-20">
         <div className="rounded-2xl bg-gradient-to-r from-gold-900/10 to-gold-700/10 border border-border-gold/30 p-8 md:p-12 text-center animate-reveal-up">
           <h2 className="text-2xl md:text-3xl font-black text-white mb-4">
-            آماده شروع هستید؟
+            \u0622\u0645\u0627\u062f\u0647 \u0634\u0631\u0648\u0639 \u0647\u0633\u062a\u06cc\u062f\u061f
           </h2>
           <p className="text-text-secondary mb-8 max-w-2xl mx-auto">
-            با تیم متخصص آیان تراز در ارتباط باشید و از خدمات حرفه‌ای ما بهره‌مند شوید.
+            \u0628\u0627 \u062a\u06cc\u0645 \u0645\u062a\u062e\u0635\u0635 \u0622\u06cc\u0627\u0646 \u062a\u0631\u0627\u0632 \u062f\u0631 \u0627\u0631\u062a\u0628\u0627\u0637 \u0628\u0634\u06cc\u062f \u0648 \u0627\u0632 \u062e\u062f\u0645\u0627\u062a \u062d\u0641\u0647\u060c\u0627\u06cc \u0645\u0627 \u0628\u0647\u0631\u0647\u06cc\u0646 \u0634\u0648\u06cc\u062f.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/consultation"
               className="btn-gold"
             >
-              دریافت مشاوره
+              \u062f\u0631\u06cc\u0627\u0641\u062a \u0645\u0634\u0627\u0648\u0631\u0647
             </Link>
             <Link
               href="/contact"
               className="btn-outline-gold"
             >
-              تماس با ما
+              \u062a\u0645\u0627\u0633 \u0628\u0627 \u0645\u0627
             </Link>
           </div>
         </div>
