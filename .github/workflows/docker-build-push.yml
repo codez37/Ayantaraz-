@@ -34,6 +34,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      # این بخش به صورت موقت نام ریپازیتوری شما را برای داکر کوچک می‌کند
+      - name: Lowercase Repository Name for Docker
+        id: repo-name
+        run: |
+          echo "LOW_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -49,7 +55,8 @@ jobs:
         id: meta-api
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}
+          # اینجا از نسخه تبدیل‌شده استفاده می‌شود تا داکر ایراد نگیرد
+          images: ${{ env.REGISTRY }}/${{ env.LOW_REPO }}/api
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -61,7 +68,8 @@ jobs:
         id: meta-web
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_WEB }}
+          # اینجا از نسخه تبدیل‌شده استفاده می‌شود تا داکر ایراد نگیرد
+          images: ${{ env.REGISTRY }}/${{ env.LOW_REPO }}/web
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -101,7 +109,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}
+          subject-name: ${{ env.REGISTRY }}/${{ env.LOW_REPO }}/api
           subject-digest: ${{ steps.build-api.outputs.digest }}
           push-to-registry: true
 
@@ -109,7 +117,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_WEB }}
+          subject-name: ${{ env.REGISTRY }}/${{ env.LOW_REPO }}/web
           subject-digest: ${{ steps.build-web.outputs.digest }}
           push-to-registry: true
 
