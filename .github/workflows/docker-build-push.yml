@@ -13,7 +13,6 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  # اصلاح نام ایمیج برای جلوگیری از ایجاد کاراکتر یا اسلش اضافی
   IMAGE_NAME_API: codez37/ayantaraz/api
   IMAGE_NAME_WEB: codez37/ayantaraz/web
 
