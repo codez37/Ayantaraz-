@@ -1,3 +1,4 @@
+import * as os from 'os';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -60,12 +61,13 @@ export class HealthService {
     }
 
     const memoryUsage = process.memoryUsage();
-    memoryTotal = memoryUsage.heapTotal || 1;
-    memoryUsed = memoryUsage.heapUsed || 0;
-    const usagePercent = (memoryUsed / memoryTotal) * 100;
-    if (usagePercent > 90) memoryStatus = 'critical';
-    else if (usagePercent > 70) memoryStatus = 'warning';
-    memoryUsagePercent = parseFloat(usagePercent.toFixed(2));
+
+      memoryUsed = memoryUsage.rss || 0;
+      memoryTotal = os.totalmem();
+      const usagePercent = (memoryUsed / memoryTotal) * 100;
+      if (usagePercent > 90) memoryStatus = 'critical';
+      else if (usagePercent > 70) memoryStatus = 'warning';
+      memoryUsagePercent = parseFloat(usagePercent.toFixed(2));
 
     const checks = {
       database: { status: databaseStatus, responseTime: databaseResponseTime },
